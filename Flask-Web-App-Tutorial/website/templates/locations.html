@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+<!--Form to add a new location-->
+{% block content %}
+<form method="POST" class="row g-3">
+    <div class="col-md-6">
+        <label for="address" class="form-label">Address</label>
+        <input type="text" class="form-control" id="address" name="address" required>
+        <div class="invalid-feedback">
+          Please provide a valid city.
+        </div>
+      </div>
+    <div class="col-md-6">
+        <label for="city" class="form-label">City</label>
+        <input type="text" class="form-control" id="city" name="city" required>
+        <div class="invalid-feedback">
+          Please provide a valid city.
+        </div>
+      </div>
+      <div class="col-md-12">
+        <label for="state" class="form-label">State</label>
+        <select class="form-select" id="state" name="state" required>
+          <option selected disabled value="">Choose...</option>
+          <option>Florida</option>
+        </select>
+        <div class="invalid-feedback">
+          Please select a valid state.
+        </div>
+      </div>
+      <div class="col-md-3">
+        <label for="zipCode" class="form-label">Zip</label>
+        <input type="text" class="form-control" id="zipCode" name="zipCode" required>
+        <div class="invalid-feedback">
+          Please provide a valid zip.
+        </div>
+      </div>
+      <div class="col-12">
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" value="" id="invalidCheck" required>
+          <label class="form-check-label" for="invalidCheck">
+            Agree to terms and conditions
+          </label>
+          <div class="invalid-feedback">
+            You must agree before submitting.
+          </div>
+        </div>
+      </div>
+      <div class="col-12">
+        <button class="btn btn-primary" type="submit">Submit form</button>
+    </div>
+</form>
+{% endblock %}
