@@ -13,7 +13,7 @@
         {% for location in locations %}
         <tr>
         <th scope="row">{{ location.id }}</th>
-        <td id="location">{{ location.address }}</td>
+        <td id="location">{{ location.address }} {{ location.city }}, {{ location.state }} {{ location.zip }}</td>
         <td>TODO</td>
         </tr>
         {% endfor %}
