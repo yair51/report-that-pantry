@@ -10,21 +10,13 @@
         </tr>
     </thead>
     <tbody>
+        {% for location in locations %}
         <tr>
-        <th scope="row">1</th>
-        <td id="location">Mark</td>
-        <td>24</td>
+        <th scope="row">{{ location.id }}</th>
+        <td id="location">{{ location.address }}</td>
+        <td>TODO</td>
         </tr>
-        <tr>
-        <th scope="row">2</th>
-        <td>Jacob</td>
-        <td>14</td>
-        </tr>
-        <tr>
-        <th scope="row">3</th>
-        <td>Larry the Bird</td>
-        <td>45</td>
-        </tr>
+        {% endfor %}
     </tbody>
     </table>
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/js/bootstrap.bundle.min.js" integrity="sha384-ygbV9kiqUc6oa4msXn9868pTtWMgiQaeYH7/t7LECLbyPA2x65Kgf80OJFdroafW" crossorigin="anonymous"></script>

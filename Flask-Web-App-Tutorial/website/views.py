@@ -10,6 +10,7 @@ views = Blueprint('views', __name__)
 @views.route('/', methods=['GET', 'POST'])
 @views.route('/index')
 def home():
+    locations = Location.query.all()
     # if request.method == 'POST':
     #     note = request.form.get('note')
     #     if len(note) < 1:
@@ -20,7 +21,7 @@ def home():
     #         db.session.commit()
     #         flash('Note added!', category='success')
 
-    return render_template("index.html", user=current_user)
+    return render_template("index.html", user=current_user, locations=locations)
 
 @views.route('/about')
 def about():
@@ -45,6 +46,9 @@ def locations():
             db.session.add(new_location)
             db.session.commit()
             flash('Location added.', category='success')
+            locations = Location.query.all()
+            for place in locations:
+                print(place.address)
             # sends user back to home page after new location is created
             return redirect(url_for('views.home'))
     return render_template("locations.html", user=current_user)
