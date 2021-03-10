@@ -15,6 +15,9 @@
         <th scope="row">{{ location.id }}</th>
         <td id="location">{{ location.address }} {{ location.city }}, {{ location.state }} {{ location.zip }}</td>
         <td>TODO</td>
+        <td><button method="POST" type="button" class="close" id="deleteButton" onClick="deleteLocation({{ location.id }})">
+            <span aria-hidden="true">&times;</span>
+        </button></td>
         </tr>
         {% endfor %}
     </tbody>

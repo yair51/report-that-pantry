@@ -11,6 +11,7 @@ views = Blueprint('views', __name__)
 @views.route('/index')
 def home():
     locations = Location.query.all()
+    # counts the number of locations to send to index.html
     # if request.method == 'POST':
     #     note = request.form.get('note')
     #     if len(note) < 1:
@@ -46,22 +47,23 @@ def locations():
             db.session.add(new_location)
             db.session.commit()
             flash('Location added.', category='success')
-            locations = Location.query.all()
-            for place in locations:
-                print(place.address)
+            # locations = Location.query.all()
+            # for place in locations:
+            #     print(place.address)
             # sends user back to home page after new location is created
             return redirect(url_for('views.home'))
     return render_template("locations.html", user=current_user)
 
 
-@views.route('/delete-note', methods=['POST'])
-def delete_note():
-    note = json.loads(request.data)
-    noteId = note['noteId']
-    note = Note.query.get(noteId)
-    if note:
-        if note.user_id == current_user.id:
-            db.session.delete(note)
-            db.session.commit()
+@views.route('/delete-location', methods=['POST'])
+def delete_location():
+    print("delete-location")
+    location = json.loads(request.data)
+    locationId = location['locationId']
+    location = Location.query.get(locationId)
+    if location:
+        #if note.user_id == current_user.id:
+        db.session.delete(location)
+        db.session.commit()
 
     return jsonify({})
