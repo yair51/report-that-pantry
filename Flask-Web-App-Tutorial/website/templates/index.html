@@ -15,9 +15,13 @@
         <th scope="row">{{ location.id }}</th>
         <td id="location">{{ location.address }} {{ location.city }}, {{ location.state }} {{ location.zip }}</td>
         <td>TODO</td>
+        {% if user.is_authenticated %}
+        <a href=""></a>
+        <td><button type="button" class="btn btn-link"><a href="/locations/{{ location.id }}">Edit</a></button></td>
         <td><button method="POST" type="button" class="close" id="deleteButton" onClick="deleteLocation({{ location.id }})">
             <span aria-hidden="true">&times;</span>
         </button></td>
+        {% endif %}
         </tr>
         {% endfor %}
     </tbody>

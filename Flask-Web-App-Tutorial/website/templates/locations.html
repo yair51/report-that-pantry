@@ -4,14 +4,15 @@
 <form method="POST" class="row g-3">
     <div class="col-md-6">
         <label for="address" class="form-label">Address</label>
-        <input type="text" class="form-control" id="address" name="address" required>
+        <input type="text" class="form-control" id="address" name="address" {% if editing %}value="{{ location.address }}"{% endif %} required>
         <div class="invalid-feedback">
           Please provide a valid city.
         </div>
       </div>
     <div class="col-md-6">
         <label for="city" class="form-label">City</label>
-        <input type="text" class="form-control" id="city" name="city" required>
+        <input type="text" class="form-control" id="city" name="city" {% if editing %}value="{{ location.city }}"{% endif %} required>
+    </br>
         <div class="invalid-feedback">
           Please provide a valid city.
         </div>
@@ -20,7 +21,7 @@
         <label for="state" class="form-label">State</label>
         <select class="form-select" id="state" name="state" required>
           <option selected disabled value="">Choose...</option>
-          <option>Florida</option>
+          <option {% if editing %}selected{% endif %}>Florida</option>
         </select>
         <div class="invalid-feedback">
           Please select a valid state.
@@ -28,23 +29,20 @@
       </div>
       <div class="col-md-3">
         <label for="zipCode" class="form-label">Zip</label>
-        <input type="text" class="form-control" id="zipCode" name="zipCode" required>
+        <input type="text" class="form-control" id="zipCode" name="zipCode" {% if editing %}value="{{ location.zip }}"{% endif %} required>
         <div class="invalid-feedback">
           Please provide a valid zip.
         </div>
       </div>
       <div class="col-12">
         <div class="form-check">
-          <input class="form-check-input" type="checkbox" value="" id="invalidCheck" required>
-          <label class="form-check-label" for="invalidCheck">
-            Agree to terms and conditions
-          </label>
           <div class="invalid-feedback">
             You must agree before submitting.
           </div>
         </div>
       </div>
       <div class="col-12">
+      </br>
         <button class="btn btn-primary" type="submit">Submit form</button>
     </div>
 </form>

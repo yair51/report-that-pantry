@@ -29,30 +29,49 @@ def about():
     return render_template("about.html", user=current_user)
 
 @views.route('/locations', methods=['GET', 'POST'])
-def locations():
+@views.route('/locations/<int:id>', methods=['GET', 'POST'])
+def locations(id=0):
+    editing = False
+    location = Location.query.get(id)
+    if id != 0:
+        # sets editing to true if the post is being editing
+        editing = True
     if request.method == 'POST':
         address = request.form.get('address')
         city = request.form.get('city')
         state = request.form.get('state')
         zip = request.form.get('zipCode')
-        # checks if the location exists
-        location = Location.query.filter_by(address=address).first()
-        if location:
-            flash('Address already exists.', category='error')
-            return redirect(url_for('views.locations'))
-        else:
-            # create a location with the following information
-            new_location = Location(address=address, city=city, state=state, zip=zip)
-            # adds the location to the database
-            db.session.add(new_location)
+        # if editing changes, reset all fields of the location to the current values
+        if id != 0:
+            location.address = address
+            location.city = city
+            location.state = state
+            location.zip = zip
             db.session.commit()
-            flash('Location added.', category='success')
-            # locations = Location.query.all()
-            # for place in locations:
-            #     print(place.address)
-            # sends user back to home page after new location is created
-            return redirect(url_for('views.home'))
-    return render_template("locations.html", user=current_user)
+            flash('Location edited.', category='success')
+        else:
+            # checks if the location exists
+            location = Location.query.filter_by(address=address).first()
+            if location:
+                flash('Address already exists.', category='error')
+                return redirect(url_for('views.locations'))
+            else:
+                # create a location with the following information
+                new_location = Location(address=address, city=city, state=state, zip=zip)
+                # adds the location to the database
+                db.session.add(new_location)
+                db.session.commit()
+                flash('Location added.', category='success')
+                # locations = Location.query.all()
+                # for place in locations:
+                #     print(place.address)
+                # sends user back to home page after new location is created
+        return redirect(url_for('views.home'))
+    return render_template("locations.html", user=current_user, editing=editing, location=location)
+
+    # @views.route('/edit', methods=['GET','POST'])
+    # def edit():
+    #     return render_template("locations.html", user=current_user)
 
 
 @views.route('/delete-location', methods=['POST'])
