@@ -10,18 +10,18 @@ views = Blueprint('views', __name__)
 @views.route('/', methods=['GET', 'POST'])
 @views.route('/index')
 def home():
+    # queries all of the locations
     locations = Location.query.all()
-    # counts the number of locations to send to index.html
-    # if request.method == 'POST':
-    #     note = request.form.get('note')
-    #     if len(note) < 1:
-    #         flash('Note is too short!', category='error')
-    #     else:
-    #         new_note = Note(data=note, user_id=current_user.id)
-    #         db.session.add(new_note)
-    #         db.session.commit()
-    #         flash('Note added!', category='success')
-
+    # loops through all locations
+    for location in locations:
+        # takes the value from the url key 'weight' + location's id
+        weight = request.args.get('weight' + str(location.id))
+        # changes the location's weight if the weight param exists in the url
+        if weight:
+            location.weight = weight
+    # changes the value of the weight in the database and on screen
+    db.session.commit()
+    #return render_template("index.html", user=current_user, locations=locations, weight=weight)
     return render_template("index.html", user=current_user, locations=locations)
 
 @views.route('/about')
@@ -57,7 +57,7 @@ def locations(id=0):
                 return redirect(url_for('views.locations'))
             else:
                 # create a location with the following information
-                new_location = Location(address=address, city=city, state=state, zip=zip)
+                new_location = Location(address=address, city=city, state=state, zip=zip, weight=0)
                 # adds the location to the database
                 db.session.add(new_location)
                 db.session.commit()
