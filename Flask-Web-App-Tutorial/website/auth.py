@@ -42,6 +42,7 @@ def sign_up():
         first_name = request.form.get('firstName')
         password1 = request.form.get('password1')
         password2 = request.form.get('password2')
+        authorization = request.form.get('authorization')
 
         user = User.query.filter_by(email=email).first()
         if user:
@@ -54,6 +55,8 @@ def sign_up():
             flash('Passwords don\'t match.', category='error')
         elif len(password1) < 7:
             flash('Password must be at least 7 characters.', category='error')
+        elif authorization != '123':
+            flash('Invalid authorization', category='error')
         else:
             new_user = User(email=email, first_name=first_name, password=generate_password_hash(
                 password1, method='sha256'))
