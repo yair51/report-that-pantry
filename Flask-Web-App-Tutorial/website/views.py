@@ -84,5 +84,11 @@ def delete_location():
         #if note.user_id == current_user.id:
         db.session.delete(location)
         db.session.commit()
+        count = 1
+        locations = Location.query.all()
+        for location in locations:
+            location.id = count
+            count += 1
+        db.session.commit()
 
     return jsonify({})
