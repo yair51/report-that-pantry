@@ -1,0 +1,6 @@
+{% extends "base.html" %}
+{% block content %}
+    {% for location in locations %}
+    <p>{{location.address}}</p>
+    {% endfor %}
+{% endblock %}

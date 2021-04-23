@@ -9,3 +9,7 @@ function deleteLocation(locationId) {
     });
   }
 }
+
+function redirectHome() {
+  location.href = "/";
+}

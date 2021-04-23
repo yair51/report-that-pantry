@@ -92,3 +92,21 @@ def delete_location():
         db.session.commit()
 
     return jsonify({})
+
+@views.route('/report/<int:id>')
+def report(id):
+    location = Location.query.get(id)
+    # for i in range(1, 11):
+    #     # takes the value from the url key 'weight' + location's id
+    #     status = request.args.get('status' + str(i))
+    #     # changes the location's weight if the weight param exists in the url
+    status = request.args.get('status')
+    if status:
+        location.status = status
+    db.session.commit()
+    return render_template("report.html", user=current_user)
+
+@views.route('/status')
+def status():
+    locations = Location.query.all()
+    return render_template("status.html", user=current_user, title="Status", locations=locations)

@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block content %}
+<p>1=empty, 10=full</p>
+<form>
+    {% for i in range(1,11) %}
+    <input type="radio" id="status{{i}}" name="status" value="{{i}}">
+    <label for="status">{{i}}</label>
+    <br>
+    {% endfor %}
+    <input type="submit" value="Submit" onclick="window.location='/'">
+</form>
+{% endblock %}
