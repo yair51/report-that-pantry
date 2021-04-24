@@ -1,1 +1,1 @@
-web: gunicorn main:fau_website_2
+web: gunicorn app:main
