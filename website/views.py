@@ -60,6 +60,10 @@ def locations(id=0):
                 new_location = Location(address=address, city=city, state=state, zip=zip, weight=0)
                 # adds the location to the database
                 db.session.add(new_location)
+                # resets the ids
+                locations = Location.query.all()
+                for count, location in enumerate(locations, start=1):
+                    location.id = count
                 db.session.commit()
                 flash('Location added.', category='success')
                 # locations = Location.query.all()

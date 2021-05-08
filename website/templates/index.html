@@ -7,6 +7,8 @@
         <th scope="col">#</th>
         <th scope="col">Location</th>
         <th scope="col">Status</th>
+        <th scope="col">Weight</th>
+
         </tr>
     </thead>
     <tbody>
@@ -15,6 +17,7 @@
         <th scope="row">{{ location.id }}</th>
         <td id="location">{{ location.address }} {{ location.city }}, {{ location.state }} {{ location.zip }}</td>
         <td>{{ location.status }}</td>
+        <td>{{ location.weight }}</td>
         {% if user.is_authenticated %}
         <a href=""></a>
         <td><button type="button" class="btn btn-link"><a href="/locations/{{ location.id }}">Edit</a></button></td>
