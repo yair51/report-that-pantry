@@ -11,7 +11,13 @@ DB_NAME = "database.db"
 
 def create_app():
     app = Flask(__name__)
-    env_config = Config #getenv("APP_SETTINGS", "DevelopmentConfig")
+    # sets development/production enviornment
+    #env_config = DevelopmentConfig
+    env_config = getenv("APP_SETTINGS", "DevelopmentConfig")
+    if env_config == 'Config':
+        env_config = Config
+    else:
+        env_config = DevelopmentConfig
     print(env_config)
     app.config.from_object(env_config)
     # app.config['SECRET_KEY'] = 'hjshjhdjah kjshkjdhjs'
