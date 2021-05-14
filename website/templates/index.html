@@ -1,37 +1,54 @@
 {% extends "base.html" %}
 {% block content %}
     <!-- Table -->
-    <table class="table">
-    <thead>
-        <tr>
-        <th scope="col">#</th>
-        <th scope="col">Location</th>
-        <th scope="col">Status</th>
-        <th scope="col">Weight</th>
+    <div class="container text-center">
+        <h2>Locations</h2>
+    </div>
+    <div class="container">
+        <table class="table table-striped table-dark table-hover">
+        <thead>
+            <tr>
+            <th scope="col">#</th>
+            <th scope="col">Location</th>
+            <th scope="col">Status</th>
+            <th scope="col">Weight</th>
 
-        </tr>
-    </thead>
-    <tbody>
-        {% for location in locations %}
-        <tr>
-        <th scope="row">{{ location.id }}</th>
-        <td id="location">{{ location.address }} {{ location.city }}, {{ location.state }} {{ location.zip }}</td>
-        <td>{{ location.status }}</td>
-        <td>{{ location.weight }}</td>
-        {% if user.is_authenticated %}
-        <a href=""></a>
-        <td><button type="button" class="btn btn-link"><a href="/locations/{{ location.id }}">Edit</a></button></td>
-        <td><button method="POST" type="button" class="close" id="deleteButton" onClick="deleteLocation({{ location.id }})">
-            <span aria-hidden="true">&times;</span>
-        </button></td>
-        {% endif %}
-        </tr>
-        {% endfor %}
-    </tbody>
-    </table>
-        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/js/bootstrap.bundle.min.js" integrity="sha384-ygbV9kiqUc6oa4msXn9868pTtWMgiQaeYH7/t7LECLbyPA2x65Kgf80OJFdroafW" crossorigin="anonymous"></script>
-        <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js" integrity="sha384-q2kxQ16AaE6UbzuKqyBE9/u/KzioAlnx2maXQHiDX9d4/zp8Ok3f+M7DPm+Ib6IU" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/js/bootstrap.min.js" integrity="sha384-pQQkAEnwaBkjpqZ8RU1fF1AKtTcHJwFl3pblpTlHXybJjHpMYo79HY3hIi4NKxyj" crossorigin="anonymous"></script>
+            </tr>
+        </thead>
+        <tbody>
+            {% for location in locations %}
+            <tr>
+            <th scope="row">{{ location.id }}</th>
+            <td id="location">{{ location.address }} {{ location.city }}, {{ location.state }} {{ location.zip }}</td>
+            <td class="alert{% if location.status == 'Full' %}-success{% elif location.status == 'Half Full' %}-warning{% else %}-danger{% endif %}">{{ location.status }}</td>
+            <td>{{ location.weight }}</td>
+            {% if user.is_authenticated %}
+            <a href=""></a>
+            <td><button type="button" class="btn btn-link"><a href="/locations/{{ location.id }}">Edit</a></button></td>
+            <td><button method="POST" type="button" class="btn btn-danger btn-close" id="deleteButton" onClick="deleteLocation({{ location.id }})">
+                <span aria-hidden="true">&times;</span>
+            </button></td>
+            {% endif %}
+            </tr>
+            {% endfor %}
+        </tbody>
+        </table>
+    </div>
+    <div class="container text-center">
+        <h2>Map</h2>
+    </div>
+    <iframe src="https://www.google.com/maps/d/embed?mid=1SdZZfiYEgTG-KAbHRO4KQSTW-SL2RQ-i" width="640" height="480" style="display: block; margin: auto;"></iframe>
+    <div class="container">
+        <p>Hello</p>
+        <p>Hello</p>
+        <p>Hello</p>
+        <p>Hello</p>
+        <p>Hello</p>
+        <p>Hello</p>
+    </div>
+    <!-- <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/js/bootstrap.bundle.min.js" integrity="sha384-ygbV9kiqUc6oa4msXn9868pTtWMgiQaeYH7/t7LECLbyPA2x65Kgf80OJFdroafW" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js" integrity="sha384-q2kxQ16AaE6UbzuKqyBE9/u/KzioAlnx2maXQHiDX9d4/zp8Ok3f+M7DPm+Ib6IU" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/js/bootstrap.min.js" integrity="sha384-pQQkAEnwaBkjpqZ8RU1fF1AKtTcHJwFl3pblpTlHXybJjHpMYo79HY3hIi4NKxyj" crossorigin="anonymous"></script> -->
     </body>
     </html>
 {% endblock %}

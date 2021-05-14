@@ -30,11 +30,11 @@ def home(id=0):
         if weight:
             location.weight = weight
             db.session.commit()
-    return render_template("index.html", user=current_user, locations=locations)
+    return render_template("index.html", user=current_user, locations=locations, title="Home")
 
 @views.route('/about')
 def about():
-    return render_template("about.html", user=current_user)
+    return render_template("about.html", user=current_user, title="About Us")
 
 @views.route('/locations', methods=['GET', 'POST'])
 @views.route('/locations/<int:id>', methods=['GET', 'POST'])
@@ -79,7 +79,7 @@ def locations(id=0):
                 #     print(place.address)
                 # sends user back to home page after new location is created
         return redirect(url_for('views.home'))
-    return render_template("locations.html", user=current_user, editing=editing, location=location)
+    return render_template("locations.html", user=current_user, editing=editing, location=location, title="Locations")
 
     # @views.route('/edit', methods=['GET','POST'])
     # def edit():
@@ -116,7 +116,7 @@ def report(id):
     if status:
         location.status = status
     db.session.commit()
-    return render_template("report.html", user=current_user)
+    return render_template("report.html", user=current_user, title="Report")
 
 @views.route('/status')
 def status():

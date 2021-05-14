@@ -15,9 +15,10 @@
       crossorigin="anonymous"
     />
     <link rel="icon" href="data:;base64,iVBORw0KGgo=">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 
 
-    <title>{% block title %}Home{% endblock %}</title>
+    <title>{% block title %}{{title}}{% endblock %}</title>
     <!-- Global site tag (gtag.js) - Google Analytics -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-DQN0CT53NR"></script>
   <script>
@@ -29,7 +30,7 @@
   </script>
   </head>
   <body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <nav class="navbar navbar-expand-lg navbar-dark" style="background-color: rgb(95, 95, 148);">
       <button
         class="navbar-toggler"
         type="button"
@@ -41,16 +42,16 @@
       <div class="collapse navbar-collapse" id="navbar">
         <div class="navbar-nav">
 
-          <a class="nav-item nav-link" id="home" href="/">Home</a>
-          <a class="nav-item nav-link" id="locations" href="/about">About Us</a>
+          <a class="nav-item nav-link {% if title == 'Home' %}active{% endif %}" id="home" href="/">Home</a>
+          <a class="nav-item nav-link {% if title == 'About Us' %}active{% endif %}" id="locations" href="/about">About Us</a>
           {% if user.is_authenticated %}
-          <a class="nav-item nav-link" id="locations" href="/locations">Add Locations</a>
-          <a class="nav-item nav-link" id="logout" href="/logout">Logout</a>
+          <a class="nav-item nav-link {% if title == 'Locations' %}active{% endif %}" id="locations" href="/locations">Add Locations</a>
+          <a class="nav-item nav-link {% if title == 'Logout' %}active{% endif %}" id="logout" href="/logout">Logout</a>
           {% else %}
-          <a class="nav-item nav-link" id="login" href="/login">Login</a>
-          <a class="nav-item nav-link" id="signUp" href="/sign-up">Sign Up</a>
+          <a class="nav-item nav-link {% if title == 'Login' %}active{% endif %}" id="login" href="/login">Login</a>
+          <a class="nav-item nav-link {% if title == 'Sign Up' %}active{% endif %}" id="signUp" href="/sign-up">Sign Up</a>
           {% endif %}
-          <a class="nav-item nav-link" id="report" href="/report/1">Report</a>
+          <a class="nav-item nav-link {% if title == 'Report' %}active{% endif %}" id="report" href="/report/1">Report</a>
         </div>
       </div>
     </nav>
@@ -72,8 +73,32 @@
       </button>
     </div>
     {% endif %} {% endfor %} {% endif %} {% endwith %}
-
-    <div class="container">{% block content %} {% endblock %}</div>
+    <div class="jumbotron text-center">
+      <h1>{% if title == "Home" %}TLC Litte Free Pantry{% else %}{{ title }}{% endif %}</h1>
+    </div>
+    <div>{% block content %} {% endblock %}</div>
+    {% if title == "Home" or title == "About Us" %}
+    <div class="jumbotron text-center" style="margin-bottom:0; background-color: #b8b827;">
+      <div class="row">
+        <div class="col">
+        <!-- <p style="color: white;">footer</p> -->
+          <a href="https://www.dkja.net/" target="_blank">
+              <img src="{{ url_for('static', filename='dkja.jpg') }}" alt="Donna Klein Jewish Academy" class="rounded">
+          </a>
+        </div>
+        <div class="col">
+          <a href="https://btcboca.org/" target="_blank">
+          <img src="{{ url_for('static', filename='bnaitorah.jpg') }}" alt="B'nai Torah Congregation" height="200" class="rounded">
+        </a>
+        </div>
+        <div class="col">
+          <a href="https://www.fau.edu/isense/" target="_blank">
+          <img src="{{ url_for('static', filename='fau_isense.jpg') }}" alt="FAU I-SENSE" height="200" class="rounded">
+        </a>
+        </div>
+      </div>
+    </div>
+    {% endif %}
     <script
       src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
       integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
