@@ -1,4 +1,8 @@
+body {
+    font-family: 'Roboto', sans-serif;
+}
+
 .jumbotron {
     color:white;
-    background-color: #b8b827;
+    background-color: #2B4E72;
 }

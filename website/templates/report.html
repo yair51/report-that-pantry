@@ -6,11 +6,13 @@
     <label for="status">{{i}}</label>
     <br>
     {% endfor %} -->
-    <input type="submit" value="Submit" onclick="window.location='/'">
-    <input type="submit" name="status" value="Empty" class="btn btn-danger">
-    <input type="submit" name="status" value="Half Full" class="btn btn-warning">
-    <input type="submit" name="status" value="Full" class="btn btn-success">
-
+    <h2 class="text-center">Estimate the amount of food in the pantry:</h2>
+    <div class="container text-center">
+        <div><input type="submit" value="Submit" onclick="window.location='/'" class="block" style="margin-bottom: 20px;"></div>
+        <div><input type="submit" name="status" value="Empty" class="btn btn-danger btn-block" style="margin-bottom: 20px;"></div>
+        <div><input type="submit" name="status" value="Half Full" class="btn btn-warning btn-block" style="margin-bottom: 20px;"></div>
+        <div><input type="submit" name="status" value="Full" class="btn btn-success btn-block"></div>
+    </div>
 
 </form>
 {% endblock %}

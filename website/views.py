@@ -105,6 +105,7 @@ def delete_location():
 
     return jsonify({})
 
+@views.route('report/<int:id>/')
 @views.route('/report/<int:id>')
 def report(id):
     location = Location.query.get(id)
