@@ -25,3 +25,4 @@ class Location(db.Model, UserMixin):
     zip = db.Column(db.Integer)
     weight = db.Column(db.Integer)
     status = db.Column(db.Integer)
+    status2 = db.Column(db.String(150))

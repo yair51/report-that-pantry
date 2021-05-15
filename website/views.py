@@ -114,7 +114,7 @@ def report(id):
     #     # changes the location's weight if the weight param exists in the url
     status = request.args.get('status')
     if status:
-        location.status = status
+        location.status2 = status
     db.session.commit()
     return render_template("report.html", user=current_user, title="Report")
 

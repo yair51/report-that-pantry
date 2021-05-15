@@ -20,7 +20,7 @@
             <tr>
             <th scope="row">{{ location.id }}</th>
             <td id="location">{{ location.address }} {{ location.city }}, {{ location.state }} {{ location.zip }}</td>
-            <td class="alert{% if location.status == 'Full' %}-success{% elif location.status == 'Half Full' %}-warning{% else %}-danger{% endif %}">{{ location.status }}</td>
+            <td class="alert{% if location.status2 == 'Full' %}-success{% elif location.status2 == 'Half Full' %}-warning{% else %}-danger{% endif %}">{{ location.status2 }}</td>
             <td>{{ location.weight }}</td>
             {% if user.is_authenticated %}
             <a href=""></a>
