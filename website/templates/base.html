@@ -91,7 +91,7 @@
     <div class="jumbotron text-center">
       <h1>{% if title == "Home" %}TLC Litte Free Pantry{% else %}{{ title }}{% endif %}</h1>
     </div>
-    <div class="container-fluid">{% block content %} {% endblock %}</div>
+    <div>{% block content %} {% endblock %}</div>
     {% if title == "Home" or title == "About Us" %}
     <div class="jumbotron text-center" style="margin-bottom:0;">
       <div class="row">
