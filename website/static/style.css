@@ -5,6 +5,8 @@ body {
 .jumbotron {
     color:white;
     background-color: #2B4E72;
+    background-image: url("../static/bg2.jpg");
+    background-size: contain;
     
 }
 
