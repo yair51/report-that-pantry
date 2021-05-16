@@ -11,3 +11,7 @@ body {
 form {
     margin:10px 60px;
 }
+
+img {
+    width: auto;
+}
