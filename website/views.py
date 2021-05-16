@@ -32,9 +32,9 @@ def home(id=0):
             db.session.commit()
     return render_template("index.html", user=current_user, locations=locations, title="Home")
 
-@views.route('/about')
-def about():
-    return render_template("about.html", user=current_user, title="About Us")
+@views.route('/mission')
+def mission():
+    return render_template("mission.html", user=current_user, title="Mission")
 
 @views.route('/locations', methods=['GET', 'POST'])
 @views.route('/locations/<int:id>', methods=['GET', 'POST'])
@@ -123,3 +123,7 @@ def report(id):
 def status():
     locations = Location.query.all()
     return render_template("status.html", user=current_user, title="Status", locations=locations)
+
+@views.route('/team')
+def team():
+    return render_template("team.html", user=current_user, title="Team")
