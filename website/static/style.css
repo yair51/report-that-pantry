@@ -5,4 +5,9 @@ body {
 .jumbotron {
     color:white;
     background-color: #2B4E72;
+    
+}
+
+form {
+    margin:10px 60px;
 }
