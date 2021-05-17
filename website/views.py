@@ -116,7 +116,11 @@ def report(id):
     status = request.args.get('status')
     if status:
         location.status2 = status
-    db.session.commit()
+        db.session.commit()
+        flash("Thank you for your feedback!", category='success')
+        return redirect(url_for('views.home'))
+        
+
     return render_template("report.html", user=current_user, title="Report")
 
 @views.route('/status')

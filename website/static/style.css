@@ -3,9 +3,10 @@ body {
 }
 
 .jumbotron {
+    border-radius: 0px;
     color:white;
     background-color: #2B4E72;
-    background-image: url("../static/bg2.jpg");
+    /* background-image: url("../static/bg2.jpg"); */
     background-size: contain;
     
 }

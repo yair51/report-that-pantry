@@ -3,10 +3,26 @@
     <!-- Table -->
     <div class="container text-center">
         <h3>Thank you for your interest in supporting B’nai Torah TLC Program’s Little Free Pantry</h3>
-        <img class="img-fluid" src="{{ url_for('static', filename='pantrya.jpg') }}" alt="Pantry" style="margin-bottom: 50px;">
+        <div class="row">
+                <h5 class="col-sm-6">Little Free Pantries are free self-serve food pantries located in high traffic areas around South Florida. The model is simple, those who can afford leave food and those in need take - no questions asked. <br>A wide assortment of food can be found at any given time including cereal, mac and cheese, canned food, chips, protein bars, and anything else that doesn’t need refrigeration.</h5>
+                <img class="col-sm-6 img-fluid" src="{{ url_for('static', filename='pantry1.jpg') }}" alt="Pantry" style="margin-bottom: 50px;">
+        </div>
+        <div class="row">
+            <h3 class="col">Thank you for your interest in supporting B’nai Torah TLC Program’s Little Free Pantry</h>
+        </div>
         <h2>Map</h2>
     <!-- <div class="embed-responsive embed-responsive-16by9"> -->
-        <iframe src="https://www.google.com/maps/d/embed?mid=1SdZZfiYEgTG-KAbHRO4KQSTW-SL2RQ-i" width="640" height="480" style="display: block; margin: 50px auto;"></iframe>
+        <div class="row">
+            <div class="col embed-responsive embed-responsive-16by9">
+                <div id="map_canvas" class="embed-responsive-item">
+                    <iframe src="https://www.google.com/maps/d/embed?mid=1SdZZfiYEgTG-KAbHRO4KQSTW-SL2RQ-i" style="display: block; margin: 50px auto;"></iframe>
+                </div>
+                <div class="col embed-responsive embed-responsive-16by9" id="intro_vid">
+                    <iframe width="950" height="534" src="https://www.youtube.com/embed/i3RngoUFzVE" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" style="display: block;" allowfullscreen></iframe>
+                </div>
+            </div>
+        </div>
+
         <!-- </div> -->
     </body>
     <h4 class="text-center">How You Can Help:</h4>
