@@ -7,7 +7,6 @@
             <th scope="col">#</th>
             <th scope="col">Location</th>
             <th scope="col">Status</th>
-            <th scope="col">Weight</th>
 
             </tr>
         </thead>
@@ -17,7 +16,6 @@
             <th scope="row">{{ location.id }}</th>
             <td id="location">{{ location.address }} {{ location.city }}, {{ location.state }} {{ location.zip }}</td>
             <td class="alert{% if location.status2 == 'Full' %}-success{% elif location.status2 == 'Half Full' %}-warning{% else %}-danger{% endif %}">{{ location.status2 }}</td>
-            <td>{{ location.weight }}</td>
             <td><a href="/report/{{ location.id }}" style="color:white;"><button type="button" class="btn btn-warning">Report</button></a></td>
             {% if user.is_authenticated %}
             <td><button type="button" class="btn btn-link"><a href="/locations/{{ location.id }}">Edit</a></button></td>

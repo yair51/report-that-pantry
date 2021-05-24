@@ -52,6 +52,8 @@ a.sticky:hover{
 
 }
 
-.report-buttons {
+.report-button {
     width: 55%;
+    margin-bottom: 30px;
 }
+

@@ -48,18 +48,13 @@
         <div class="navbar-nav">
 
           <a class="nav-item nav-link {% if title == 'Home' %}active{% endif %}" id="home" href="/">Home</a>
-          <li class="nav-item dropdown">
-            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-              About Us
-            </a>
-            <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-              <a class="dropdown-item" href="/team">Team</a>
-              <a class="dropdown-item" href="/mission">Misssion</a>
+              <!-- <a class="dropdown-item" href="/mission">Misssion</a> -->
               <!-- <div class="dropdown-divider"></div>
               <a class="dropdown-item" href="#">Something else here</a>
             </div> -->
           </li>
           <a class="nav-item nav-link {% if title == 'Status' %}active{% endif %}" id="status" href="/status">Status</a>
+          <a class="nav-item nav-link {% if title == 'Team' %}active{% endif %}" id="team" href="/team">Team</a>
     
           <!-- <a class="nav-item nav-link {% if title == 'About Us' %}active{% endif %}" id="locations" href="/about">About Us</a> -->
           {% if user.is_authenticated %}
@@ -119,6 +114,7 @@
       </div>
     </div>
     {% endif %}
+    <a href="/status" class="sticky">Check The Status of Pantries</a>
     <script
       src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
       integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
@@ -139,7 +135,5 @@
       type="text/javascript"
       src="{{ url_for('static', filename='index.js') }}"
     ></script>
-
-    <a href="/status" class="sticky">Check The Status of Pantries</a>
   </body>
 </html>
