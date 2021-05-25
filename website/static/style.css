@@ -60,5 +60,5 @@ a.sticky:hover{
 .card-img-top {
     width: 100%;
     height: 30vw;
-    object-fit: cover;
+    object-fit: scale-down;
 }

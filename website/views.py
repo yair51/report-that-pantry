@@ -65,7 +65,7 @@ def locations(id=0):
                 return redirect(url_for('views.locations'))
             else:
                 # create a location with the following information
-                new_location = Location(address=address, city=city, state=state, zip=zip, weight=0)
+                new_location = Location(address=address, city=city, state=state, zip=zip, weight=0, status2="Full")
                 # adds the location to the database
                 db.session.add(new_location)
                 # resets the ids
