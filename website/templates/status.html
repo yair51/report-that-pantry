@@ -7,16 +7,18 @@
             <th scope="col">#</th>
             <th scope="col">Location</th>
             <th scope="col">Status</th>
+            <th scope="col">Last Updated</th>
 
             </tr>
         </thead>
         <tbody>
             {% for location in locations %}
             <tr>
-            <th scope="row">{{ location.id }}</th>
+            <th scope="row">{{ location.location_id }}</th>
             <td id="location">{{ location.address }} {{ location.city }}, {{ location.state }} {{ location.zip }}</td>
-            <td class="alert{% if location.status2 == 'Full' %}-success{% elif location.status2 == 'Half Full' %}-warning{% else %}-danger{% endif %}">{{ location.status2 }}</td>
-            <td><a href="/report/{{ location.id }}" style="color:white;"><button type="button" class="btn btn-warning">Report</button></a></td>
+            <td class="alert{% if location.status == 'Full' %}-success{% elif location.status == 'Half Full' %}-warning{% else %}-danger{% endif %}">{{ location.status }}</td>
+            <td>{{ location.time }}</td>
+            <td><a href="/report/{{ location.location_id }}" style="color:white;"><button type="button" class="btn btn-warning">Report</button></a></td>
             {% if user.is_authenticated %}
             <td><button type="button" class="btn btn-link"><a href="/locations/{{ location.id }}">Edit</a></button></td>
             <td><button method="POST" type="button" class="btn btn-danger btn-close" id="deleteButton" onClick="deleteLocation({{ location.id }})">

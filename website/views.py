@@ -1,8 +1,10 @@
 from flask import Blueprint, render_template, request, flash, jsonify, redirect, url_for
 from flask_login import login_required, current_user
-from .models import Note, Location
+from .models import Note, Location, LocationStatus
 from . import db
 import json
+from datetime import datetime
+from sqlalchemy import func
 
 views = Blueprint('views', __name__)
 
@@ -14,22 +16,13 @@ views = Blueprint('views', __name__)
 def home(id=0):
     # # queries all of the locations
     locations = Location.query.all()
-    # # loops through all locations
-    # for location in locations:
-    #     # takes the value from the url key 'weight' + location's id
-    #     weight = request.args.get('weight' + str(location.id))
-    #     # changes the location's weight if the weight param exists in the url
-    #     if weight:
-    #         location.weight = weight
-    # # changes the value of the weight in the database and on screen
-    # db.session.commit()
-    #return render_template("index.html", user=current_user, locations=locations, weight=weight)
-    if id != 0:
-        location = Location.query.get(id)
-        weight = request.args.get('weight')
-        if weight:
-            location.weight = weight
-            db.session.commit()
+
+    # if id != 0:
+        # location = Location.query.get(id)
+        # weight = request.args.get('weight')
+        # if weight:
+        #     location.weight = weight
+        #     db.session.commit()
     return render_template("index.html", user=current_user, locations=locations, title="Home")
 
 # @views.route('/mission')
@@ -65,18 +58,16 @@ def locations(id=0):
                 return redirect(url_for('views.locations'))
             else:
                 # create a location with the following information
-                new_location = Location(address=address, city=city, state=state, zip=zip, weight=0, status2="Full")
+                new_location = Location(address=address, city=city, state=state, zip=zip, status="Full")
                 # adds the location to the database
                 db.session.add(new_location)
-                # resets the ids
-                # locations = Location.query.all()
-                # for count, location in enumerate(locations, start=1):
-                #     location.id = count
                 db.session.commit()
+                # adds a new status row, with status set to full and last_updated to current time
+                new_status = LocationStatus(status='Full', time=datetime.now(), location_id=new_location.id)
+                db.session.add(new_status)
+                db.session.commit()
+
                 flash('Location added.', category='success')
-                # locations = Location.query.all()
-                # for place in locations:
-                #     print(place.address)
                 # sends user back to home page after new location is created
         return redirect(url_for('views.home'))
     return render_template("locations.html", user=current_user, editing=editing, location=location, title="Locations")
@@ -96,12 +87,6 @@ def delete_location():
         #if note.user_id == current_user.id:
         db.session.delete(location)
         db.session.commit()
-        # count = 1
-        # locations = Location.query.all()
-        # for location in locations:
-        #     location.id = count
-        #     count += 1
-        # db.session.commit()
 
     return jsonify({})
 
@@ -109,13 +94,16 @@ def delete_location():
 @views.route('/report/<int:id>')
 def report(id):
     location = Location.query.get(id)
-    # for i in range(1, 11):
-    #     # takes the value from the url key 'weight' + location's id
-    #     status = request.args.get('status' + str(i))
-    #     # changes the location's weight if the weight param exists in the url
     status = request.args.get('status')
+    # a status is given, create add a new location_status to db for the current location
     if status:
-        location.status2 = status
+        time = datetime.now()
+        new_status = LocationStatus(status=status, time=time, location_id=location.id)
+        # sets the location's last update to current time and status to current status
+        location.last_update = time
+        location.current_status = status
+        # adds new status to database and commits it
+        db.session.add(new_status)
         db.session.commit()
         flash("Thank you for your feedback!", category='success')
         return redirect(url_for('views.home'))
@@ -125,7 +113,13 @@ def report(id):
 
 @views.route('/status')
 def status():
-    locations = Location.query.all()
+    # subquery that joins both tables together and ranks them
+    subquery = db.session.query(LocationStatus.location_id, LocationStatus.status, LocationStatus.time, Location.address, Location.city, Location.state, Location.zip,
+    func.rank().over(order_by=LocationStatus.time.desc(),
+    partition_by=LocationStatus.location_id).label('rnk')).filter(Location.id == LocationStatus.location_id).subquery()
+    # queries locations and takes the first locations
+    locations = db.session.query(subquery).filter(
+        subquery.c.rnk==1)
     return render_template("status.html", user=current_user, title="Status", locations=locations)
 
 @views.route('/team')

@@ -1,6 +1,7 @@
 from . import db
 from flask_login import UserMixin
 from sqlalchemy.sql import func
+from datetime import datetime
 
 
 class Note(db.Model):
@@ -23,6 +24,11 @@ class Location(db.Model, UserMixin):
     city = db.Column(db.String(150))
     state = db.Column(db.String(50))
     zip = db.Column(db.Integer)
-    weight = db.Column(db.Integer)
-    status = db.Column(db.Integer)
-    status2 = db.Column(db.String(150))
+    status = db.Column(db.String(150))
+    location_status = db.relationship('LocationStatus', backref='location')
+
+class LocationStatus(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    status = db.Column(db.String(150))
+    time = db.Column(db.DateTime, default=datetime.now())
+    location_id = db.Column(db.Integer, db.ForeignKey('location.id'))
