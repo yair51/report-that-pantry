@@ -24,7 +24,7 @@ class Location(db.Model, UserMixin):
     city = db.Column(db.String(150))
     state = db.Column(db.String(50))
     zip = db.Column(db.Integer)
-    status = db.Column(db.String(150))
+    #status = db.Column(db.String(150))
     location_status = db.relationship('LocationStatus', backref='location')
 
 class LocationStatus(db.Model):

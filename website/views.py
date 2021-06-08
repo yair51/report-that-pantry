@@ -58,7 +58,7 @@ def locations(id=0):
                 return redirect(url_for('views.locations'))
             else:
                 # create a location with the following information
-                new_location = Location(address=address, city=city, state=state, zip=zip, status="Full")
+                new_location = Location(address=address, city=city, state=state, zip=zip)
                 # adds the location to the database
                 db.session.add(new_location)
                 db.session.commit()
@@ -100,8 +100,8 @@ def report(id):
         time = datetime.utcnow()
         new_status = LocationStatus(status=status, time=time, location_id=location.id)
         # sets the location's last update to current time and status to current status
-        location.last_update = time
-        location.current_status = status
+        #location.last_update = time
+        #location.current_status = status
         # adds new status to database and commits it
         db.session.add(new_status)
         db.session.commit()
