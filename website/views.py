@@ -63,7 +63,7 @@ def locations(id=0):
                 db.session.add(new_location)
                 db.session.commit()
                 # adds a new status row, with status set to full and last_updated to current time
-                new_status = LocationStatus(status='Full', time=datetime.now(), location_id=new_location.id)
+                new_status = LocationStatus(status='Full', time=datetime.utcnow(), location_id=new_location.id)
                 db.session.add(new_status)
                 db.session.commit()
 
@@ -97,7 +97,7 @@ def report(id):
     status = request.args.get('status')
     # a status is given, create add a new location_status to db for the current location
     if status:
-        time = datetime.now()
+        time = datetime.utcnow()
         new_status = LocationStatus(status=status, time=time, location_id=location.id)
         # sets the location's last update to current time and status to current status
         location.last_update = time
@@ -120,7 +120,11 @@ def status():
     # queries locations and takes the first locations
     locations = db.session.query(subquery).filter(
         subquery.c.rnk==1)
-    return render_template("status.html", user=current_user, title="Status", locations=locations)
+    # counts number of locations
+    count = 0
+    for location in locations:
+        count += 1
+    return render_template("status.html", user=current_user, title="Status", locations=locations, count=count)
 
 @views.route('/team')
 def team():

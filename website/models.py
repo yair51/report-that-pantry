@@ -30,5 +30,5 @@ class Location(db.Model, UserMixin):
 class LocationStatus(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     status = db.Column(db.String(150))
-    time = db.Column(db.DateTime, default=datetime.now())
+    time = db.Column(db.DateTime, default=datetime.utcnow())
     location_id = db.Column(db.Integer, db.ForeignKey('location.id'))

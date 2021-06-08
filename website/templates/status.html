@@ -17,15 +17,20 @@
             <th scope="row">{{ location.location_id }}</th>
             <td id="location">{{ location.address }} {{ location.city }}, {{ location.state }} {{ location.zip }}</td>
             <td class="alert{% if location.status == 'Full' %}-success{% elif location.status == 'Half Full' %}-warning{% else %}-danger{% endif %}">{{ location.status }}</td>
-            <td>{{ location.time }}</td>
+            <td id="time{{location.location_id}}">{{ location.time }}</td>
             <td><a href="/report/{{ location.location_id }}" style="color:white;"><button type="button" class="btn btn-warning">Report</button></a></td>
             {% if user.is_authenticated %}
-            <td><button type="button" class="btn btn-link"><a href="/locations/{{ location.id }}">Edit</a></button></td>
-            <td><button method="POST" type="button" class="btn btn-danger btn-close" id="deleteButton" onClick="deleteLocation({{ location.id }})">
+            <td><button type="button" class="btn btn-link"><a href="/locations/{{ location.location_id }}">Edit</a></button></td>
+            <td><button method="POST" type="button" class="btn btn-danger btn-close" id="deleteButton" onClick="deleteLocation({{ location.location_id }})">
                 <span aria-hidden="true">&times;</span>
             </button></td>
             {% endif %}
             </tr>
+            <script>
+                var time = document.getElementById('time' + {{location.location_id}}).innerHTML;
+                var old_date = new Date(time + 'UTC');
+                document.getElementById('time' + {{location.location_id}}).innerHTML = old_date.toLocaleString();
+            </script>
             {% endfor %}
         </tbody>
         </table>
