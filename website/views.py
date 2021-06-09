@@ -5,7 +5,6 @@ from . import db
 import json
 from datetime import datetime
 from sqlalchemy import func
-import pytz
 
 views = Blueprint('views', __name__)
 
