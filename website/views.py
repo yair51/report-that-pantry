@@ -5,6 +5,7 @@ from . import db
 import json
 from datetime import datetime
 from sqlalchemy import func
+import pytz
 
 views = Blueprint('views', __name__)
 
@@ -124,6 +125,8 @@ def status():
     count = 0
     for location in locations:
         count += 1
+        #print(location.time.strftime("%c"))
+    #timezone = datetime.datetime.now().astimezone().tzinfo
     return render_template("status.html", user=current_user, title="Status", locations=locations, count=count)
 
 @views.route('/team')
