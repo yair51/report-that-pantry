@@ -2,7 +2,7 @@ from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from os import path, getenv
 from flask_login import LoginManager
-from .config import DevelopmentConfig, Config
+from .config import DevelopmentConfig, Config, StagingConfig
 
 
 db = SQLAlchemy()
@@ -16,6 +16,8 @@ def create_app():
     env_config = getenv("APP_SETTINGS", "DevelopmentConfig")
     if env_config == 'Config':
         env_config = Config
+    elif env_config == 'StagingConfig':
+        env_config = StagingConfig
     else:
         env_config = DevelopmentConfig
     print(env_config)
