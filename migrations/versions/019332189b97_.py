@@ -25,7 +25,7 @@ def upgrade():
     # sa.PrimaryKeyConstraint('id'),
     # sa.UniqueConstraint('name')
     # )
-    op.add_column('location', sa.Column('name', sa.String(length=150), nullable=True))
+    # op.add_column('location', sa.Column('name', sa.String(length=150), nullable=True))
     op.add_column('location', sa.Column('organization_id', sa.Integer(), nullable=True))
     op.create_foreign_key(None, 'location', 'organization', ['organization_id'], ['id'])
     # ### end Alembic commands ###
