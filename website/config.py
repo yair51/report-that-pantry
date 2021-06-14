@@ -8,7 +8,8 @@ class Config(object):
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
 class StagingConfig(Config):
-    SQLALCHEMY_DATABASE_URI = 'postgresql://liiwdhxggjphlp:10cf08d71a8e9b0610ccb156062a2d83ca2dcefe312aba9476e7da417b5fc352@ec2-3-212-75-25.compute-1.amazonaws.com:5432/d3q5mm115bmus7'
+    #SQLALCHEMY_DATABASE_URI = 'postgresql://liiwdhxggjphlp:10cf08d71a8e9b0610ccb156062a2d83ca2dcefe312aba9476e7da417b5fc352@ec2-3-212-75-25.compute-1.amazonaws.com:5432/d3q5mm115bmus7'
+    SQLALCHEMY_DATABASE_URI = 'sqlite:///database.db'
 
 class DevelopmentConfig(Config):
     DEBUG = True
