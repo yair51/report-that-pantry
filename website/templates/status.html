@@ -1,23 +1,43 @@
 {% extends "base.html" %}
 {% block content %}
     <div class="container">
-        <table class="table table-dark">
+        <form method="POST">
+            <div class="row">
+                <div class="form-group col-md-6">
+                    <label for="org" class="form-label">Organization</label>
+                    <select class="form-control" id="org" name="org" required>
+                        <option {% if current_org == 0 %}selected{% endif %} value="0">All</option>
+                        {% for org in organizations %}
+                        <option {% if current_org == org.id %}selected{% endif %} value="{{org.id}}">{{org.name}}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6">
+                    <button class="btn btn-primary" type="submit">Filter search</button>
+                </div>
+            </div>
+        </form>
+        <table class="table table-dark" data-filter-control="true">
         <thead>
             <tr>
-            <th scope="col">#</th>
-            <th scope="col">Location</th>
-            <th scope="col">Status</th>
-            <th scope="col">Last Updated</th>
-
+                <th scope="col">#</th>
+                <th scope="col">Location</th>
+                <th scope="col">Status</th>
+                <th scope="col">Last Updated</th>
+                <th scope="col" data-filter-control="select">Organization</th>
             </tr>
         </thead>
         <tbody>
             {% for location in locations %}
             <tr>
-            <th scope="row">{{ location.location_id }}</th>
+            <!-- <th scope="row">{{ location.location_id }}</th> -->
+            <td scope="row">{{ location.location_id }}</td>
             <td id="location">{{ location.address }} {{ location.city }}, {{ location.state }} {{ location.zip }}</td>
             <td class="alert{% if location.status == 'Full' %}-success{% elif location.status == 'Half Full' %}-warning{% else %}-danger{% endif %}">{{ location.status }}</td>
             <td id="time{{location.location_id}}">{{ location.time.strftime("%c") }}</td>
+            <td>{{location.name}}</td>
             <td><a href="/report/{{ location.location_id }}" style="color:white;"><button type="button" class="btn btn-warning">Report</button></a></td>
             {% if user.is_authenticated %}
             <td><button type="button" class="btn btn-link"><a href="/locations/{{ location.location_id }}">Edit</a></button></td>
@@ -31,6 +51,12 @@
                 var old_date = new Date(time + 'UTC');
                 document.getElementById('time' + {{location.location_id}}).innerHTML = old_date.toLocaleString();
             </script>
+            <!-- <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
+            <script src="https://unpkg.com/bootstrap-table@1.18.3/dist/bootstrap-table.min.js"></script>
+            <script src="https://unpkg.com/bootstrap-table@1.18.3/dist/extensions/filter-control/bootstrap-table-filter-control.min.js"></script> -->
+            <!-- <script>
+                $('#table').DataTable({});
+            </script> -->
             {% endfor %}
         </tbody>
         </table>

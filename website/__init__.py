@@ -3,9 +3,10 @@ from flask_sqlalchemy import SQLAlchemy
 from os import path, getenv
 from flask_login import LoginManager
 from .config import DevelopmentConfig, Config, StagingConfig
-
+from flask_migrate import Migrate
 
 db = SQLAlchemy()
+migrate = Migrate()
 DB_NAME = "database.db"
 
 
@@ -25,6 +26,7 @@ def create_app():
     # app.config['SECRET_KEY'] = 'hjshjhdjah kjshkjdhjs'
     # app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{DB_NAME}'
     db.init_app(app)
+    migrate.init_app(app, db)
 
     from .views import views
     from .auth import auth
@@ -48,6 +50,6 @@ def create_app():
 
 
 def create_database(app):
-    if not path.exists('website/' + DB_NAME):
-        db.create_all(app=app)
-        print('Created Database!')
+    # if not path.exists('website/' + DB_NAME):
+    db.create_all(app=app)
+    print('Created Database!')

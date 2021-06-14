@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, request, flash, jsonify, redirect, url_for
 from flask_login import login_required, current_user
-from .models import Location, LocationStatus
+from .models import Location, LocationStatus, Organization
 from . import db
 import json
 from datetime import datetime
@@ -33,17 +33,25 @@ def home(id=0):
 @views.route('/locations/<int:id>', methods=['GET', 'POST'])
 def locations(id=0):
     editing = False
+    # queries the location and the organization associated with it
     location = Location.query.get(id)
+    current_org = 'none'
     if id != 0:
         # sets editing to true if the post is being editing
         editing = True
+        current_org = Organization.query.get(location.organization_id)
     if request.method == 'POST':
+        name = request.form.get('name')
+        # returns the org as an int representing organization_id
+        organization_id = int(request.form.get('org'))
         address = request.form.get('address')
         city = request.form.get('city')
         state = request.form.get('state')
         zip = request.form.get('zipCode')
         # if editing changes, reset all fields of the location to the current values
         if id != 0:
+            location.name = name
+            location.organization_id = organization_id
             location.address = address
             location.city = city
             location.state = state
@@ -58,7 +66,7 @@ def locations(id=0):
                 return redirect(url_for('views.locations'))
             else:
                 # create a location with the following information
-                new_location = Location(address=address, city=city, state=state, zip=zip)
+                new_location = Location(address=address, name=name, organization_id=organization_id, city=city, state=state, zip=zip)
                 # adds the location to the database
                 db.session.add(new_location)
                 db.session.commit()
@@ -70,7 +78,9 @@ def locations(id=0):
                 flash('Location added.', category='success')
                 # sends user back to home page after new location is created
         return redirect(url_for('views.home'))
-    return render_template("locations.html", user=current_user, editing=editing, location=location, title="Locations")
+    #locations = Location.query.all()
+    organizations = Organization.query.all()
+    return render_template("locations.html", user=current_user, editing=editing, location=location, title="Locations", organizations=organizations, current_org=current_org)
 
     # @views.route('/edit', methods=['GET','POST'])
     # def edit():
@@ -111,12 +121,22 @@ def report(id):
 
     return render_template("report.html", user=current_user, title="Report")
 
-@views.route('/status')
+@views.route('/status', methods=['GET', 'POST'])
 def status():
+    org = 0
+    if request.method == 'POST':
+        org = int(request.form.get('org'))
+    # only filters by organization if not requesting all organizations
+    if org != 0:
+        subquery = db.session.query(LocationStatus.location_id, LocationStatus.status, LocationStatus.time, Location.address, Location.city, Location.state, Organization.name, Location.zip,
+        func.rank().over(order_by=LocationStatus.time.desc(),
+        partition_by=LocationStatus.location_id).label('rnk')).filter(Location.id == LocationStatus.location_id, Location.organization_id == Organization.id, Location.organization_id == org).subquery()
     # subquery that joins both tables together and ranks them
-    subquery = db.session.query(LocationStatus.location_id, LocationStatus.status, LocationStatus.time, Location.address, Location.city, Location.state, Location.zip,
-    func.rank().over(order_by=LocationStatus.time.desc(),
-    partition_by=LocationStatus.location_id).label('rnk')).filter(Location.id == LocationStatus.location_id).subquery()
+    # only queries all locations if not specified further in filter
+    else:
+        subquery = db.session.query(LocationStatus.location_id, LocationStatus.status, LocationStatus.time, Location.address, Location.city, Location.state, Organization.name, Location.zip,
+        func.rank().over(order_by=LocationStatus.time.desc(),
+        partition_by=LocationStatus.location_id).label('rnk')).filter(Location.id == LocationStatus.location_id, Location.organization_id == Organization.id).subquery()
     # queries locations and takes the first locations
     locations = db.session.query(subquery).filter(
         subquery.c.rnk==1)
@@ -126,8 +146,24 @@ def status():
         count += 1
         #print(location.time.strftime("%c"))
     #timezone = datetime.datetime.now().astimezone().tzinfo
-    return render_template("status.html", user=current_user, title="Status", locations=locations, count=count)
+    organizations = Organization.query.all()
+    print(org)
+    return render_template("status.html", user=current_user, title="Status", locations=locations, count=count, organizations=organizations, current_org=org)
 
 @views.route('/team')
 def team():
     return render_template("team.html", user=current_user, title="Team")
+
+@views.route('/organizations', methods=['GET','POST'])
+def organizations():
+    if request.method == 'POST':
+        name = request.form.get('name')
+        address = request.form.get('address')
+        # creates new organization
+        org = Organization(name=name, address=address)
+        # adds org to db
+        db.session.add(org)
+        db.session.commit()
+        flash('Organization added. Now add locations for you organization.', category='success')
+        return redirect(url_for('views.locations'))
+    return render_template("organizations.html", user=current_user, title="Add Organization")

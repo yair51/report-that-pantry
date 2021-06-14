@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block content %}
+<form method="POST">
+    <div class="row">
+      <div class="col-md-12">
+        <label for="name" class="form-label">Organization Name</label>
+        <input type="text" class="form-control" id="name" name="name" required>
+        <br>
+        <div class="invalid-feedback">
+          Please provide a valid name.
+        </div>
+      </div>
+    </div>
+    <div class="row">
+        <div class="col-md-12">
+            <label for="address" class="form-label">Organization Address</label>
+            <input type="text" class="form-control" id="address" name="address" required>
+            </br>
+            <div class="invalid-feedback">
+            Please provide a valid city.
+            </div>
+        </div>
+    </div>
+    <div class="row">
+      <div class="col-md-12">
+        <button class="btn btn-primary" type="submit">Submit form</button>
+    </div>
+  </form>
+{% endblock %}
