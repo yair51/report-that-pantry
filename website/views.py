@@ -147,7 +147,6 @@ def status():
         #print(location.time.strftime("%c"))
     #timezone = datetime.datetime.now().astimezone().tzinfo
     organizations = Organization.query.all()
-    print(org)
     return render_template("status.html", user=current_user, title="Status", locations=locations, count=count, organizations=organizations, current_org=org)
 
 @views.route('/team')
