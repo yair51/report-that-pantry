@@ -1,4 +1,7 @@
 import os
+from dotenv import load_dotenv
+load_dotenv()
+print("run env") 
 
 class Config(object):
     DEBUG = False
@@ -14,9 +17,8 @@ class StagingConfig(Config):
 class DevelopmentConfig(Config):
     DEBUG = True
     DEVELOPMENT = True
+    SQLALCHEMY_DATABASE_URI = os.getenv("SQLALCHEMY_DATABASE_URI", "sqlite:///database.db")
+    FLASK_APP = "main.py"
     #SQLALCHEMY_DATABASE_URI = 'sqlite:///database1.db'
-    SQLALCHEMY_DATABASE_URI = 'postgresql://postgres:tamara12@localhost/tlc_pantry'
-    #SQLALCHEMY_DATABASE_URI = 'postgresql://postgres:tamara12@localhost/test'
-
 
     

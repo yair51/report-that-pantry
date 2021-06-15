@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, request, flash, jsonify, redirect, url_for
 from flask_login import login_required, current_user
-from .models import Location, LocationStatus, Organization
+from .models import Location, LocationStatus, Organization, User
 from . import db
 import json
 from datetime import datetime
@@ -123,9 +123,15 @@ def report(id):
 
 @views.route('/status', methods=['GET', 'POST'])
 def status():
+    #state = 'FL'
     org = 0
+    # if logged in, only shows locations affiliated with the user's organization
+    if current_user.is_authenticated:
+        org = current_user.organization_id
     if request.method == 'POST':
+        # gets the org and state from dropdown
         org = int(request.form.get('org'))
+        state = request.form.get('state')
     # only filters by organization if not requesting all organizations
     if org != 0:
         subquery = db.session.query(LocationStatus.location_id, LocationStatus.status, LocationStatus.time, Location.address, Location.city, Location.state, Organization.name, Location.name.label("location_name"), Location.zip,
@@ -139,7 +145,7 @@ def status():
         partition_by=LocationStatus.location_id).label('rnk')).filter(Location.id == LocationStatus.location_id, Location.organization_id == Organization.id).subquery()
     # queries locations and takes the first locations
     locations = db.session.query(subquery).filter(
-        subquery.c.rnk==1)
+    subquery.c.rnk==1)
     # counts number of locations
     count = 0
     for location in locations:
