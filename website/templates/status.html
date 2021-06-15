@@ -3,9 +3,9 @@
     <div class="container">
         <form method="POST">
             <div class="row">
-                <div class="form-group col-md-6">
+                <div class="form-group col-md-6" id="org-filter">
                     <label for="org" class="form-label">Organization</label>
-                    <select class="form-control" id="org" name="org" required>
+                    <select class="form-control" id="org" name="org" onchange="this.form.submit()">
                         <option {% if current_org == 0 %}selected{% endif %} value="0">All</option>
                         {% for org in organizations %}
                         <option {% if current_org == org.id %}selected{% endif %} value="{{org.id}}">{{org.name}}</option>
@@ -13,13 +13,8 @@
                     </select>
                 </div>
             </div>
-            <div class="row">
-                <div class="col-md-6">
-                    <button class="btn btn-primary" type="submit">Filter search</button>
-                </div>
-            </div>
         </form>
-        <table class="table table-dark" data-filter-control="true">
+        <table class="table table-dark table-responsive" data-filter-control="true">
         <thead>
             <tr>
                 <th scope="col">#</th>
@@ -32,9 +27,9 @@
         <tbody>
             {% for location in locations %}
             <tr>
-            <!-- <th scope="row">{{ location.location_id }}</th> -->
             <td scope="row">{{ location.location_id }}</td>
-            <td id="location">{{ location.address }} {{ location.city }}, {{ location.state }} {{ location.zip }}</td>
+            <!-- <td id="location">{{ location.address }} {{ location.city }}, {{ location.state }} {{ location.zip }}</td> -->
+            <td id="location">{{location.location_name}}</td>
             <td class="alert{% if location.status == 'Full' %}-success{% elif location.status == 'Half Full' %}-warning{% else %}-danger{% endif %}">{{ location.status }}</td>
             <td id="time{{location.location_id}}">{{ location.time.strftime("%c") }}</td>
             <td>{{location.name}}</td>
@@ -51,12 +46,6 @@
                 var old_date = new Date(time + 'UTC');
                 document.getElementById('time' + {{location.location_id}}).innerHTML = old_date.toLocaleString();
             </script>
-            <!-- <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
-            <script src="https://unpkg.com/bootstrap-table@1.18.3/dist/bootstrap-table.min.js"></script>
-            <script src="https://unpkg.com/bootstrap-table@1.18.3/dist/extensions/filter-control/bootstrap-table-filter-control.min.js"></script> -->
-            <!-- <script>
-                $('#table').DataTable({});
-            </script> -->
             {% endfor %}
         </tbody>
         </table>
