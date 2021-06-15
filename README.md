@@ -12,10 +12,15 @@ git clone <repo-url>
 pip install -r requirements.txt
 ```
 
+```bash
+create .env file in root directory
+add SQLALCHEMY_DATABASE_URI = {database_uri_here} and save it
+```
+
 ## Running The App
 
 ```bash
-python main.py
+flask run
 ```
 
 ## Viewing The App
