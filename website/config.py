@@ -1,7 +1,6 @@
 import os
 from dotenv import load_dotenv
 load_dotenv()
-print("run env") 
 
 class Config(object):
     DEBUG = False
