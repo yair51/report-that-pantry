@@ -70,6 +70,7 @@ def locations(id=0):
                 # adds the location to the database
                 db.session.add(new_location)
                 db.session.commit()
+                id = new_location.id
                 # adds a new status row, with status set to full and last_updated to current time
                 new_status = LocationStatus(status='Full', time=datetime.utcnow(), location_id=new_location.id)
                 db.session.add(new_status)
@@ -77,7 +78,7 @@ def locations(id=0):
 
                 flash('Location added.', category='success')
                 # sends user back to home page after new location is created
-        return redirect(url_for('views.home'))
+        return render_template("poster.html", user=current_user, title="Poster", pantrynumber = id)
     #locations = Location.query.all()
     organizations = Organization.query.all()
     return render_template("locations.html", user=current_user, editing=editing, location=location, title="Locations", organizations=organizations, current_org=current_org)
@@ -176,4 +177,4 @@ def organizations():
 @views.route('/poster<int:id>')
 @views.route('/poster/<int:id>')
 def poster(id):
-    return render_template("poster.html", user=current_user, title="Poster")
+    return render_template("poster.html", user=current_user, title="Poster", pantrynumber = id)

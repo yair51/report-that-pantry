@@ -1,4 +1,50 @@
 {% extends "base.html" %}
 {% block content %}
-<p>Helo</p>
+<head>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+</head>
+    <div class="container">
+        <body>
+        
+            <style>
+                .containerdiv {float: left; position: relative;} 
+            </style>
+           
+
+            <div class="containerdiv">
+                <div>
+                    <img border="0" width= "1000" height = "1250" src="https://cdn.discordapp.com/attachments/850442596492902453/854762086957973515/unknown.png" alt=""">
+                
+                    <div style="position: absolute; top: 345px; left: 510px">
+                        <canvas id="qr-code"></canvas>
+                    </div>
+                    <div style="position: absolute; top: 1150px; left: 166px">
+                        <a id="theLink" href="http://www.tlcpantry.org/report/{{pantrynumber}}" style= "font-size: 25px; color: #34313a; font-family: 'Oswald', sans-serif;">
+                            http://www.tlcpantry.org/report/{{pantrynumber}}
+                        </a>
+                    </div>
+                </div>
+                <div class="d-print-none">
+                    <p style= "font-size: 25px; color: #34313a; font-family: 'Oswald', sans-serif;">
+                        Use ctrl + p (Windows) or cmd + p (Mac) to print this poster.
+                    </p>
+                </div>
+            </div>
+
+            <script>
+                var qrSize = 370;
+                (function() {
+                            qr = new QRious({
+                            element: document.getElementById('qr-code'),
+                            size: qrSize,
+                            value: document.getElementById('theLink').href
+                        });
+                    })();
+
+                element2 = document.getElementsByClassName("alert");
+                element2.classList.add("d-print-none");
+                console.log(element2);
+            </script>
+        </body>
+    </div>
 {% endblock %}
