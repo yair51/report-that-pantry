@@ -172,3 +172,8 @@ def organizations():
         flash('Organization added. Now add locations for you organization.', category='success')
         return redirect(url_for('views.locations'))
     return render_template("organizations.html", user=current_user, title="Add Organization")
+
+@views.route('/poster<int:id>')
+@views.route('/poster/<int:id>')
+def poster(id):
+    return render_template("poster.html", user=current_user, title="Poster")
