@@ -78,7 +78,7 @@ def locations(id=0):
                 db.session.add(new_status)
                 db.session.commit()
 
-                flash('Location added.', category='success')
+                # flash('Location added.', category='success')
                 # sends user back to home page after new location is created
         return redirect(url_for("views.poster", id = pantrynum))
     #locations = Location.query.all()
