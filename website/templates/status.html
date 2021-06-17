@@ -93,6 +93,7 @@
             <td id="time{{location.location_id}}">{{ location.time.strftime("%c") }}</td>
             <td>{{location.name}}</td>
             <td><a href="/report/{{ location.location_id }}" style="color:white;"><button type="button" class="btn btn-warning">Report</button></a></td>
+            <td><a href="/poster/{{ location.location_id }}" style="color:white;"><button type="button" class="btn btn-warning">Poster</button></a></td>
             {% if user.is_authenticated %}
             <td><button type="button" class="btn btn-link"><a href="/locations/{{ location.location_id }}">Edit</a></button></td>
             <td><button method="POST" type="button" class="btn btn-danger btn-close" id="deleteButton" onClick="deleteLocation({{ location.location_id }})">
