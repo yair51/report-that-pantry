@@ -2,32 +2,97 @@
 {% block content %}
 <head>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+    <html xmlns="http://www.w3.org/1999/xhtml">
 </head>
     <div class="container">
         <body>
         
             <style>
                 .containerdiv {float: left; position: relative;} 
+                .modal {
+                    display: none; /* Hidden by default */
+                    position: fixed; /* Stay in place */
+                    z-index: 1; /* Sit on top */
+                    padding-top: 100px; /* Location of the box */
+                    left: 0;
+                    top: 0;
+                    width: 100%; /* Full width */
+                    height: 100%; /* Full height */
+                    overflow: auto; /* Enable scroll if needed */
+                    background-color: rgb(0,0,0); /* Fallback color */
+                    background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+                }
+
+                /* Modal Content */
+                    .modal-content {
+                    background-color: #fefefe;
+                    margin: auto;
+                    padding: 20px;
+                    border: 1px solid #888;
+                    width: 80%;
+                }
+
+                /* The Close Button */
+                .close {
+                    color: #aaaaaa;
+                    float: right;
+                    font-size: 28px;
+                    font-weight: bold;
+                }
+
+                .close:hover,
+                .close:focus {
+                    color: #000;
+                    text-decoration: none;
+                    cursor: pointer;
+                }
+                @page 
+                {
+                    size:  auto;   /* auto is the initial value */
+                    margin: 0mm;  /* this affects the margin in the printer settings */
+                }
             </style>
-           
 
             <div class="containerdiv">
                 <div>
                     <img border="0" width= "1000" height = "1250" src="https://cdn.discordapp.com/attachments/850442596492902453/854762086957973515/unknown.png" alt="">
                 
+                    <div class = "d-print-none" style="position: absolute; top: 5px; left: 100px">
+                        <button class="btn btn-dark " id="helpBtn">Help</button>
+                        <button class="btn btn-dark" onclick="window.print()">Print this page</button>
+                        <div id="instructions" class="modal">
+                            <div class="modal-content">
+                                <span class="close">&times;</span>
+                                <p style="text-align: center">Attach this printout to the side of your pantry. The generated QR code will redirect users to the report page.</p>
+                            </div>
+                        </div>
+                    </div>
+        
+                    <script>
+                        var modal = document.getElementById("instructions");
+                        var btn = document.getElementById("helpBtn");
+                        var span = document.getElementsByClassName("close")[0];
+                        btn.onclick = function() {
+                            modal.style.display = "block";
+                        }
+                        span.onclick = function() {
+                            modal.style.display = "none";
+                        }
+                        window.onclick = function(event) {
+                            if (event.target == modal) {
+                                modal.style.display = "none";
+                            }
+                        }
+                    </script>
+
                     <div style="position: absolute; top: 345px; left: 510px">
                         <canvas id="qr-code"></canvas>
                     </div>
                     <div style="position: absolute; top: 1150px; left: 166px">
-                        <a id="theLink" href="http://www.tlcpantry.org/report/{{pantrynumber}}" style= "font-size: 25px; color: #34313a; font-family: 'Oswald', sans-serif;">
-                            http://www.tlcpantry.org/report/{{pantrynumber}}
+                        <a id="theLink" href="http://www.reportthatpantry.org/report/{{pantrynumber}}" style= "font-size: 25px; color: #34313a; font-family: 'Oswald', sans-serif;">
+                            http://www.reportthatpantry.org/report/{{pantrynumber}}
                         </a>
                     </div>
-                </div>
-                <div class="d-print-none">
-                    <p style= "font-size: 25px; color: #34313a; font-family: 'Oswald', sans-serif;">
-                        Use ctrl + p (Windows) or cmd + p (Mac) to print this poster.
-                    </p>
                 </div>
             </div>
 
