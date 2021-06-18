@@ -177,20 +177,19 @@ def organizations():
         return redirect(url_for('views.locations'))
     return render_template("organizations.html", user=current_user, title="Add Organization")
 
-<<<<<<< HEAD
-@views.route('/poster<int:id>')
-@views.route('/poster/<int:id>')
-def poster(id):
-    return render_template("poster.html", user=current_user, title="Poster", pantrynumber = id)
+# <<<<<<< HEAD
+# @views.route('/poster<int:id>')
+# @views.route('/poster/<int:id>')
+# def poster(id):
+#     return render_template("poster.html", user=current_user, title="Poster", pantrynumber = id)
 
 @views.route('/logs/<int:id>')
 @views.route('/logs/<int:id>/')
 def logs(id):
     logs = db.session.query(LocationStatus.time, LocationStatus.id, LocationStatus.status).filter(LocationStatus.location_id == id).order_by(LocationStatus.time.desc()).limit(5)
     return render_template("logs.html", user=current_user, title="Logs", logs=logs)
-=======
+
 @views.route('/poster<int:isNew1>/<int:id>')
 @views.route('/poster/<int:isNew1>/<int:id>')
 def poster(isNew1, id):
     return render_template("poster.html", user=current_user, title="Poster", pantrynumber = id, isNew = isNew1)
->>>>>>> fd83239a384bb05a7719fa2f35dd975e8155a07e
