@@ -180,3 +180,9 @@ def organizations():
 @views.route('/poster/<int:id>')
 def poster(id):
     return render_template("poster.html", user=current_user, title="Poster", pantrynumber = id)
+
+@views.route('/logs/<int:id>')
+@views.route('/logs/<int:id>/')
+def logs(id):
+    logs = db.session.query(LocationStatus.time, LocationStatus.id, LocationStatus.status).filter(LocationStatus.location_id == id).order_by(LocationStatus.time.desc()).limit(5)
+    return render_template("logs.html", user=current_user, title="Logs", logs=logs)
