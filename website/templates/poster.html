@@ -57,13 +57,16 @@
                 <div>
                     <img border="0" width= "1000" height = "1250" src="https://cdn.discordapp.com/attachments/850442596492902453/854762086957973515/unknown.png" alt="">
                 
-                    <div class = "d-print-none" style="position: absolute; top: 5px; left: 100px">
+                    <div class = "d-print-none" style="position: absolute; top: 0px; left: 100px">
                         <button class="btn btn-dark " id="helpBtn">Help</button>
                         <button class="btn btn-dark" onclick="window.print()">Print this page</button>
                         <div id="instructions" class="modal">
                             <div class="modal-content">
                                 <span class="close">&times;</span>
-                                <p style="text-align: center">Attach this printout to the front of your pantry. After that, this location will be fully set up. The generated QR code will redirect users to the report page.</p>
+                                {% if isNew == 1 %}
+                                    <p style="text-align: center; font-size: large;">Location successfully added</p>
+                                {% endif %}
+                                <p style="text-align: center">Attach this printout to your pantry. The generated QR code will redirect users to the report page.</p>
                             </div>
                         </div>
                     </div>
@@ -83,6 +86,7 @@
                                 modal.style.display = "none";
                             }
                         }
+                        modal.style.display = "block";
                     </script>
 
                     <div style="position: absolute; top: 345px; left: 510px">

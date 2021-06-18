@@ -92,10 +92,16 @@
             <td class="alert{% if location.status == 'Full' %}-success{% elif location.status == 'Half Full' %}-warning{% else %}-danger{% endif %}">{{ location.status }}</td>
             <td id="time{{location.location_id}}">{{ location.time.strftime("%c") }}</td>
             <td>{{location.name}}</td>
+<<<<<<< HEAD
             <td><a href="/logs/{{ location.location_id }}" style="color:white;"><button type="button" class="btn btn-info">Logs</button></a></td>
             <!-- <td><a href="/report/{{ location.location_id }}" style="color:white;"><button type="button" class="btn btn-warning">Logs</button></a></td> -->
             {% if user.is_authenticated %}
             <td><a href="/poster/{{ location.location_id }}" style="color:white;"><button type="button" class="btn btn-warning">Poster</button></a></td>
+=======
+            <td><a href="/report/{{ location.location_id }}" style="color:white;"><button type="button" class="btn btn-warning">Report</button></a></td>
+            {% if user.is_authenticated %}
+            <td><a href="/poster/0/{{ location.location_id }}" style="color:white;"><button type="button" class="btn btn-warning">Poster</button></a></td>
+>>>>>>> fd83239a384bb05a7719fa2f35dd975e8155a07e
             <td><button type="button" class="btn btn-link"><a href="/locations/{{ location.location_id }}">Edit</a></button></td>
             <td><button method="POST" type="button" class="btn btn-danger btn-close" id="deleteButton" onClick="deleteLocation({{ location.location_id }})">
                 <span aria-hidden="true">&times;</span>
