@@ -1,5 +1,6 @@
 from flask import Blueprint, render_template, request, flash, jsonify, redirect, url_for
 from flask_login import login_required, current_user
+from sqlalchemy.sql.expression import true
 from .models import Location, LocationStatus, Organization, User
 from . import db
 import json
@@ -80,7 +81,7 @@ def locations(id=0):
 
                 # flash('Location added.', category='success')
                 # sends user back to home page after new location is created
-        return redirect(url_for("views.poster", id = pantrynum))
+        return redirect(url_for("views.poster", id = pantrynum, isNew1 = 1))
     #locations = Location.query.all()
     organizations = Organization.query.all()
     return render_template("locations.html", user=current_user, editing=editing, location=location, title="Locations", organizations=organizations, current_org=current_org)
@@ -176,7 +177,7 @@ def organizations():
         return redirect(url_for('views.locations'))
     return render_template("organizations.html", user=current_user, title="Add Organization")
 
-@views.route('/poster<int:id>')
-@views.route('/poster/<int:id>')
-def poster(id):
-    return render_template("poster.html", user=current_user, title="Poster", pantrynumber = id)
+@views.route('/poster<int:isNew1>/<int:id>')
+@views.route('/poster/<int:isNew1>/<int:id>')
+def poster(isNew1, id):
+    return render_template("poster.html", user=current_user, title="Poster", pantrynumber = id, isNew = isNew1)

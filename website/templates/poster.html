@@ -63,7 +63,10 @@
                         <div id="instructions" class="modal">
                             <div class="modal-content">
                                 <span class="close">&times;</span>
-                                <p style="text-align: center">Attach this printout to the side of your pantry. The generated QR code will redirect users to the report page.</p>
+                                {% if isNew == 1 %}
+                                    <p style="text-align: center; font-size: large;">Location successfully added</p>
+                                {% endif %}
+                                <p style="text-align: center">Attach this printout to your pantry. The generated QR code will redirect users to the report page.</p>
                             </div>
                         </div>
                     </div>
@@ -83,6 +86,7 @@
                                 modal.style.display = "none";
                             }
                         }
+                        modal.style.display = "block";
                     </script>
 
                     <div style="position: absolute; top: 345px; left: 510px">
