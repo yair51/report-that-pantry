@@ -173,8 +173,8 @@ def organizations():
         # adds org to db
         db.session.add(org)
         db.session.commit()
-        flash('Organization added. Now add locations for you organization.', category='success')
-        return redirect(url_for('views.locations'))
+        flash('Organization added. Now create an account under your organization.', category='success')
+        return redirect(url_for('auth.sign_up'))
     return render_template("organizations.html", user=current_user, title="Add Organization")
 
 # <<<<<<< HEAD
