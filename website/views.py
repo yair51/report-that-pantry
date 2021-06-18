@@ -45,7 +45,7 @@ def locations(id=0):
     if request.method == 'POST':
         name = request.form.get('name')
         # returns the org as an int representing organization_id
-        organization_id = int(request.form.get('org'))
+        organization_id = current_user.organization_id
         address = request.form.get('address')
         city = request.form.get('city')
         state = request.form.get('state')
@@ -53,7 +53,7 @@ def locations(id=0):
         # if editing changes, reset all fields of the location to the current values
         if id != 0:
             location.name = name
-            location.organization_id = organization_id
+            location.organization_id = current_user.organization_id
             location.address = address
             location.city = city
             location.state = state
