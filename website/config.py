@@ -13,7 +13,7 @@ class Config(object):
 class StagingConfig(Config):
     #SQLALCHEMY_DATABASE_URI = 'postgresql://liiwdhxggjphlp:10cf08d71a8e9b0610ccb156062a2d83ca2dcefe312aba9476e7da417b5fc352@ec2-3-212-75-25.compute-1.amazonaws.com:5432/d3q5mm115bmus7'
     #SQLALCHEMY_DATABASE_URI = 'sqlite:///database.db'
-    SQLALCHEMY_DATABASE_URI = os.getenv("DATABASE_URL")
+    SQLALCHEMY_DATABASE_URI = "postgresql://cexzaxuopblmgq:eb3cff5072084b4ccb7d03e31a5bc3c0d515152571665c49e9f18d8c80265053@ec2-3-231-69-204.compute-1.amazonaws.com:5432/d5qjsv73ilnuiu"
 
 class DevelopmentConfig(Config):
     DEBUG = True
