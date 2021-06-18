@@ -6,11 +6,19 @@
     <div class="col-md-6">
       <label for="name" class="form-label">Name</label>
       <input type="text" class="form-control" id="name" name="name" placeholder="Enter name" {% if editing %}value="{{ location.name }}"{% endif %} required>
+      <br>
       <div class="invalid-feedback">
         Please provide a valid name.
       </div>
     </div>
-    <div class="form-group col-md-6">
+    <div class="col-md-6">
+      <label for="address" class="form-label">Street Address</label>
+      <input type="text" class="form-control" id="address" name="address" placeholder="Enter address" {% if editing %}value="{{ location.address }}"{% endif %} required>
+      <div class="invalid-feedback">
+        Please provide a valid city.
+      </div>
+    </div>
+    <!-- <div class="form-group col-md-6">
       <label for="org" class="form-label">Organization</label>
       <select class="form-control" id="org" name="org" required>
         {% if not editing %}
@@ -23,16 +31,9 @@
     </div>
     <div class="invalid-feedback">
       Please select a valid organization.
-    </div>
+    </div> -->
   </div>
   <div class="row">
-    <div class="col-md-6">
-      <label for="address" class="form-label">Street Address</label>
-      <input type="text" class="form-control" id="address" name="address" placeholder="Enter address" {% if editing %}value="{{ location.address }}"{% endif %} required>
-      <div class="invalid-feedback">
-        Please provide a valid city.
-      </div>
-    </div>
     <div class="col-md-6">
       <label for="city" class="form-label">City</label>
       <input type="text" class="form-control" id="city" name="city" placeholder="Enter city" {% if editing %}value="{{ location.city }}"{% endif %} required>
@@ -41,8 +42,6 @@
         Please provide a valid city.
       </div>
     </div>
-  </div>
-  <div class="row">
     <div class="form-group col-md-6">
       <label for="state" class="form-label">State</label>
       <select class="form-control" id="state" name="state" required>
@@ -107,6 +106,8 @@
     <div class="invalid-feedback">
       Please select a valid state.
     </div>
+  </div>
+  <div class="row">
     <div class="col-md-6">
       <label for="zipCode" class="form-label">Zip</label>
       <input type="text" class="form-control" id="zipCode" name="zipCode" placeholder="Enter zip code" {% if editing %}value="{{ location.zip }}"{% endif %} required>
