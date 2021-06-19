@@ -105,7 +105,7 @@
             </tr>
             <script>
                 var time = document.getElementById('time' + {{location.location_id}}).innerHTML;
-                var old_date = new Date(time + 'UTC');
+                var old_date = new Date(time + ' UTC');
                 document.getElementById('time' + {{location.location_id}}).innerHTML = old_date.toLocaleString();
             </script>
             {% endfor %}
