@@ -60,6 +60,8 @@ def locations(id=0):
             location.zip = zip
             db.session.commit()
             flash('Location edited.', category='success')
+            return redirect(url_for("views.status"))
+
         else:
             # checks if the location exists
             location = Location.query.filter_by(address=address).first()
