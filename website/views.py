@@ -5,6 +5,7 @@ from .models import Location, LocationStatus, Organization, User
 from . import db
 import json
 from datetime import datetime
+from time import mktime
 from sqlalchemy import func
 
 views = Blueprint('views', __name__)
@@ -188,8 +189,16 @@ def organizations():
 @views.route('/logs/<int:id>')
 @views.route('/logs/<int:id>/')
 def logs(id):
-    logs = db.session.query(LocationStatus.time, LocationStatus.id, LocationStatus.status).filter(LocationStatus.location_id == id).order_by(LocationStatus.time.desc()).limit(5)
-    return render_template("logs.html", user=current_user, title="Logs", logs=logs)
+    count = 0
+    # count variable used for numbers on logs
+    # queries location status table and shows only the current location based on the route
+    logs = db.session.query(LocationStatus.time, LocationStatus.id, LocationStatus.status).filter(LocationStatus.location_id == id).order_by(LocationStatus.time.desc())
+    for log in logs:
+        count += 1
+        print(log)
+        print(log.time)
+    print(count)
+    return render_template("logs.html", user=current_user, title="Logs", logs=logs, count=count)
 
 @views.route('/poster<int:isNew1>/<int:id>')
 @views.route('/poster/<int:isNew1>/<int:id>')
