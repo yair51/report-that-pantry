@@ -7,11 +7,11 @@ class Config(object):
     DEVELOPMENT = False
     SECRET_KEY = os.getenv("SECRET_KEY", "dfal;dfkad adf")
     #SECRET_KEY = os.environ.get('SECRET_KEY') or 'dfal;dfkad adf'
-    SQLALCHEMY_DATABASE_URI = 'postgresql://qtpqgzckodngbz:3c43be88e6456a266d1b60c4795ad491661d3c5f1a0920820598d8580efa960d@ec2-107-22-83-3.compute-1.amazonaws.com:5432/dbs7vbee5trfb5'
-    #if os.getenv("APP_SETTINGS") == "StagingConfig":
-        #SQLALCHEMY_DATABASE_URI = "postgresql" + os.getenv("DATABASE_URL")[8:]
+    #SQLALCHEMY_DATABASE_URI = 'postgresql://qtpqgzckodngbz:3c43be88e6456a266d1b60c4795ad491661d3c5f1a0920820598d8580efa960d@ec2-107-22-83-3.compute-1.amazonaws.com:5432/dbs7vbee5trfb5'
+    if os.getenv("APP_SETTINGS") == "Config":
+        SQLALCHEMY_DATABASE_URI = "postgresql" + os.getenv("DATABASE_URL")[8:]
     # url is just a filler, uri is being used
-    DATABASE_URL = "sqlite:///database.db"
+    #DATABASE_URL = "sqlite:///database.db"
 
     #SQLALCHEMY_DATABASE_URI = os.getenv("SQLALCHEMY_DATABASE_URI")
     SQLALCHEMY_TRACK_MODIFICATIONS = False
