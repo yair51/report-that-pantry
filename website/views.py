@@ -208,3 +208,7 @@ def poster(isNew1, id):
 @views.route('/contact_us', methods=['GET','POST'])
 def contact_us():
     return render_template('contact_us.php', user=current_user, title = 'Contact Us')
+
+@views.route('/about')
+def about():
+    return render_template('about.html', user=current_user, title='About Us')
