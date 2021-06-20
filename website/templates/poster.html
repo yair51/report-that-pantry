@@ -55,7 +55,7 @@
 
             <div class="containerdiv">
                 <div>
-                    <img border="0" width= "1000" height = "1250" src="{{url_for('static', filename='poster.jpg')}}" alt="">
+                    <img width= "1000" height = "1250" src="{{url_for('static', filename='poster1.jpg')}}" alt="">
                 
                     <div class = "d-print-none" style="position: absolute; top: 0px; left: 100px">
                         <button class="btn btn-dark " id="helpBtn">Help</button>
@@ -97,6 +97,7 @@
                             http://www.reportthatpantry.org/report/{{pantrynumber}}
                         </a>
                     </div>
+                    <p style="position: absolute; width:1000px; top: 75px; text-align: center; font-size: xx-large; font-weight: bolder;">{{name}}</p>
                 </div>
             </div>
 
@@ -109,10 +110,6 @@
                             value: document.getElementById('theLink').href
                         });
                     })();
-
-                element2 = document.getElementsByClassName("alert");
-                element2.classList.add("d-print-none");
-                console.log(element2);
             </script>
         </body>
     </div>

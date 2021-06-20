@@ -203,4 +203,5 @@ def logs(id):
 @views.route('/poster<int:isNew1>/<int:id>')
 @views.route('/poster/<int:isNew1>/<int:id>')
 def poster(isNew1, id):
-    return render_template("poster.html", user=current_user, title="Poster", pantrynumber = id, isNew = isNew1)
+    location = db.session.query(Location.name.label("location_name")).filter(Location.id == id)[0][0]
+    return render_template("poster.html", user=current_user, title="Poster", pantrynumber = id, isNew = isNew1, name = location)
