@@ -1,55 +1,70 @@
 {% extends "base.html" %}
 {% block content %}
     <!-- Table -->
-    <div class="container text-center">
+    <div class="container-fluid text-center w-100">
 
-        <h3>What are Little Free Pantries?</h3>
-        <div class="row">
-                <p class="col-sm-6">Little Free Pantries are free self-serve food pantries located in high traffic areas around South Florida. The model is simple, those who can afford leave food and those in need take - no questions asked. <br><br>A wide assortment of food can be found at any given time including cereal, mac and cheese, canned food, chips, protein bars, and anything else that doesn’t need refrigeration. 
-                    <br><br>Thank you for your interest in supporting B’nai Torah TLC Program’s Little Free Pantry</p>
-                <img class="col-sm-6 img-fluid" src="{{ url_for('static', filename='pantry1.jpg') }}" alt="Pantry" style="margin-bottom: 50px;">
+        <div id="topPic" class="row">
+            <img class="w-100 d-flex align-items-center" src="{{url_for('static', filename='whiteLFP.png') }}" id="pantryPic"> 
+            <!-- CREDIT: COURTESY OF CORRI BIESEMEYER -->
+            <p id="homeText">Report That Pantry</p>
         </div>
-        
-<hr>
-        <h2>Impact</h2>
-    <!-- <div class="embed-responsive embed-responsive-16by9"> -->
-        <div class="row">
-            <div class="col-sm-6">
-                <div id="map_canvas" class="embed-responsive-item">
-                    <iframe width="100%" height="400px" src="https://www.google.com/maps/d/embed?mid=1SdZZfiYEgTG-KAbHRO4KQSTW-SL2RQ-i" style="display: block; margin: 50px auto;"></iframe>
+
+        <div id="whatPantryTitleAndParagraph" class="row d-flex justify-content-center">
+            <div id="whatPantryTitleAndParagraph" class="col-md-6 d-flex align-self-center flex-md-column">
+                <h1 class="d-flex justify-content-center align-items-center" id="whatPantryOrgTitle">All About Report That Pantry</h1>
+                <p class="d-flex justify-content-center" id="whatPantryOrgParagraph">Report That Pantry gives members of the community who are experiencing food insecurity easier accessibility to food. The technology consists of QR codes placed on the side of each pantry that connects to a website. Users can scan the QR code and report the level of food inside each pantry, allowing organizers to restock them quickly. This project was solely made by students of the Rosenblatt High School and supervised by Dr. Hallstrom, the director of the Institute for Sensing and Embedded Network Systems Engineering (I-SENSE) at Florida Atlantic University, Mr. Obaido, the Engineering teacher at the Rosenblatt High School, and Summer Faerman, the founder of Little Free Pantries.</p>
+            </div>
+            <div class="col-md-6 d-flex align-items-center">
+                <img src="{{url_for('static', filename='us_with_DK_pantry.jpeg') }}" id="whatPantryOrgPic">
+            </div>
+        </div>
+
+        <div id="whatIsPantry" class="container text-center">
+            <h1 id="whatPantryTitle" class="text-center">What are Little Free Pantries?</h1>
+            <p id="whatPantryParagraph">Little Free Pantries are free self-serve food pantries located in high traffic areas around South Florida. The model is simple, those who can afford leave food and those in need take - no questions asked. A wide assortment of food can be found at any given time including cereal, mac and cheese, canned food, chips, protein bars, and anything else that doesn’t need refrigeration. Thank you for your interest in supporting B’nai Torah TLC Program’s Little Free Pantry.</p>
+        </div>
+    
+        <div class="row" id="picRowHome">
+
+            <div class="col-lg-4 col-md-4 col-xs-4 thumb">
+                <a class="thumbnail">
+                    <img style="width: 100%; height: 100%;" class="img-responsive" src="{{url_for('static', filename='greenLFP.jpg') }}" alt="">
+                </a>
+            </div>
+            <div class="col-lg-4 col-md-4 col-xs-4 thumb">
+                <a class="thumbnail">
+                    <img style="width: 100%; height: 100%;" class="img-responsive" src="{{url_for('static', filename='woodLFP.jpg') }}" alt="">
+                </a>
+            </div>
+            <div class="col-lg-4 col-md-4 col-xs-4 thumb">
+                <a class="thumbnail">
+                    <img style="width: 100%; height: 100%;" class="img-responsive" src="{{url_for('static', filename='blueLFP.png') }}" alt="">
+                </a>
+            </div>
+        </div>
+
+        <h1 id="howHelp" class="text-center">How to Help!</h1>
+        <div class="container" id="bottomInstructions">
+            <div class="row">
+                <div class="col" id="howToReport">
+                    <h3>Fill Up a Pantry</h3>
+                    <ol id="instructionsListLeft">
+                        <li id="instructionsList2">Purchase/gather non-perishables</li>
+                        <li id="instructionsList2">Stop by one of the pantries- any day, any time</li>
+                        <li id="instructionsList2">Pull into a safe parking spot and fill the pantry</li>
+                    </ol>
+                    <a id="bottomHomeLinks" href="http://mapping.littlefreepantry.org/">Pantry Locations</a>
+                </div>
+                <div class="col" id="howToReport">
+                    <h3>Report a Pantry</h3>
+                    <ol id="instructionsListRight">
+                        <li id="instructionsList2">Scan the QR code on the pantry</li>
+                        <li id="instructionsList2">Report the amount of food in the pantry</li>
+                    </ol>
+                    <a id="bottomHomeLinks" href="/status">Pantry Statuses</a>
                 </div>
             </div>
-            <div class="col-sm-6" id="intro_vid">
-                
-                <div class="video-container">
-                <iframe width="560" height="315" src="https://www.youtube.com/embed/i3RngoUFzVE" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-                </div>
-            </div>
         </div>
-<hr>
-        <!-- </div> -->
-   <div class="row">
-    <h3>How are they Smart?</h3>
-        <p>At the start of the 2020 school year, Rosenblatt High School at Donna Klein Jewish Academy’s engineering team started working on connecting our pantries to the cloud. In partnership with Florida Atlantic University’s ISENSE Lab and mentorship from Dr. Hallstrom and Mr. Obaido, the team of high schoolers outfitted our community pantries with reporting capabilities. Users and volunteers can report how much food is in the pantry by clicking one of 3 buttons on the side of the pantry labeled in both english and spanish. The pantry is then updated on our database and displayed on our status page. This lets volunteers know which pantries need to be refilled. 
-<br><br>
-            People can also report the status of a given pantry through our website by clicking the report button. This allows for all of our current pantries to be connected even if they are not yet outfitted with the new on-site technology. Pantry users and volunteers are prompted to report the status of the pantry by the new QR codes we have put on them - scanning the QR code with a smartphone takes you directly to the pantries unique report page.
-            </p>
-   </div>
-   <hr>
-
-    <h4 class="text-center">How You Can Help:</h4>
-        <div class="row">
-                <img class="col-sm-6 img-fluid"  src="{{ url_for('static', filename='Fill Up a Pantry Flyer.png') }}" alt="Pantry" style="margin-bottom: 50px;">
-            <div class="col-sm-6">
-                <h3>Contact Us</h3>
-                <p>B'nai Torah Congregation</p>
-                <p>6261 SW 18th Street,<br>
-                    Boca Raton, FL 33433</p>
-                <p>Email: <a href=mailto:summer.faerman@Bnai-Torah.org>summer.faerman@Bnai-Torah.org</a></p>
-                <p>Phone: (561) 392-8566; ask for Summer Faerman</p>
-            </div>
-        </div>
-
 
     </div>
 </body>
