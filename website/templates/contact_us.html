@@ -1,9 +1,6 @@
-<!DOCTYPE html>
-<html>
 {% extends "base.html" %}
 {% block content %}
     <style>
-
         .linkSize:hover {
             font-size: 125%;
         }
@@ -53,25 +50,6 @@
 
 
     </style>
-    
-    <?php
-
-    if(isset($_POST['submit'])){
-        $firstname = $_POST['fname'];
-        $lastname = $_POST['lname'];
-        $email = $_POST['email'];
-        $state = $_POST['state'];
-        $subject = $_POST['subject'];
-
-        $mailTo = "info.reportthatpantry@gmail.com";
-        $headers = "From: ".$mailTo;
-        $txt = "You have recieved an email from ".$firstname." ".$lastname.". This was sent through the 'Contact Us' page.\n\n";
-
-        mail($mailTo, "Contact Us Page", $subject, $mailTo);
-        header("Location: contact_us.php?mailsend");
-    }
-
-    ?>
 
     <body>
         <div style="margin-top: 20px;">
@@ -85,8 +63,8 @@
                         <br><br>
                         phone-number</p>
                 </div>
-                <div class="formcontainer" onsubmit="return false">
-                    <form method = "post">
+                <div class="formcontainer">
+                    <form method = "post" action = "/sendmail">
                         <label for="fname">First Name</label>
                         <input type="text" id="fname" name="fname" placeholder="Enter your first name">
                         <label for="lname">Last Name</label>
@@ -153,49 +131,37 @@
                         <label for="subject">Subject</label>
                         <textarea id="subject" name="subject" placeholder="Message" style="height:200px"></textarea>
 
-                        <button onclick="wasSent()" type="submit" name="submit">Submit</button>
+                        <button onclick="return wasSent()" type="submit" name="submit">Submit</button>
+                    </form>
                 </div>
                 
         </div>
         <script>
             
-            class User {
-                constructor(firstName, lastName, state, email, subject) {
-                this.firstName = firstName;
-                this.lastName = lastName;
-                this.state = state;
-                this.email = email;
-                this.subject = subject;
-                }
-            }
+            var firstName = document.getElementById('fname');
+            var lastName = document.getElementById('lname');
+            var email = document.getElementById('email');
+            var state = document.getElementById('state');
+            var subject = document.getElementById('subject');
 
-            document.addEventListener("DOMContentLoaded", function() {
-                fields.firstName = document.getElementById('fname');
-                fields.lastName = document.getElementById('lname');
-                fields.email = document.getElementById('email');
-                fields.state = document.getElementById('state');
-                fields.subject = document.getElementById('subject');
-               })
-            
-            
             function isNotEmpty(value) {
                 if (value == null || typeof value == 'undefined' ) return false;
                     return (value.length > 0);
             }
             
             function isEmail(email) {
-                let regex = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
-                return regex.test(String(email).toLowerCase());
+                const re = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+                return re.test(String(email).toLowerCase());
                }
             
             function fieldValidation(field, validationFunction) {
-            if (field == null) return false;
-            
-            let isFieldValid = validationFunction(field.value)
-            if (!isFieldValid) {
-            field.className = 'placeholderRed';
-            } else {
-            field.className = '';
+                if (field == null) return false;
+                
+                let isFieldValid = validationFunction(field.value)
+                if (!isFieldValid) {
+                field.className = 'placeholderRed';
+                } else {
+                field.className = '';
             }
             
             return isFieldValid;
@@ -204,25 +170,26 @@
             function isValid() {
                 var valid = true;
                 
-                valid &= fieldValidation(fields.firstName, isNotEmpty);
-                valid &= fieldValidation(fields.lastName, isNotEmpty);
-                valid &= fieldValidation(fields.state, isNotEmpty);
-                valid &= fieldValidation(fields.email, isEmail);
-                valid &= fieldValidation(fields.subject, isNotEmpty);
+                valid &= fieldValidation(firstName, isNotEmpty);
+                valid &= fieldValidation(lastName, isNotEmpty);
+                valid &= fieldValidation(state, isNotEmpty);
+                valid &= fieldValidation(email, isEmail);
+                valid &= fieldValidation(subject, isNotEmpty);
                
                 return valid;
             }
             
             function wasSent() {
                 if(isValid()){         
-                    alert("${usr.firstName} thank you for contacting us.")
+                    alert(`Thank you for contacting us, ${firstName.value} ${lastName.value}.`);
+                    return true;
                 }
                 else{
-                    alert("There was an error.")
+                    alert("There was an error.");
+                    return false;
                 }
             }
                
         </script>
     </body>
 {% endblock %}
-</html>
