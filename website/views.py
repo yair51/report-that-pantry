@@ -180,12 +180,6 @@ def organizations():
         return redirect(url_for('auth.sign_up'))
     return render_template("organizations.html", user=current_user, title="Add Organization")
 
-# <<<<<<< HEAD
-# @views.route('/poster<int:id>')
-# @views.route('/poster/<int:id>')
-# def poster(id):
-#     return render_template("poster.html", user=current_user, title="Poster", pantrynumber = id)
-
 @views.route('/logs/<int:id>')
 @views.route('/logs/<int:id>/')
 def logs(id):
@@ -208,3 +202,7 @@ def poster(isNew1, id):
 @views.route('/contact_us', methods=['GET','POST'])
 def contact_us():
     return render_template('contact_us.html', user=current_user, title = 'Contact Us')
+
+@views.route('/about')
+def about():
+    return render_template('about.html', user=current_user, title='About Us')
