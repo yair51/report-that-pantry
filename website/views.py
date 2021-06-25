@@ -202,3 +202,8 @@ def logs(id):
 def poster(isNew1, id):
     location = db.session.query(Location.name.label("location_name")).filter(Location.id == id)[0][0]
     return render_template("poster.html", user=current_user, title="Poster", pantrynumber = id, isNew = isNew1, name = location)
+
+@views.route('/about')
+@views.route('/about/')
+def about():
+    return render_template("about.html", user=current_user, title="About Us")

@@ -7,3 +7,4 @@ __pycache__/
 .ebignore
 pylintrc
 .env
+c:backup_file.tar
