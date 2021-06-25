@@ -1,5 +1,20 @@
 {% extends "base.html" %}
 {% block content %}
+<head>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+    <style> 
+        #myInput {
+            background-position: 10px 10px;
+            background-repeat: no-repeat;
+            width: 100%;
+            font-size: 16px;
+            padding: 12px 20px 12px 40px;
+            border: 1px solid #ddd;
+            margin-bottom: 12px;
+        }
+    </style>
+</head>
     <div class="container">
         <form method="POST">
             <div class="row">
@@ -73,43 +88,64 @@
                 </div> -->
             </div>
         </form>
-        <table class="table table-dark table-responsive-sm" data-filter-control="true">
-        <thead>
-            <tr>
-                <th scope="col">#</th>
-                <th scope="col">Location</th>
-                <th scope="col">Status</th>
-                <th scope="col">Last Updated</th>
-                <th scope="col" data-filter-control="select">Organization</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for location in locations %}
-            <tr>
-            <td scope="row">{{ location.location_id }}</td>
-            <!-- <td id="location">{{ location.address }} {{ location.city }}, {{ location.state }} {{ location.zip }}</td> -->
-            <td id="location">{{location.location_name}}<br> {{location.address}}, {{location.city}}, {{location.state}}</td>
-            <td class="alert{% if location.status == 'Full' %}-success{% elif location.status == 'Half Full' %}-warning{% else %}-danger{% endif %}">{{ location.status }}</td>
-            <td id="time{{location.location_id}}">{{ location.time.strftime("%c") }}</td>
-            <td>{{location.name}}</td>
-            <td><a href="/logs/{{ location.location_id }}" style="color:white;"><button type="button" class="btn btn-info">Logs</button></a></td>
-            <!-- <td><a href="/poster/{{ location.location_id }}" style="color:white;"><button type="button" class="btn btn-warning">Poster</button></a></td> -->
-            <!-- <td><a href="/report/{{ location.location_id }}" style="color:white;"><button type="button" class="btn btn-warning">Report</button></a></td> -->
-            {% if user.is_authenticated %}
-            <td><a href="/poster/0/{{ location.location_id }}" style="color:white;"><button type="button" class="btn btn-warning">Poster</button></a></td>
-            <td><button type="button" class="btn btn-link"><a href="/locations/{{ location.location_id }}">Edit</a></button></td>
-            <td><button method="POST" type="button" class="btn btn-danger btn-close" id="deleteButton" onClick="deleteLocation({{ location.location_id }})">
-                <span aria-hidden="true">&times;</span>
-            </button></td>
-            {% endif %}
-            </tr>
-            <script>
-                var time = document.getElementById('time' + {{location.location_id}}).innerHTML;
-                var old_date = new Date(time + ' UTC');
-                document.getElementById('time' + {{location.location_id}}).innerHTML = old_date.toLocaleString();
-            </script>
-            {% endfor %}
-        </tbody>
+        <input type="text" id="myInput" onkeyup="myFunction()" placeholder="Search for names.." title="Search...">
+        <table id="myTable" class="table table-dark table-responsive-sm" data-filter-control="true" style="word-break: break-all ">
+            <thead>
+                <tr>
+                    <th scope="col">#</th>
+                    <th scope="col">Location</th>
+                    <th scope="col">Status</th>
+                    <th scope="col">Last Updated</th>
+                    <th scope="col" data-filter-control="select">Organization</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for location in locations %}
+                <tr>
+                <td scope="row">{{ location.location_id }}</td>
+                <!-- <td id="location">{{ location.address }} {{ location.city }}, {{ location.state }} {{ location.zip }}</td> -->
+                <td id="location">{{location.location_name}}<br> {{location.address}}, {{location.city}}, {{location.state}}</td>
+                <td class="alert{% if location.status == 'Full' %}-success{% elif location.status == 'Half Full' %}-warning{% else %}-danger{% endif %}">{{ location.status }}</td>
+                <td id="time{{location.location_id}}">{{ location.time.strftime("%c") }}</td>
+                <td>{{location.name}}</td>
+                <td><a href="/logs/{{ location.location_id }}" style="color:white;"><button type="button" class="btn btn-info">Logs</button></a></td>
+                <!-- <td><a href="/poster/{{ location.location_id }}" style="color:white;"><button type="button" class="btn btn-warning">Poster</button></a></td> -->
+                <!-- <td><a href="/report/{{ location.location_id }}" style="color:white;"><button type="button" class="btn btn-warning">Report</button></a></td> -->
+                {% if user.is_authenticated %}
+                <td><a href="/poster/0/{{ location.location_id }}" style="color:white;"><button type="button" class="btn btn-warning">Poster</button></a></td>
+                <td><button type="button" class="btn btn-link"><a href="/locations/{{ location.location_id }}">Edit</a></button></td>
+                <td><button method="POST" type="button" class="btn btn-danger btn-close" id="deleteButton" onClick="deleteLocation({{ location.location_id }})">
+                    <span aria-hidden="true">&times;</span>
+                </button></td>
+                {% endif %}
+                </tr>
+                <script>
+                    var time = document.getElementById('time' + {{location.location_id}}).innerHTML;
+                    var old_date = new Date(time + ' UTC');
+                    document.getElementById('time' + {{location.location_id}}).innerHTML = old_date.toLocaleString();
+                
+                    //to search by name
+                    function myFunction() {
+                        var input, filter, table, tr, td, i, txtValue;
+                        input = document.getElementById("myInput");
+                        filter = input.value.toUpperCase();
+                        table = document.getElementById("myTable");
+                        tr = table.getElementsByTagName("tr");
+                        for (i = 0; i < tr.length; i++) {
+                            td = tr[i].getElementsByTagName("td")[1];
+                            if (td) {
+                                txtValue = td.textContent || td.innerText;
+                                if (txtValue.toUpperCase().indexOf(filter) > -1) {
+                                    tr[i].style.display = "";
+                                } else {
+                                    tr[i].style.display = "none";
+                                }
+                            }       
+                        }
+                    }
+                </script>
+                {% endfor %}
+            </tbody>
         </table>
     </div>
 {% endblock %}
