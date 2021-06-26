@@ -88,15 +88,15 @@
                 </div> -->
             </div>
         </form>
-        <input type="text" id="myInput" onkeyup="myFunction()" placeholder="Search for names.." title="Search...">
-        <table id="myTable" class="table table-dark table-responsive-sm" data-filter-control="true" style="word-break: break-all ">
+        <input type="text" id="myInput" onkeyup="searchName()" placeholder="Search by name...">
+        <table id="myTable" class="table table-dark table-responsive-sm" data-filter-control="true">
             <thead>
                 <tr>
-                    <th scope="col">#</th>
-                    <th scope="col">Location</th>
-                    <th scope="col">Status</th>
-                    <th scope="col">Last Updated</th>
-                    <th scope="col" data-filter-control="select">Organization</th>
+                    <th scope="col"><button class="btn btn-dark" onclick="sortTable('number', this)">#</button></th>
+                    <th scope="col"><button class="btn btn-dark" onclick="sortTable('location', this)">Location</button></th>
+                    <th scope="col"><button class="btn btn-dark" onclick="sortTable('status', this)">Status</button></th>
+                    <th scope="col"><button class="btn btn-dark" onclick="sortTable('last updated', this)">Last Updated</button></th>
+                    <th scope="col" data-filter-control="select"><button class="btn btn-dark" onclick="sortTable('organization', this)">Organization</button></th>
                 </tr>
             </thead>
             <tbody>
@@ -124,25 +124,109 @@
                     var old_date = new Date(time + ' UTC');
                     document.getElementById('time' + {{location.location_id}}).innerHTML = old_date.toLocaleString();
                 
+                    var clickNumber = 0;
+                    var lastColNumber = 0;
                     //to search by name
-                    function myFunction() {
+                    function searchName() {
                         var input, filter, table, tr, td, i, txtValue;
                         input = document.getElementById("myInput");
                         filter = input.value.toUpperCase();
                         table = document.getElementById("myTable");
                         tr = table.getElementsByTagName("tr");
+
+                        //going through each row and its columns 
                         for (i = 0; i < tr.length; i++) {
-                            td = tr[i].getElementsByTagName("td")[1];
-                            if (td) {
-                                txtValue = td.textContent || td.innerText;
-                                if (txtValue.toUpperCase().indexOf(filter) > -1) {
+                            td = [];
+                            for(let j = 0; j < 5; j++){
+                                td[j] = tr[i].getElementsByTagName("td")[j];
+                            }
+                            if (td[0] && td[1] && td[2] && td[3] && td[4]) {
+                                txtValue = false;
+                                for(let j = 0; j < 5; j++){
+                                    txtValue ||= (td[j].textContent || td[j].innerText).toUpperCase().indexOf(filter) > -1;
+                                }
+                                if (txtValue) {
                                     tr[i].style.display = "";
                                 } else {
                                     tr[i].style.display = "none";
                                 }
-                            }       
+                            }
                         }
                     }
+
+                    //sort by column 
+                    function sortTable(sortType, e) {
+                        var table, rows, switching, i, x, y, shouldSwitch, colNumber;
+                        if (sortType === 'number'){
+                            colNumber = 0;
+                        }
+                        else if (sortType === 'location'){
+                            colNumber = 1;
+                        }
+                        else if (sortType === 'status'){
+                            colNumber = 2;
+                        }
+                        else if (sortType === 'last updated'){
+                            colNumber = 3;
+                        }
+                        else if (sortType === 'organization'){
+                            colNumber = 4;
+                        }
+
+                        if(clickNumber === 3 || colNumber !== lastColNumber){
+                            clickNumber = 0; 
+                        }
+                        clickNumber++;
+                        lastColNumber = colNumber;
+                        console.log(clickNumber);
+
+                        table = document.getElementById("myTable");
+                        switching = true;
+                        /*Make a loop that will continue until
+                        no switching has been done:*/
+                        while (switching) {
+                            switching = false;
+                            rows = table.rows;
+                            for (i = 1; i < (rows.length - 1); i++) {
+                                shouldSwitch = false;
+                                x = rows[i].getElementsByTagName("td")[colNumber];
+                                y = rows[i + 1].getElementsByTagName("td")[colNumber];
+                                if(clickNumber === 1){
+                                    if (colNumber !== 0 && x.innerHTML.toLowerCase() > y.innerHTML.toLowerCase()) {
+                                        shouldSwitch = true;
+                                        break;
+                                    }
+                                    else if(+x.innerHTML > +y.innerHTML){
+                                        shouldSwitch = true;
+                                        break;
+                                    }
+                                }
+                                else if(clickNumber === 2){
+                                    if (colNumber !== 0 && x.innerHTML.toLowerCase() < y.innerHTML.toLowerCase()) {
+                                        shouldSwitch = true;
+                                        break;
+                                    }
+                                    else if(+x.innerHTML < +y.innerHTML){
+                                        shouldSwitch = true;
+                                        break;
+                                    }
+                                }
+                                else{
+                                    x = rows[i].getElementsByTagName("td")[0];
+                                    y = rows[i + 1].getElementsByTagName("td")[0];
+                                    if(+x.innerHTML > +y.innerHTML){
+                                        shouldSwitch = true;
+                                        break;
+                                    }
+                                }
+                            }
+                            if (shouldSwitch) {
+                            rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
+                            switching = true;
+                            }
+                        }
+                    }
+
                 </script>
                 {% endfor %}
             </tbody>
