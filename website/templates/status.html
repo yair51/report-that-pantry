@@ -178,6 +178,7 @@
                         }
                         clickNumber++;
                         lastColNumber = colNumber;
+                        //tbd
                         console.log(clickNumber);
 
                         table = document.getElementById("myTable");
@@ -192,23 +193,31 @@
                                 x = rows[i].getElementsByTagName("td")[colNumber];
                                 y = rows[i + 1].getElementsByTagName("td")[colNumber];
                                 if(clickNumber === 1){
-                                    if (colNumber !== 0 && x.innerHTML.toLowerCase() > y.innerHTML.toLowerCase()) {
+                                    if (!(colNumber === 0 || colNumber === 3) && x.innerHTML.toLowerCase() > y.innerHTML.toLowerCase()) {
                                         shouldSwitch = true;
                                         break;
                                     }
-                                    else if(+x.innerHTML > +y.innerHTML){
+                                    else if(colNumber === 0 && +x.innerHTML > +y.innerHTML){
                                         shouldSwitch = true;
                                         break;
+                                    }
+                                    else if(colNumber == 3 && returnDate(x.innerHTML) > returnDate(y.innerHTML)){
+                                        shouldSwitch = true;
+                                        break; 
                                     }
                                 }
                                 else if(clickNumber === 2){
-                                    if (colNumber !== 0 && x.innerHTML.toLowerCase() < y.innerHTML.toLowerCase()) {
+                                    if (!(colNumber === 0 || colNumber === 3) && x.innerHTML.toLowerCase() < y.innerHTML.toLowerCase()) {
                                         shouldSwitch = true;
                                         break;
                                     }
-                                    else if(+x.innerHTML < +y.innerHTML){
+                                    else if(colNumber === 0 && +x.innerHTML < +y.innerHTML){
                                         shouldSwitch = true;
                                         break;
+                                    }
+                                    else if(colNumber === 3 && returnDate(x.innerHTML) < returnDate(y.innerHTML)){
+                                        shouldSwitch = true;
+                                        break; 
                                     }
                                 }
                                 else{
@@ -227,6 +236,44 @@
                         }
                     }
 
+                    function returnDate(numbers){
+                        var split, date, result; 
+                        split = [];
+                        // 0 = year, 1 = month, 2 = day, 3 = date as one int, 4 = time, 5 = am/pm 
+                        numbers = numbers.replaceAll(':', '');
+                        numbers = numbers.replaceAll(',', '');
+                        date = numbers.substring(0, numbers.indexOf(' '));
+                        split[0] = date.substring(date.length - 4);
+                        split[1] = date.substring(0, date.indexOf('/'));
+                        split[2] = date.substring(date.indexOf('/') + 1, date.length - 5);
+                        //putting the date back together 
+                        split[3] = split[0];
+                        if (split[1].length < 2){
+                            split[3] += '0' + split[1];
+                        }
+                        else{
+                            split[3] += split[1];
+                        }
+                        if (split[2].length < 2){
+                            split[3] += '0' + split[2];
+                        }
+                        else{
+                            split[3] += split[2];
+                        }
+                        split[4] = numbers.substring(numbers.indexOf(' ') + 1, numbers.indexOf('M') - 2);
+                        if(split[4].length < 6){
+                            split[4] = '0' + split[4];
+                        }
+                        split[5] = numbers.substring(numbers.indexOf('M') - 1);
+
+                        //converting to military time to help after in sorting 
+                        if(split[5] === 'PM'){
+                            split[4] = +split[4] + 120000;
+                        }
+
+                        result = split[3] + split[4];
+                        return result; 
+                    }
                 </script>
                 {% endfor %}
             </tbody>
