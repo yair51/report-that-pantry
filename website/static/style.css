@@ -1,7 +1,7 @@
 .jumbotron {
     border-radius: 0px;
     color:white;
-    /* background-color: #2B4E72; */
+    background-color: #2B4E72;
     /* background-image: url("../static/bg2.jpg"); */
     background-size: contain;
     
@@ -151,11 +151,21 @@ a.sticky:hover{
   }
   
   #topPic {
-    margin-top: 124px;
+    /* margin-top: 124px; */
     /* aiugdhfffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff */
     position: relative;
     text-align: center;
     color: #2B4E72;
+  }
+
+  .spacer {
+    width: 100%;
+    margin-top: 100px;
+  }
+
+  .spacertwo {
+    width: 100%;
+    margin-top: 8px;
   }
   
   #homeText {
@@ -324,4 +334,8 @@ a.sticky:hover{
     text-decoration: none;
     background-color: white;
     color:#2B4E72;
+}
+
+#mobileNavbar {
+  background-color: #2B4E72;
 }
