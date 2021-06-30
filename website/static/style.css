@@ -24,17 +24,18 @@ form {
     position: fixed; 
     bottom:10px; 
     right: 10px;
-    padding: 20px;
+    padding: 15px;
     color: white;
     border-radius: 20px;
-    background-color: #2B4E72;
-    font-family: 'Josefin Sans', sans-serif;
+    /* border: solid .1em #2B4E72; */
+    background-color: #ad4052;
+    font-family: Calibri, 'Trebuchet MS', sans-serif;
     text-decoration: none;
 }
 a.sticky:hover{
     text-decoration: none;
     color: white;
-    background-color: #4277ac;
+    background-color: #c55b6d;
 
 }
 
@@ -109,9 +110,8 @@ a.sticky:hover{
   #description {
     font-family: Calibri, 'Trebuchet MS', sans-serif;
     font-weight: lighter;
-    /* color: #2B4E72; */
+    color: #2B4E72;
     margin: 0px;
-    color:#2B4E72;
   }
   
   #nameAndDescription {
@@ -197,7 +197,7 @@ a.sticky:hover{
     color: white;
     background-color:#2B4E72;
     line-height: 25px;
-    padding-right: 20px;
+    /* padding-right: 20px; */
     padding-top: 10px;
   }
   
@@ -228,7 +228,10 @@ a.sticky:hover{
   
   #whatPantryTitleAndParagraph {
       background-color: #2B4E72;
-      padding: 40px;
+      padding-top: 40px;
+      padding-bottom: 40px;
+      padding-right: 20px;
+      padding-left: 20px;
   }
 
   #whatPantryTitle{
@@ -252,7 +255,10 @@ a.sticky:hover{
   }
   
   #whatIsPantry {
-    padding: 100px;
+    padding-top: 100px;
+    padding-bottom: 100px;
+    padding-right: 30px;
+    padding-left: 30px;
   }
 
   #picRowHome {
@@ -272,19 +278,21 @@ a.sticky:hover{
 }
 
 #howToReport {
-    background-color: #2B4E72;
-    font-family: Helvetica, sans-serif;
-    color: white;
-    padding: 50px;
-    margin-top: 0px;
-    margin-right: 30px;
-    margin-left: 30px;
-    margin-bottom: 30px;
+  background-color: #2B4E72;
+  font-family: Helvetica, sans-serif;
+  color: white;
+  padding: 50px;
+  margin-top: 0px;
+  margin-right: 30px;
+  margin-left: 30px;
+  margin-bottom: 30px;
 }
 
 #bottomInstructions {
-    padding: 30px;
-    font-size: 19px;
+  display: flex;
+  justify-content: center;
+  padding: 30px;
+  font-size: 19px;
 }
 
 #instructionsListRight {
