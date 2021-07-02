@@ -104,6 +104,7 @@ def delete_location():
         #if note.user_id == current_user.id:
         db.session.delete(location)
         db.session.commit()
+        flash("Location Deleted.", category="success")
 
     return jsonify({})
 
