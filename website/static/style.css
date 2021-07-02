@@ -361,3 +361,17 @@ a.sticky:hover{
   display: flex;
   justify-content: center;
 }
+
+#instructions {
+  /* display: flex;
+  justify-content: center; */
+  text-align: center;
+}
+
+#allInstructions {
+  padding: 15px !important; 
+}
+
+#instructionsTitle {
+  padding: 20px !important; 
+}
