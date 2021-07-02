@@ -118,7 +118,7 @@ a.sticky:hover{
     padding: 20px;
   }
   
-  #name {
+  #site-name {
     font-size: 30px;
     padding: 0px;
     margin: 0px;
@@ -132,6 +132,7 @@ a.sticky:hover{
 
   #belowNavbar {
       background-color: #2B4E72;
+      /* background-color: #001514; */
       padding-left: 30px;
       padding-right: 30px;
       width: 100%;
