@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block content %}
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+</head>
+
+<style>
+    img {
+  border: 2px solid rgb(7, 0, 0);
+  
+}
+p {text-align: center;}
+</style> 
+<h1 style="text-align:center">How To Get Your Pantry Status Setup</h1>
+<div class ="vertical">
+    <ol>
+        <hr noshade="10">
+        <p>1. Register your organization on the "Add Organization" page. If your organization is already registered, skip to step 2.</p>
+        <hr width="63%" align="center">
+        <p>2. Create an account on the "Sign Up" page</p>
+        <hr width="63%" align="center">
+        <p>3. Add your pantry location on the "Add Locations" page</p>
+        <hr width="63%" align="center">
+        <p>4. Print out the poster and place it on the front of your pantry (see example below)</p>
+        <hr width="63%" align="center">
+    </ol>
+</div>
+
+
+
+<!-- <div class="d-flex justify-content-center">
+    <img width= "440" height = "500" src="{{url_for('static', filename='poster1.jpg')}}" class="responsive" style="border-radius: 5%" >   
+</div> -->
+
+<div class="d-flex justify-content-center" style="padding-top: 20px; padding-bottom: 5px;">
+    <img width= "440" height = "500" src="{{url_for('static', filename='setuppantry.jpeg')}}" class="responsive" style="border-radius: 5%" >   
+</div>
+
+<!-- <div class="d-flex justify-content-center" style="padding-top: 20px;">
+    <img width= "440" height = "500" src="{{url_for('static', filename='jon2.jpeg')}}" class="responsive" style="border-radius: 5%" >   
+</div> -->
+{% endblock %}
