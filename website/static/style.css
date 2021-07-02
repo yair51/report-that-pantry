@@ -68,6 +68,14 @@ a.sticky:hover{
     padding-right: 5px;
 }
 
+#gmail {
+  color: white;
+}
+
+#gmail:hover {
+  color: rgba(255,255,255,.5);
+}
+
 #navbarCSS {
     /* background: #2B4E72; */
     padding: 0px;
@@ -133,10 +141,17 @@ a.sticky:hover{
 
   #belowNavbar {
       /* background-color: #2B4E72; */
-      background-color: #001514;
+      background-color: #353432;
       padding-left: 30px;
       padding-right: 30px;
       width: 100%;
+  }
+
+  #homeLogo {
+    width: 50px;
+    object-fit: contain;
+    display: flex;
+    align-items: center;
   }
 
   #spaceFilling {
@@ -339,5 +354,10 @@ a.sticky:hover{
 }
 
 #mobileNavbar {
-  background-color: #2B4E72;
+  background-color: #353432;
+}
+
+.card-title {
+  display: flex;
+  justify-content: center;
 }
