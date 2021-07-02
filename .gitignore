@@ -8,3 +8,4 @@ __pycache__/
 pylintrc
 .env
 c:backup_file.tar
+raspi.py
