@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html>
   <head>
-    
+    <script src="https://code.jquery.com/jquery-3.4.0.min.js"> </script> 
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1 user-scalable=false;" />
     <link
       rel="stylesheet"
       href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
@@ -18,7 +18,8 @@
     <link rel="icon" href="data:;base64,iVBORw0KGgo=">
     <link rel="preconnect" href="https://fonts.gstatic.com">
     <link rel="preconnect" href="https://fonts.gstatic.com">
-    <link href="https://fonts.googleapis.com/css2?family=Josefin+Sans:wght@348&family=Montserrat:wght@500&display=swap" rel="stylesheet">    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Josefin+Sans:wght@348&family=Montserrat:wght@500&display=swap" rel="stylesheet">    
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
     <link rel="stylesheet" href="https://unpkg.com/bootstrap-table@1.18.3/dist/bootstrap-table.min.css">
     <link rel="stylesheet" type="text/css" href="https://unpkg.com/bootstrap-table@1.18.3/dist/extensions/filter-control/bootstrap-table-filter-control.css">
@@ -35,9 +36,9 @@
   </script>
   </head>
   <body>
-
-    <nav class="navbar navbar-expand-lg navbar-dark" style="background-color:#353432">
-      <button
+    <div class="d-none d-md-block">
+    <nav class="navbar navbar-expand-sm navbar-dark">
+      <!-- <button
         class="navbar-toggler"
         type="button"
         data-toggle="collapse"
@@ -45,33 +46,83 @@
       >
         <span class="navbar-toggler-icon"></span>
       </button>
-      <div class="collapse navbar-collapse" id="navbar">
-        <div class="navbar-nav">
-
-          <a class="nav-item nav-link {% if title == 'Home' %}active{% endif %}" id="home" href="/">Home</a>
-              <!-- <a class="dropdown-item" href="/mission">Misssion</a> -->
-              <!-- <div class="dropdown-divider"></div>
-              <a class="dropdown-item" href="#">Something else here</a>
-            </div> -->
-          </li>
-          <a class="nav-item nav-link {% if title == 'Status' %}active{% endif %}" id="status" href="/status">Status</a>
-          <a class="nav-item nav-link {% if title == 'Team' %}active{% endif %}" id="team" href="/team">Team</a>
-    
-          <!-- <a class="nav-item nav-link {% if title == 'About Us' %}active{% endif %}" id="locations" href="/about">About Us</a> -->
-          {% if user.is_authenticated %}
-          <a class="nav-item nav-link {% if title == 'Locations' %}active{% endif %}" id="locations" href="/locations">Add Locations</a>          <a class="nav-item nav-link {% if title == 'Logout' %}active{% endif %}" id="logout" href="/logout">Logout</a>
-          {% else %}
-          <a class="nav-item nav-link {% if title == 'Login' %}active{% endif %}" id="login" href="/login">Login</a>
-          <a class="nav-item nav-link {% if title == 'Sign Up' %}active{% endif %}" id="signUp" href="/sign-up">Sign Up</a>
-          {% endif %}
-          <a class="nav-item nav-link {% if title == 'Organizations' %}active{% endif %}" id="locations" href="/organizations">Add Organization</a>
-          <!-- <a class="nav-item nav-link {% if title == 'Report' %}active{% endif %}" id="report" href="/report/1">Report</a> -->
-          <!-- <a class="nav-item nav-link {% if title == 'About Us' %}active{% endif %}" id="about" href="/about">About us</a> -->
-          <a class="nav-item nav-link {% if title == 'Setup' %}active{% endif %}" id="setup" href="/setup">Setup</a>
+      <div class="collapse navbar-collapse" id="navbar"> -->
+        <div class="navbar-nav fixed-top d-flex flex-column" id="navbarCSS">
+          <div id="aboveNavBar">
+            <div id="stuffOnRight" class="d-flex justify-content-start">
+              <img src="{{url_for('static', filename='rtp_logo.png') }}" id="logo">
+              <div id="nameAndDescription">
+                <h1 id="site-name">Report That Pantry</h1>
+                <p id="description">Student-Run Organization</p>
+              </div>
+            </div>
+          </div>
+          <div id="belowNavbar" class="d-flex justify-content-between">
+            <div id="navbarButtons" class="d-flex align-items-center">
+              <a class="nav-item nav-link {% if title == 'Home' %}active{% endif %}" style="font-family:Calibri, sans-serif, arial, 'Trebuchet MS'; font-weight: lighter;" id="home" href="/">Home</a>
+                  <!-- <a class="dropdown-item" href="/mission">Misssion</a> -->
+                  <!-- <div class="dropdown-divider"></div>
+                  <a class="dropdown-item" href="#">Something else here</a>
+                </div> -->
+              </li>
+              <a class="nav-item nav-link {% if title == 'Status' %}active{% endif %}" style="font-family:Calibri, sans-serif, arial, 'Trebuchet MS'; font-weight: lighter;" id="status" href="/status">Status</a>
+              <a class="nav-item nav-link {% if title == 'Team' %}active{% endif %}" style="font-family:Calibri, sans-serif, arial, 'Trebuchet MS'; font-weight: lighter;" id="team" href="/team">Team</a>
         
+              <!-- <a class="nav-item nav-link {% if title == 'About Us' %}active{% endif %}" id="locations" href="/about">About Us</a> -->
+              {% if user.is_authenticated %}
+              <a class="nav-item nav-link {% if title == 'Locations' %}active{% endif %}" id="locations" style="font-family:Calibri, sans-serif, arial, 'Trebuchet MS'; font-weight: lighter;" href="/locations">Add Locations</a>          <a class="nav-item nav-link {% if title == 'Logout' %}active{% endif %}" style="font-family:Calibri, sans-serif, arial, 'Trebuchet MS'; font-weight: lighter;" id="logout" href="/logout">Logout</a>
+              {% else %}
+              <a class="nav-item nav-link {% if title == 'Login' %}active{% endif %}" id="login" style="font-family:Calibri, sans-serif, arial, 'Trebuchet MS'; font-weight: lighter;" href="/login">Login</a>
+              <a class="nav-item nav-link {% if title == 'Sign Up' %}active{% endif %}" id="signUp" style="font-family:Calibri, sans-serif, arial, 'Trebuchet MS'; font-weight: lighter;" href="/sign-up">Sign Up</a>
+              <a class="nav-item nav-link {% if title == 'Organizations' %}active{% endif %}" id="locations" style="font-family:Calibri, sans-serif, arial, 'Trebuchet MS'; font-weight: lighter;" href="/organizations">Add Organization</a>
+              {% endif %}
+              <a class="nav-item nav-link {% if title == 'Contact Us' %}active{% endif %}" id="contact-us" style="font-family:Calibri, sans-serif, arial, 'Trebuchet MS'; font-weight: lighter;" href="/contactus">Contact Us</a>
+              <!-- <a class="nav-item nav-link {% if title == 'Report' %}active{% endif %}" id="report" href="/report/1">Report</a> -->
+            </div>
+
+            <div id="gmailAndMedia" class="d-flex justify-content-end" style="font-family:Calibri, sans-serif, arial, 'Trebuchet MS'; font-weight: lighter;">
+              <a class="nav-item nav-link {% if title == 'info@reportthatpantry.org' %}active{% endif %}" id="gmail" href="https://mail.google.com/mail/u/0/?tab=rm&ogbl#inbox?compose=GTvVlcSDbFRZKdBBMszssgZXzThgpZgFvDrMsQTRLzVbLhsLldfcTmWRWtgWXHxrtNCBkftZJPgSD">info@reportthatpantry.org</a>
+              
+              <div id="media">
+                <a href="https://www.facebook.com/reportthatpantry" target="_blank"><img class="nav-item" src="https://static.wixstatic.com/media/23fd2a2be53141ed810f4d3dcdcd01fa.png/v1/fill/w_20,h_20,al_c,q_85,usm_0.66_1.00_0.01/Facebook.webp" alt="Facebook" style="width: 20px; height: 20px;" id="facebookLogo"></a>
+                <!-- <img class="nav-item" src="https://cdn.discordapp.com/attachments/784090044893364225/855425103000240148/new-instagram-logo-white-border-icon-png-large.png" alt="Instagram" style="width: 20px; height: 20px;" id="instaLogo"> -->
+              </div>
+            </div>
+          </div>
         </div>
-      </div>
+        <div class="spacer">
+          &nbsp;
+        </div>
+        </div>
     </nav>
+    <div class="d-md-none">
+      <nav class="navbar navbar-dark fixed-top" id="mobileNavbar">
+        <a class="navbar-brand" href="#">Report That Pantry</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#collapsibleNavbar">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="collapsibleNavbar">
+          <ul class="navbar-nav">
+            <a class="nav-item nav-link {% if title == 'Home' %}active{% endif %}" style="font-family:Calibri, sans-serif, arial, 'Trebuchet MS'; font-weight: lighter;" id="home" href="/">Home</a>
+            <a class="nav-item nav-link {% if title == 'Status' %}active{% endif %}" style="font-family:Calibri, sans-serif, arial, 'Trebuchet MS'; font-weight: lighter;" id="status" href="/status">Status</a>
+            <a class="nav-item nav-link {% if title == 'Team' %}active{% endif %}" style="font-family:Calibri, sans-serif, arial, 'Trebuchet MS'; font-weight: lighter;" id="team" href="/team">Team</a>
+      
+            <!-- <a class="nav-item nav-link {% if title == 'About Us' %}active{% endif %}" id="locations" href="/about">About Us</a> -->
+            {% if user.is_authenticated %}
+            <a class="nav-item nav-link {% if title == 'Locations' %}active{% endif %}" id="locations" style="font-family:Calibri, sans-serif, arial, 'Trebuchet MS'; font-weight: lighter;" href="/locations">Add Locations</a>          <a class="nav-item nav-link {% if title == 'Logout' %}active{% endif %}" style="font-family:Calibri, sans-serif, arial, 'Trebuchet MS'; font-weight: lighter;" id="logout" href="/logout">Logout</a>
+            {% else %}
+            <a class="nav-item nav-link {% if title == 'Login' %}active{% endif %}" id="login" style="font-family:Calibri, sans-serif, arial, 'Trebuchet MS'; font-weight: lighter;" href="/login">Login</a>
+            <a class="nav-item nav-link {% if title == 'Sign Up' %}active{% endif %}" id="signUp" style="font-family:Calibri, sans-serif, arial, 'Trebuchet MS'; font-weight: lighter;" href="/sign-up">Sign Up</a>
+            <a class="nav-item nav-link {% if title == 'Organizations' %}active{% endif %}" id="add-org" style="font-family:Calibri, sans-serif, arial, 'Trebuchet MS'; font-weight: lighter;" href="/organizations">Add Organization</a>
+            {% endif %}
+          </ul>
+        </div>  
+      </nav>
+      <br>
+      <div class="spacertwo">
+        &nbsp;
+      </div>
+    </div>
 
     {% with messages = get_flashed_messages(with_categories=true) %} {% if
     messages %} {% for category, message in messages %} {% if category ==
@@ -89,19 +140,21 @@
         <span aria-hidden="true">&times;</span>
       </button>
     </div>
-    {% endif %} {% endfor %} {% endif %} {% endwith %}
+    {% endif %} {% endfor %} {% endif %} {% endwith %} 
+    {% if title=="Home" %} {% else %} 
     <div class="d-print-none">
       <div class="jumbotron text-center">
         <i class="material-icons">volunteer_activism</i>
-        <h1>{% if title == "Home" %}TLC Little Free Pantry{% else %}{{ title }}{% endif %}</h1>
+        <h1>{% if title == "Home" %}{% else %}{{ title }}{% endif %}</h1>
       </div>
     </div>
+    {% endif %}
+      <!-- <p id="spaceFilling"></p> -->
     <div>{% block content %} {% endblock %}</div>
     {% if title == "Home" or title == "About Us" %}
-    <div class="jumbotron text-center" style="margin-bottom:0;">
+    <div class="jumbotron text-center" style="margin-bottom:0; background-color: #2B4E72;">
       <div class="row">
         <div class="col">
-        <!-- <p style="color: white;">footer</p> -->
           <a href="https://www.dkja.net/" target="_blank">
               <img src="{{ url_for('static', filename='dkja.jpg') }}" alt="Donna Klein Jewish Academy" class="rounded">
           </a>

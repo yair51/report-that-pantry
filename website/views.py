@@ -109,6 +109,7 @@ def delete_location():
 
 @views.route('report/<int:id>/')
 @views.route('/report/<int:id>')
+@views.route('/report<int:id>')
 def report(id):
     location = Location.query.get(id)
     status = request.args.get('status')
@@ -166,25 +167,20 @@ def status():
 def team():
     return render_template("team.html", user=current_user, title="Team")
 
-@views.route('/organizations', methods=['GET','POST'])
-def organizations():
-    if request.method == 'POST':
-        name = request.form.get('name')
-        address = request.form.get('address')
-        # creates new organization
-        org = Organization(name=name, address=address)
-        # adds org to db
-        db.session.add(org)
-        db.session.commit()
-        flash('Organization added. Now create an account under your organization.', category='success')
-        return redirect(url_for('auth.sign_up'))
-    return render_template("organizations.html", user=current_user, title="Add Organization")
-
-# <<<<<<< HEAD
-# @views.route('/poster<int:id>')
-# @views.route('/poster/<int:id>')
-# def poster(id):
-#     return render_template("poster.html", user=current_user, title="Poster", pantrynumber = id)
+# moved to auth.py now to check auth code (can be deleted)
+# @views.route('/organizations', methods=['GET','POST'])
+# def organizations():
+#     if request.method == 'POST':
+#         name = request.form.get('name')
+#         address = request.form.get('address')
+#         # creates new organization
+#         org = Organization(name=name, address=address)
+#         # adds org to db
+#         db.session.add(org)
+#         db.session.commit()
+#         flash('Organization added. Now create an account under your organization.', category='success')
+#         return redirect(url_for('auth.sign_up'))
+#     return render_template("organizations.html", user=current_user, title="Add Organization")
 
 @views.route('/logs/<int:id>')
 @views.route('/logs/<int:id>/')
@@ -207,3 +203,8 @@ def poster(isNew1, id):
 @views.route('/setup/')
 def setup():
     return render_template("setup.html", user=current_user, title="Setup")
+
+@views.route('/contactus', methods=['GET','POST'])
+@views.route('/contactus/', methods=['GET','POST'])
+def contact_us():
+    return render_template('contact_us.html', user=current_user, title = 'Contact Us')

@@ -70,3 +70,22 @@ def sign_up():
             return redirect(url_for('views.locations'))
 
     return render_template("sign_up.html", user=current_user, title="Sign Up", organizations=organizations)
+
+
+@auth.route('/organizations', methods=['GET','POST'])
+def organizations():
+    if request.method == 'POST':
+        name = request.form.get('name')
+        address = request.form.get('address')
+        authorization = request.form.get('authorization')
+        if authorization != '852':
+            flash('Invalid authorization code. Please contact the developer for access.', category='error')
+        else: 
+            # creates new organization
+            org = Organization(name=name, address=address)
+            # adds org to db
+            db.session.add(org)
+            db.session.commit()
+            flash('Organization added. Now create an account under your organization.', category='success')
+            return redirect(url_for('auth.sign_up'))
+    return render_template("organizations.html", user=current_user, title="Add Organization")

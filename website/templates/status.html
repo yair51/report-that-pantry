@@ -1,5 +1,34 @@
 {% extends "base.html" %}
 {% block content %}
+<head>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+    <script>src="{{url_for('static', filename='poster1.jpg')}}"</script>
+    <style> 
+        #myInput {
+            background-position: 10px 10px;
+            background-repeat: no-repeat;
+            width: 100%;
+            font-size: 16px;
+            padding: 12px 20px 12px 40px;
+            border: 1px solid #ddd;
+            margin-bottom: 12px;
+        }
+        .sortButtons {
+            text-align: left !important;
+            font-weight: bold;
+            position: relative;
+            background-color: #343a40 !important;
+            border-color: #343a40 !important;
+            box-shadow: none !important;
+        }
+        .sortButtons:hover, .sortButtons:active .sortButtons:focus, .sortButtons:link, .sortButtons:visited {
+            background-color: #343a40 !important;
+            border-color: #343a40 !important;
+            box-shadow: none !important;
+        }
+    </style>
+</head>
     <div class="container">
         <form method="POST">
             <div class="row">
@@ -73,43 +102,207 @@
                 </div> -->
             </div>
         </form>
-        <table class="table table-dark table-responsive-sm" data-filter-control="true">
-        <thead>
-            <tr>
-                <th scope="col">#</th>
-                <th scope="col">Location</th>
-                <th scope="col">Status</th>
-                <th scope="col">Last Updated</th>
-                <th scope="col" data-filter-control="select">Organization</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for location in locations %}
-            <tr>
-            <td scope="row">{{ location.location_id }}</td>
-            <!-- <td id="location">{{ location.address }} {{ location.city }}, {{ location.state }} {{ location.zip }}</td> -->
-            <td id="location">{{location.location_name}}<br> {{location.address}}, {{location.city}}, {{location.state}}</td>
-            <td class="alert{% if location.status == 'Full' %}-success{% elif location.status == 'Half Full' %}-warning{% else %}-danger{% endif %}">{{ location.status }}</td>
-            <td id="time{{location.location_id}}">{{ location.time.strftime("%c") }}</td>
-            <td>{{location.name}}</td>
-            <td><a href="/logs/{{ location.location_id }}" style="color:white;"><button type="button" class="btn btn-info">Logs</button></a></td>
-            <!-- <td><a href="/poster/{{ location.location_id }}" style="color:white;"><button type="button" class="btn btn-warning">Poster</button></a></td> -->
-            <!-- <td><a href="/report/{{ location.location_id }}" style="color:white;"><button type="button" class="btn btn-warning">Report</button></a></td> -->
-            {% if user.is_authenticated %}
-            <td><a href="/poster/0/{{ location.location_id }}" style="color:white;"><button type="button" class="btn btn-warning">Poster</button></a></td>
-            <td><button type="button" class="btn btn-link"><a href="/locations/{{ location.location_id }}">Edit</a></button></td>
-            <td><button method="POST" type="button" class="btn btn-danger btn-close" id="deleteButton" onClick="deleteLocation({{ location.location_id }})">
-                <span aria-hidden="true">&times;</span>
-            </button></td>
-            {% endif %}
-            </tr>
-            <script>
-                var time = document.getElementById('time' + {{location.location_id}}).innerHTML;
-                var old_date = new Date(time + ' UTC');
-                document.getElementById('time' + {{location.location_id}}).innerHTML = old_date.toLocaleString();
-            </script>
-            {% endfor %}
-        </tbody>
+        <input type="text" id="myInput" onkeyup="searchName()" placeholder="Search by name...">
+        <table id="myTable" class="table table-dark table-responsive" data-filter-control="true">
+            <thead>
+                <tr>
+                    <!-- add the dif images -->
+                    <th scope="col"><button class="btn btn-dark btn-block sortButtons" onclick="sortTable('number', 'numberCol')">
+                        #<img id= "numberCol" style="display: block; position: absolute; right: -15px; bottom: 5px" width="25px" height="auto" src="{{url_for('static', filename='whiteSort.png')}}" alt=""></button></th>
+                    <th scope="col"><button class="btn btn-dark btn-block sortButtons" onclick="sortTable('location', 'locCol')">
+                        Location<img id= "locCol" style="display: block; position: absolute; right: -15px; bottom: 5px" width="25px" height="auto" width="20px" height="auto" src="{{url_for('static', filename='whiteSort.png')}}" alt=""</button></th>
+                    <th scope="col"><button class="btn btn-dark btn-block sortButtons" onclick="sortTable('status', 'statCol')">
+                        Status<img id= "statCol" style="display: block; position: absolute; right: -15px; bottom: 5px" width="25px" height="auto" src="{{url_for('static', filename='whiteSort.png')}}" alt=""</button></th>
+                    <th scope="col"><button class="btn btn-dark btn-block sortButtons" onclick="sortTable('last updated', 'updateCol')">
+                        Last Updated<img id= "updateCol" style="display: block; position: absolute; right: -15px; bottom: 5px" width="25px" height="auto" src="{{url_for('static', filename='whiteSort.png')}}" alt=""</button></th>
+                    <th scope="col" data-filter-control="select"><button class="btn btn-dark btn-block sortButtons" onclick="sortTable('organization', 'orgCol')">
+                        Organization<img id= "orgCol" style="display: block; position: absolute; right: -15px; bottom: 5px" width="25px" height="auto" src="{{url_for('static', filename='whiteSort.png')}}" alt=""</button></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for location in locations %}
+                <tr>
+                <td scope="row">{{ location.location_id }}</td>
+                <!-- <td id="location">{{ location.address }} {{ location.city }}, {{ location.state }} {{ location.zip }}</td> -->
+                <td id="location">{{location.location_name}}<br> {{location.address}}, {{location.city}}, {{location.state}}</td>
+                <td class="alert{% if location.status == 'Full' %}-success{% elif location.status == 'Half Full' %}-warning{% else %}-danger{% endif %}">{{ location.status }}</td>
+                <td id="time{{location.location_id}}">{{ location.time.strftime("%c") }}</td>
+                <td>{{location.name}}</td>
+                <td><a href="/logs/{{ location.location_id }}" style="color:white;"><button type="button" class="btn btn-info">Logs</button></a></td>
+                <!-- <td><a href="/poster/{{ location.location_id }}" style="color:white;"><button type="button" class="btn btn-warning">Poster</button></a></td> -->
+                <!-- <td><a href="/report/{{ location.location_id }}" style="color:white;"><button type="button" class="btn btn-warning">Report</button></a></td> -->
+                {% if user.is_authenticated %}
+                <td><a href="/poster/0/{{ location.location_id }}" style="color:white;"><button type="button" class="btn btn-warning">Poster</button></a></td>
+                <td><button type="button" class="btn btn-link"><a href="/locations/{{ location.location_id }}">Edit</a></button></td>
+                <td><button method="POST" type="button" class="btn btn-danger btn-close" id="deleteButton" onClick="deleteLocation({{ location.location_id }})">
+                    <span aria-hidden="true">&times;</span>
+                </button></td>
+                {% endif %}
+                </tr>
+                <script>
+                    var time = document.getElementById('time' + {{location.location_id}}).innerHTML;
+                    var old_date = new Date(time + ' UTC');
+                    document.getElementById('time' + {{location.location_id}}).innerHTML = old_date.toLocaleString();
+                
+                    var clickNumber = 0;
+                    var lastColNumber = 0;
+                    //to search by name
+                    function searchName() {
+                        var input, filter, table, tr, td, i, txtValue;
+                        input = document.getElementById("myInput");
+                        filter = input.value.toUpperCase();
+                        table = document.getElementById("myTable");
+                        tr = table.getElementsByTagName("tr");
+
+                        //going through each row and its columns 
+                        for (i = 0; i < tr.length; i++) {
+                            td = [];
+                            for(let j = 0; j < 5; j++){
+                                td[j] = tr[i].getElementsByTagName("td")[j];
+                            }
+                            if (td[0] && td[1] && td[2] && td[3] && td[4]) {
+                                txtValue = false;
+                                for(let j = 0; j < 5; j++){
+                                    txtValue ||= (td[j].textContent || td[j].innerText).toUpperCase().indexOf(filter) > -1;
+                                }
+                                if (txtValue) {
+                                    tr[i].style.display = "";
+                                } else {
+                                    tr[i].style.display = "none";
+                                }
+                            }
+                        }
+                    }
+
+                    //sort by column 
+                    function sortTable(sortType, colID) {
+                        // for sorting 
+                        var table, rows, switching, i, x, y, shouldSwitch, colNumber;
+                        if (sortType === 'number'){
+                            colNumber = 0;
+                        }
+                        else if (sortType === 'location'){
+                            colNumber = 1;
+                        }
+                        else if (sortType === 'status'){
+                            colNumber = 2;
+                        }
+                        else if (sortType === 'last updated'){
+                            colNumber = 3;
+                        }
+                        else if (sortType === 'organization'){
+                            colNumber = 4;
+                        }
+
+                        if(clickNumber === 3 || colNumber !== lastColNumber){
+                            clickNumber = 0; 
+                        }
+                        clickNumber++;
+                        lastColNumber = colNumber;
+                        console.log(clickNumber);    
+
+                        table = document.getElementById("myTable");
+                        switching = true;
+                        /*Make a loop that will continue until
+                        no switching has been done:*/
+                        while (switching) {
+                            for(let i = 0; i < 5; i++){
+                                document.getElementsByTagName('img')[i].src = "{{url_for('static', filename='whiteSort.png')}}"; 
+                            }
+                            switching = false;
+                            rows = table.rows;
+                            for (i = 1; i < (rows.length - 1); i++) {
+                                shouldSwitch = false;
+                                x = rows[i].getElementsByTagName("td")[colNumber];
+                                y = rows[i + 1].getElementsByTagName("td")[colNumber];
+                                if(clickNumber === 1){
+                                    document.getElementById(colID).src = "{{url_for('static', filename='whiteSortDown.png')}}"; 
+                                    if (!(colNumber === 0 || colNumber === 3) && x.innerHTML.toLowerCase() > y.innerHTML.toLowerCase()) {
+                                        shouldSwitch = true;
+                                        break;
+                                    }
+                                    else if(colNumber === 0 && +x.innerHTML > +y.innerHTML){
+                                        shouldSwitch = true;
+                                        break;
+                                    }
+                                    else if(colNumber == 3 && returnDate(x.innerHTML) > returnDate(y.innerHTML)){
+                                        shouldSwitch = true;
+                                        break; 
+                                    }
+                                }
+                                else if(clickNumber === 2){
+                                    document.getElementById(colID).src = "{{url_for('static', filename='whiteSortUp.png')}}"; 
+                                    if (!(colNumber === 0 || colNumber === 3) && x.innerHTML.toLowerCase() < y.innerHTML.toLowerCase()) {
+                                        shouldSwitch = true;
+                                        break;
+                                    }
+                                    else if(colNumber === 0 && +x.innerHTML < +y.innerHTML){
+                                        shouldSwitch = true;
+                                        break;
+                                    }
+                                    else if(colNumber === 3 && returnDate(x.innerHTML) < returnDate(y.innerHTML)){
+                                        shouldSwitch = true;
+                                        break; 
+                                    }
+                                }
+                                else{
+                                    document.getElementById(colID).src = "{{url_for('static', filename='whiteSort.png')}}"; 
+                                    x = rows[i].getElementsByTagName("td")[0];
+                                    y = rows[i + 1].getElementsByTagName("td")[0];
+                                    if(+x.innerHTML > +y.innerHTML){
+                                        shouldSwitch = true;
+                                        break;
+                                    }
+                                }
+                            }
+                            if (shouldSwitch) {
+                            rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
+                            switching = true;
+                            }
+                        }
+                    }
+
+                    function returnDate(numbers){
+                        var split, date, result; 
+                        split = [];
+                        // 0 = year, 1 = month, 2 = day, 3 = date as one int, 4 = time, 5 = am/pm 
+                        numbers = numbers.replaceAll(':', '');
+                        numbers = numbers.replaceAll(',', '');
+                        date = numbers.substring(0, numbers.indexOf(' '));
+                        split[0] = date.substring(date.length - 4);
+                        split[1] = date.substring(0, date.indexOf('/'));
+                        split[2] = date.substring(date.indexOf('/') + 1, date.length - 5);
+                        //putting the date back together 
+                        split[3] = split[0];
+                        if (split[1].length < 2){
+                            split[3] += '0' + split[1];
+                        }
+                        else{
+                            split[3] += split[1];
+                        }
+                        if (split[2].length < 2){
+                            split[3] += '0' + split[2];
+                        }
+                        else{
+                            split[3] += split[2];
+                        }
+                        split[4] = numbers.substring(numbers.indexOf(' ') + 1, numbers.indexOf('M') - 2);
+                        if(split[4].length < 6){
+                            split[4] = '0' + split[4];
+                        }
+                        split[5] = numbers.substring(numbers.indexOf('M') - 1);
+
+                        //converting to military time to help after in sorting 
+                        if(split[5] === 'PM'){
+                            split[4] = +split[4] + 120000;
+                        }
+
+                        result = split[3] + split[4];
+                        return result; 
+                    }
+                </script>
+                {% endfor %}
+            </tbody>
         </table>
     </div>
 {% endblock %}

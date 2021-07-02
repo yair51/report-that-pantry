@@ -1,5 +1,9 @@
 {% extends "base.html" %} {% block title %}Sign Up{% endblock %} {% block
 content %}
+<head>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+</head>
 <form method="POST">
   <div class="row">
     
@@ -74,7 +78,14 @@ content %}
   </div>
   <div class="row">
     <div class="form-group col-md-12">
-      <label for="authorization">Authorization code</label>
+      <label for="authorization">
+        <a href="/contactus" data-toggle="tooltip" data-placement="right" title="Click here to request code!" style="color: black;">Authorization code
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-info-circle" viewBox="0 0 16 16">
+            <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
+            <path d="m8.93 6.588-2.29.287-.082.38.45.083c.294.07.352.176.288.469l-.738 3.468c-.194.897.105 1.319.808 1.319.545 0 1.178-.252 1.465-.598l.088-.416c-.2.176-.492.246-.686.246-.275 0-.375-.193-.304-.533L8.93 6.588zM9 4.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0z"/>
+          </svg>
+        </a>
+      </label>
       <input
         type="password"
         class="form-control"
@@ -87,6 +98,52 @@ content %}
   </div>
   
   <br />
-  <button type="submit" class="btn btn-primary">Submit</button>
+  <button type="submit" class="btn btn-primary" onclick="return checkEmail()">Submit</button>
 </form>
+<script>
+  // for pop up
+  $(document).ready(function(){
+    $('[data-toggle="tooltip"]').tooltip();   
+  });
+
+
+  // for email validation
+  var email = document.getElementById('email');
+
+  function isNotEmpty(value) {
+      if (value == null || typeof value == 'undefined' ) return false;
+          return (value.length > 0);
+  }
+  
+  function isEmail(email) {
+      const re = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+      return re.test(String(email).toLowerCase());
+    }
+  
+  function fieldValidation() {
+      if (email == null) return false;
+      
+      let isFieldValid = isEmail(email.value)
+      if (!isFieldValid) {
+        alert("Invalid Email Address");
+      } else {
+      email.className = '';
+      }
+  
+  return isFieldValid;
+  }
+  
+  function isValid() {
+      var valid = fieldValidation(email, isEmail);
+      return valid;
+  }
+  function checkEmail() {
+    if(isValid()){         
+        return true;
+    }
+    else{
+        return false;
+    }
+  }
+</script>
 {% endblock %}
