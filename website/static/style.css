@@ -133,7 +133,8 @@ a.sticky:hover{
 
   #belowNavbar {
       /* background-color: #2B4E72; */
-      background-color: #001514;
+      /* background-color: #001514; */
+      background-color: #353432;
       padding-left: 30px;
       padding-right: 30px;
       width: 100%;
