@@ -1,9 +1,12 @@
 from flask import Flask
+from flask.helpers import url_for
 from flask_sqlalchemy import SQLAlchemy
 from os import path, getenv
-from flask_login import LoginManager
+from flask_login import LoginManager, current_user
 from .config import DevelopmentConfig, Config, StagingConfig
 from flask_migrate import Migrate
+from flask_mail import Mail, Message
+from flask import render_template, request, redirect
 
 db = SQLAlchemy()
 migrate = Migrate()
@@ -25,6 +28,30 @@ def create_app():
     app.config.from_object(env_config)
     # app.config['SECRET_KEY'] = 'hjshjhdjah kjshkjdhjs'
     # app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{DB_NAME}'
+    # mail config: 
+    
+    app.config['MAIL_SERVER'] = 'smtp.gmail.com'
+    app.config['MAIL_PORT'] = 465
+    app.config["MAIL_USE_TLS"]= False
+    app.config['MAIL_USE_SSL'] = True
+    app.config['MAIL_USERNAME'] = 'info.reportthatpantry@gmail.com'
+    app.config['MAIL_PASSWORD'] = 'vrucxrsmpacwcdsk'
+    
+    email = Mail(app)
+
+    @app.route('/sendmail', methods=['GET', 'POST'])
+    def sendmail():
+        bodyText = 'First name: ' + request.form['fname'] + '\n'
+        bodyText += 'Last name: ' + request.form['lname'] + '\n'
+        bodyText += 'Email: ' + request.form['email'] + '\n'
+        bodyText += 'State: ' + request.form['state'] + '\n'
+        bodyText += 'Message: ' + request.form['subject'] + '\n'
+        msg = Message('Message from \'Contact Us Page\'', sender= 'info.reportthatpantry@gmail.com', 
+        recipients=['info.reportthatpantry@gmail.com'], body = bodyText)
+        email.send(msg)
+        return redirect(url_for('views.contact_us'))
+
+    
     db.init_app(app)
     migrate.init_app(app, db)
 
