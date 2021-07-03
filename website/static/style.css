@@ -121,6 +121,7 @@ a.sticky:hover{
     font-weight: lighter;
     color: #2B4E72;
     margin: 0px;
+    text-align: start;
   }
   
   #nameAndDescription {
