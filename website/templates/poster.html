@@ -129,10 +129,11 @@
         function printTable(){
             var printedTable = document.getElementsByClassName("table-responsive")[0];
             printedTable.classList.remove("table-responsive");
-            window.print();
-            setTimeout(function() {
+            
+            window.onafterprint = function(event) {
                 printedTable.classList.add("table-responsive");
-            }, 500);
+            };
+            window.print();
         }
 
         $(document).keydown(function (event) {
