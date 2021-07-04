@@ -49,6 +49,15 @@
         size:  auto;   /* auto is the initial value */
         margin: 0mm;  /* this affects the margin in the printer settings */
     }
+    @media print 
+    {
+        .table-responsive {
+            display: table;
+            width: 1024px; 
+            overflow-x: visible;
+        }
+    }
+
 </style>
 
 <body>
@@ -61,7 +70,7 @@
                             <th scope="col"  style="border: white">
                                 <div class = "d-print-none" style="position: absolute; top: 0px; left: 10%; z-index: 1;">
                                     <button class="btn btn-dark " id="helpBtn">Help</button>
-                                    <button class="btn btn-dark" onclick="printTable()">Print this page</button>
+                                    <button class="btn btn-dark" onclick="window.print()">Print this page</button>
                                     <div id="instructions" class="modal">
                                         <div class="modal-content">
                                             <span class="close">&times;</span>
@@ -126,26 +135,26 @@
         })();
 
         //table formatting on print
-        function printTable(){
-            var printedTable = document.getElementsByClassName("table-responsive")[0];
-            printedTable.classList.remove("table-responsive");
+        // function printTable(){
+        //     var printedTable = document.getElementsByClassName("table-responsive")[0];
+        //     printedTable.classList.remove("table-responsive");
             
-            window.onafterprint = function(event) {
-                printedTable.classList.add("table-responsive");
-            };
-            window.print();
-        }
+        //     window.onafterprint = function(event) {
+        //         printedTable.classList.add("table-responsive");
+        //     };
+        //     window.print();
+        // }
 
-        $(document).keydown(function (event) {
-            if (event.ctrlKey && event.keyCode == 80) { // Prevent ctrl p from showing a messy print 
-                printTable();
-                return false;
-            }
-            else if (event.ctrlKey && event.keyCode == 80) { // Prevent Ctrl+Shift+I    
-                printTable();    
-                return false;
-            }
-        });
+        // $(document).keydown(function (event) {
+        //     if (event.ctrlKey && event.keyCode == 80) { // Prevent ctrl p from showing a messy print 
+        //         window.print();
+        //         return false;
+        //     }
+        //     else if (event.ctrlKey && event.keyCode == 80) { // Prevent Ctrl+Shift+I    
+        //         printTable();    
+        //         return false;
+        //     }
+        // });
 
     </script>
 {% endblock %}
