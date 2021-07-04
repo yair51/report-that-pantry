@@ -70,8 +70,8 @@
                 <table class="table table-image table-responsive">
                     <thead class="d-print-none">
                         <tr>
-                            <th scope="col"  style="border: white">
-                                <div class = "d-print-none" style="position: absolute; top: -10px; left: 10%; z-index: 1;">
+                            <th scope="col"  style="border: white;">
+                                <div class = "d-print-none" style="position: absolute; top: 0px; left: 10%; z-index: 1;">
                                     <button class="btn btn-dark " id="helpBtn">Help</button>
                                     <button class="btn btn-dark" onclick="window.print()">Print this page</button>
                                     <div id="instructions" class="modal">
@@ -88,6 +88,7 @@
                         </tr>
                     </thead>
                     <tbody>
+                        <tr style="height: 5px;"></tr>
                         <tr>
                             <td scope="row" style="position: relative; border: white">
                                 <img width="960" height="1200" src="{{url_for('static', filename='poster1.jpg')}}" alt="">
