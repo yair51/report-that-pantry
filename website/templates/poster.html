@@ -130,7 +130,9 @@
             var printedTable = document.getElementsByClassName("table-responsive")[0];
             printedTable.classList.remove("table-responsive");
             window.print();
-            // printedTable.classList.add("table-responsive");
+            setTimeout(function() {
+                printedTable.classList.add("table-responsive");
+            }, 500);
         }
 
         $(document).keydown(function (event) {
