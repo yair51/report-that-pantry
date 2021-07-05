@@ -9,6 +9,7 @@ auth = Blueprint('auth', __name__)
 
 
 @auth.route('/login', methods=['GET', 'POST'])
+@auth.route('/login/', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
         email = request.form.get('email')
@@ -36,6 +37,7 @@ def logout():
 
 
 @auth.route('/sign-up', methods=['GET', 'POST'])
+@auth.route('/sign-up/', methods=['GET', 'POST'])
 def sign_up():
     organizations = Organization.query.all()
     if request.method == 'POST':
