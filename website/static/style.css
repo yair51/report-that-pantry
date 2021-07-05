@@ -56,11 +56,11 @@ a.sticky:hover{
     }
 }
 
-#org-filter {
+/* #org-filter {
     margin-bottom: 20px;
     margin-left: auto;
     margin-right: auto;
-}
+} */
 #gmailAndMedia #gmail {
     display: flex;
     align-items: center;

@@ -34,6 +34,14 @@
             border-color: #343a40 !important;
             box-shadow: none !important;
         }
+        .sortImg {
+            display: block; 
+            position: absolute; 
+            right: -15px; 
+            bottom: 5px;
+            width: 25px;
+            height: auto; 
+        }
         #filterBtn {
             outline: white;
             color: white;
@@ -137,15 +145,15 @@
                 <tr>
                     <!-- add the dif images -->
                     <th scope="col"><button class="btn btn-dark btn-block sortButtons" onclick="sortTable('number', 'numberCol')">
-                        #<img id= "numberCol" style="display: block; position: absolute; right: -15px; bottom: 5px" width="25px" height="auto" src="{{url_for('static', filename='whiteSort.png')}}" alt=""></button></th>
+                        #<img id= "numberCol" class="sortImg" src="{{url_for('static', filename='whiteSort.png')}}" alt=""></button></th>
                     <th scope="col"><button class="btn btn-dark btn-block sortButtons" onclick="sortTable('location', 'locCol')">
-                        Location<img id= "locCol" style="display: block; position: absolute; right: -15px; bottom: 5px" width="25px" height="auto" width="20px" height="auto" src="{{url_for('static', filename='whiteSort.png')}}" alt=""></button></th>
+                        Location<img id= "locCol" class="sortImg" src="{{url_for('static', filename='whiteSort.png')}}" alt=""></button></th>
                     <th scope="col"><button class="btn btn-dark btn-block sortButtons" onclick="sortTable('status', 'statCol')">
-                        Status<img id= "statCol" style="display: block; position: absolute; right: -15px; bottom: 5px" width="25px" height="auto" src="{{url_for('static', filename='whiteSort.png')}}" alt=""></button></th>
+                        Status<img id= "statCol" class="sortImg" src="{{url_for('static', filename='whiteSort.png')}}" alt=""></button></th>
                     <th scope="col"><button class="btn btn-dark btn-block sortButtons" onclick="sortTable('last updated', 'updateCol')">
-                        Last Updated<img id= "updateCol" style="display: block; position: absolute; right: -15px; bottom: 5px" width="25px" height="auto" src="{{url_for('static', filename='whiteSort.png')}}" alt=""></button></th>
+                        Last Updated<img id= "updateCol" class="sortImg" src="{{url_for('static', filename='whiteSort.png')}}" alt=""></button></th>
                     <th scope="col" data-filter-control="select"><button class="btn btn-dark btn-block sortButtons" onclick="sortTable('organization', 'orgCol')">
-                        Organization<img id= "orgCol" style="display: block; position: absolute; right: -15px; bottom: 5px" width="25px" height="auto" src="{{url_for('static', filename='whiteSort.png')}}" alt=""></button></th>
+                        Organization<img id= "orgCol" class="sortImg" src="{{url_for('static', filename='whiteSort.png')}}" alt=""></button></th>
                 </tr>
             </thead>
             <tbody>
@@ -236,7 +244,7 @@
                         no switching has been done:*/
                         while (switching) {
                             for(let i = 0; i < 5; i++){
-                                document.getElementsByTagName('img')[i].src = "{{url_for('static', filename='whiteSort.png')}}"; 
+                                document.getElementsByClassName('sortImg')[i].src = "{{url_for('static', filename='whiteSort.png')}}"; 
                             }
                             switching = false;
                             rows = table.rows;
