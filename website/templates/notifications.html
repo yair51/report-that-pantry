@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block content %}
+<form method="POST" id="notification-list">
+    {% for location in locations %}
+    <div class="form-group">
+        <div class="form-check">
+            <input class="form-check-input" type="checkbox" value="{{location[0].id}}" id="location{{location[0].id}}" name="location{{location[0].id}}" {% if location[1].user_id == user.id %}checked{%endif%}>
+            <label class="form-check-label" for="location{{location[0].id}}">
+              {{location[0].name}} --> {{location[0].address}}, {{location[0].city}}, {{location[0].state}}
+            </label>
+          </div>
+    </div>
+    {% endfor %}
+    <button type="submit" class="btn btn-primary">Submit</button>
+</form>
+{% endblock %}
