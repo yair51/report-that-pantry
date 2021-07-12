@@ -122,7 +122,7 @@
                             <select class="form-control" id="org" name="org" style="color: #383838;">
                                 <option {% if current_org == 0 %}selected{% endif %} value="0">All</option>
                                 {% for org in organizations %}
-                                <option {% if current_org == org.id %}selected{% endif %} value="{{org.id}}">{{org.name}}</option>
+                                <option {% if current_org == org.id %}selected{% endif %} value="{{org.name}}">{{org.name}}</option>
                                 {% endfor %}
                             </select>
                         </div>
