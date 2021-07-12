@@ -1,7 +1,9 @@
 {% extends "base.html" %}
 {% block content %}
 <head>
-    <style> 
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+    <style>
         #myInputContainer {
             position: relative;
             padding: 0 15px 0 15px;
@@ -47,103 +49,162 @@
             color: white;
             border: white;
             position:absolute;
-            bottom:9px;
+            bottom:7px;
             right:25px;
-            width:24px;
-            height:24px;
+            width:25px;
+            height:25px;
         }
         #filterBtn:hover {
-            content: url({{url_for('static', filename='filter.png')}});
+            content: url({{url_for('static', filename='filterBlack.png')}});
+        }
+
+        .modal {
+            display: none; /* Hidden by default */
+            position: fixed; /* Stay in place */
+            z-index: 10; /* Sit on top */
+            padding-top: 250px; /* Location of the box */
+            left: 0;
+            top: 0;
+            width: 100%; /* Full width */
+            height: 100%; /* Full height */
+            overflow: auto; /* Enable scroll if needed */
+            background-color: rgb(0,0,0); /* Fallback color */
+            background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+        }
+        /* Modal Content */
+            .modal-content {
+            background-color: #fefefe;
+            color: #383838;
+            margin: auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            color: 33, 37, 41;
+            font-weight: 400;
+            font-family: sans-serif;
+            font-size: 16px;
+        }
+
+        /* The Close Button */
+        .close {
+            color: #aaaaaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: #000;
+            text-decoration: none;
+            cursor: pointer;
         }
     </style>
 </head>
     <div class="container-fluid">
-        <form method="POST">
+        <!-- <form method="GET"> -->
             <div class="row">
-                {% if not user.is_authenticated %}
-                <div class="form-group col-6" id="org-filter">
-                    <label for="org" class="form-label">Organization</label>
-                    <select class="form-control" id="org" name="org" onchange="this.form.submit()">
-                        <option {% if current_org == 0 %}selected{% endif %} value="0">All</option>
-                        {% for org in organizations %}
-                        <option {% if current_org == org.id %}selected{% endif %} value="{{org.id}}">{{org.name}}</option>
-                        {% endfor %}
-                    </select>
+                <div id="statusModal" class="modal">
+                    <div class="modal-content">
+                        <span class="close">&times;</span>
+                        <div class="row">
+                            <div class="col-1"></div>
+                            <div class="form-group col-sm-3" id="status-filter">
+                                <label for="stat" class="form-label">Status</label>
+                                <select class="form-control" id="stat" name="stat" style="color: #383838;">
+                                    <option selected value="0">All</option>
+                                    <option value="Full">Full</option>
+                                    <option value="Half-Full">Half-Full</option>
+                                    <option value="Empty">Empty</option>
+                                </select>
+                            </div>
+                            <div class="form-group col-sm-4" id="org-filter">
+                                <label for="org" class="form-label">Organization</label>
+                                <select class="form-control" id="org" name="org" style="color: #383838;">
+                                    <option {% if current_org == 0 %}selected{% endif %} value="0">All</option>
+                                    {% for org in organizations %}
+                                    <option {% if current_org == org.id %}selected{% endif %} value="{{org.id}}">{{org.name}}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="form-group col-sm-3" id="state-filter">
+                                <label for="state" class="form-label">State</label>
+                                <select class="form-control" id="state" name="state" style="color: #383838;">
+                                    <option selected value="0">All</option>
+                                    <option value="AL">Alabama</option>
+                                    <option value="AK">Alaska</option>
+                                    <option value="AZ">Arizona</option>
+                                    <option value="AR">Arkansas</option>
+                                    <option value="CA">California</option>
+                                    <option value="CO">Colorado</option>
+                                    <option value="CT">Connecticut</option>
+                                    <option value="DE">Delaware</option>
+                                    <option value="DC">District Of Columbia</option>
+                                    <option value="FL">Florida</option>
+                                    <option value="GA">Georgia</option>
+                                    <option value="HI">Hawaii</option>
+                                    <option value="ID">Idaho</option>
+                                    <option value="IL">Illinois</option>
+                                    <option value="IN">Indiana</option>
+                                    <option value="IA">Iowa</option>
+                                    <option value="KS">Kansas</option>
+                                    <option value="KY">Kentucky</option>
+                                    <option value="LA">Louisiana</option>
+                                    <option value="ME">Maine</option>
+                                    <option value="MD">Maryland</option>
+                                    <option value="MA">Massachusetts</option>
+                                    <option value="MI">Michigan</option>
+                                    <option value="MN">Minnesota</option>
+                                    <option value="MS">Mississippi</option>
+                                    <option value="MO">Missouri</option>
+                                    <option value="MT">Montana</option>
+                                    <option value="NE">Nebraska</option>
+                                    <option value="NV">Nevada</option>
+                                    <option value="NH">New Hampshire</option>
+                                    <option value="NJ">New Jersey</option>
+                                    <option value="NM">New Mexico</option>
+                                    <option value="NY">New York</option>
+                                    <option value="NC">North Carolina</option>
+                                    <option value="ND">North Dakota</option>
+                                    <option value="OH">Ohio</option>
+                                    <option value="OK">Oklahoma</option>
+                                    <option value="OR">Oregon</option>
+                                    <option value="PA">Pennsylvania</option>
+                                    <option value="RI">Rhode Island</option>
+                                    <option value="SC">South Carolina</option>
+                                    <option value="SD">South Dakota</option>
+                                    <option value="TN">Tennessee</option>
+                                    <option value="TX">Texas</option>
+                                    <option value="UT">Utah</option>
+                                    <option value="VT">Vermont</option>
+                                    <option value="VA">Virginia</option>
+                                    <option value="WA">Washington</option>
+                                    <option value="WV">West Virginia</option>
+                                    <option value="WI">Wisconsin</option>
+                                    <option value="WY">Wyoming</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-5"></div>
+                            <button id="submit" class="btn btn-primary col-sm-2" style="width: min-content; position:relative; text-align: center;" onclick="filter()">Filter</button>
+                            <div class="col-sm-5"></div>
+                        </div>
+                    </div>
                 </div>
-                {% endif %}
-                <!-- <div class="form-group col-md-6">
-                    <label for="state" class="form-label">State</label>
-                    <select class="form-control" id="state" name="state" onchange="this.form.submit()">
-                        <option selected disabled value="">All</option>
-                        <option value="AL">Alabama</option>
-                        <option value="AK">Alaska</option>
-                        <option value="AZ">Arizona</option>
-                        <option value="AR">Arkansas</option>
-                        <option value="CA">California</option>
-                        <option value="CO">Colorado</option>
-                        <option value="CT">Connecticut</option>
-                        <option value="DE">Delaware</option>
-                        <option value="DC">District Of Columbia</option>
-                        <option value="FL">Florida</option>
-                        <option value="GA">Georgia</option>
-                        <option value="HI">Hawaii</option>
-                        <option value="ID">Idaho</option>
-                        <option value="IL">Illinois</option>
-                        <option value="IN">Indiana</option>
-                        <option value="IA">Iowa</option>
-                        <option value="KS">Kansas</option>
-                        <option value="KY">Kentucky</option>
-                        <option value="LA">Louisiana</option>
-                        <option value="ME">Maine</option>
-                        <option value="MD">Maryland</option>
-                        <option value="MA">Massachusetts</option>
-                        <option value="MI">Michigan</option>
-                        <option value="MN">Minnesota</option>
-                        <option value="MS">Mississippi</option>
-                        <option value="MO">Missouri</option>
-                        <option value="MT">Montana</option>
-                        <option value="NE">Nebraska</option>
-                        <option value="NV">Nevada</option>
-                        <option value="NH">New Hampshire</option>
-                        <option value="NJ">New Jersey</option>
-                        <option value="NM">New Mexico</option>
-                        <option value="NY">New York</option>
-                        <option value="NC">North Carolina</option>
-                        <option value="ND">North Dakota</option>
-                        <option value="OH">Ohio</option>
-                        <option value="OK">Oklahoma</option>
-                        <option value="OR">Oregon</option>
-                        <option value="PA">Pennsylvania</option>
-                        <option value="RI">Rhode Island</option>
-                        <option value="SC">South Carolina</option>
-                        <option value="SD">South Dakota</option>
-                        <option value="TN">Tennessee</option>
-                        <option value="TX">Texas</option>
-                        <option value="UT">Utah</option>
-                        <option value="VT">Vermont</option>
-                        <option value="VA">Virginia</option>
-                        <option value="WA">Washington</option>
-                        <option value="WV">West Virginia</option>
-                        <option value="WI">Wisconsin</option>
-                        <option value="WY">Wyoming</option>
-                    </select>
-                </div> -->
             </div>
-        </form>
+        <!-- </form> -->
     </div>
     <div class="container">
         <div class="row">
             <div id="myInputContainer">
-                <!-- <a id="filterBtn" href="javascript:filterModal()">
-                    <img style="position: absolute; width: 25px; height: auto;" src="{{url_for('static', filename='filterGray.png')}}" alt="">
-                </a> -->
+                <img id="filterBtn" src="{{url_for('static', filename='filterGray.png')}}" alt="" data-toggle="tooltip" data-placement="left" title="Click here to filter!" style="color: black;">
                 <input type="text" id="myInput" onkeyup="searchName()" placeholder="Search by name...">
             </div>
         </div>
         <table id="myTable" class="table table-dark table-responsive" data-filter-control="true">
             <thead>
                 <tr>
-                    <!-- add the dif images -->
                     <th scope="col"><button class="btn btn-dark btn-block sortButtons" onclick="sortTable('number', 'numberCol')">
                         #<img id= "numberCol" class="sortImg" src="{{url_for('static', filename='whiteSort.png')}}" alt=""></button></th>
                     <th scope="col"><button class="btn btn-dark btn-block sortButtons" onclick="sortTable('location', 'locCol')">
@@ -185,32 +246,21 @@
                     var lastColNumber = 0;
                     //to search by name
                     function searchName() {
-                        var input, filter, table, tr, td, i, txtValue;
+                            var input, filter, table, tr, i;
                         input = document.getElementById("myInput");
                         filter = input.value.toUpperCase();
                         table = document.getElementById("myTable");
                         tr = table.getElementsByTagName("tr");
 
                         //going through each row and its columns 
-                        for (i = 0; i < tr.length; i++) {
-                            td = [];
-                            for(let j = 0; j < 5; j++){
-                                td[j] = tr[i].getElementsByTagName("td")[j];
-                            }
-                            if (td[0] && td[1] && td[2] && td[3] && td[4]) {
-                                txtValue = false;
-                                for(let j = 0; j < 5; j++){
-                                    txtValue ||= (td[j].textContent || td[j].innerText).toUpperCase().indexOf(filter) > -1;
-                                }
-                                if (txtValue) {
-                                    tr[i].style.display = "";
-                                } else {
-                                    tr[i].style.display = "none";
-                                }
+                        for (i = 1; i < tr.length; i++) {
+                            if (tr[i].textContent.toUpperCase().indexOf(filter) > -1) {
+                                tr[i].style.display = "";
+                            } else {
+                                tr[i].style.display = "none";
                             }
                         }
                     }
-
                     //sort by column 
                     function sortTable(sortType, colID) {
                         // for sorting 
@@ -336,9 +386,68 @@
 
                         result = split[3] + split[4];
                         return result; 
+                    }                    
+
+                    { //the filter modal 
+                        var modal = document.getElementById("statusModal");
+                        var btn = document.getElementById("filterBtn");
+                        var span = document.getElementsByClassName("close")[0];
+                        btn.onclick = function() {
+                            modal.style.display = "block";
+                        }
+                        span.onclick = function() {
+                            modal.style.display = "none";
+                        }
+                        window.onclick = function(event) {
+                            if (event.target == modal) {
+                                modal.style.display = "none";
+                            }
+                        }
+                        $(document).on('keydown', function(event) {
+                            if (event.key == "Escape") {
+                                modal.style.display = "none";
+                            }
+                        });
+                        // for pop up
+                        $(document).ready(function(){
+                            $('[data-toggle="tooltip"]').tooltip();   
+                        });
                     }
-                    function filterModal(){
-                        
+                    //filtering
+                    function filter() {
+                        modal.style.display = "none";
+                        var table, tr, i, txtValue;
+                        var td, filters;
+                        table = document.getElementById("myTable");
+                        tr = table.getElementsByTagName("tr");
+                        filters = [];
+                        filters[0] = document.getElementById("org").value;
+                        filters[1] = document.getElementById("state").value; 
+                        filters[2] = document.getElementById("stat").value;
+
+                        //going through each row and its columns 
+                        for (i = 1; i < tr.length; i++) {
+                            td = [];
+                            txtValue = true;
+                            for(let j = 0; j < 5; j++){
+                                td[j] = tr[i].getElementsByTagName("td")[j];
+                            }
+                            if (td[0] && td[1] && td[2] && td[3] && td[4]) {
+                                if(filters.every((val, i, arr) => val == 0)){
+                                    txtValue = true; 
+                                }
+                                txtValue &&= td[1].textContent.indexOf(filters[1]) > -1 || filters[1] == 0;
+                                txtValue &&= td[2].textContent.indexOf(filters[2]) == 0 || filters[2] == 0;  
+                                txtValue &&= td[4].textContent.indexOf(filters[0]) > -1 || filters[0] == 0;
+                            }
+
+                            if (txtValue) {
+                                tr[i].style.display = "";
+                            } 
+                            else {
+                                tr[i].style.display = "none";
+                            }
+                        }
                     }
                 </script>
                 {% endfor %}

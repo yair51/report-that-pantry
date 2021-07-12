@@ -126,32 +126,29 @@ def report(id):
         db.session.commit()
         flash("Thank you for your feedback!", category='success')
         return redirect(url_for('views.home'))
-        
-
     return render_template("report.html", user=current_user, title="Report")
 
 @views.route('/status', methods=['GET', 'POST'])
 def status():
     #state = 'FL'
     org = 0
-    # if logged in, only shows locations affiliated with the user's organization
+    # # if logged in, only shows locations affiliated with the user's organization
     if current_user.is_authenticated:
         org = current_user.organization_id
-    if request.method == 'POST':
-        # gets the org and state from dropdown
-        org = int(request.form.get('org'))
-        state = request.form.get('state')
-    # only filters by organization if not requesting all organizations
-    if org != 0:
-        subquery = db.session.query(LocationStatus.location_id, LocationStatus.status, LocationStatus.time, Location.address, Location.city, Location.state, Organization.name, Location.name.label("location_name"), Location.zip,
-        func.rank().over(order_by=LocationStatus.time.desc(),
-        partition_by=LocationStatus.location_id).label('rnk')).filter(Location.id == LocationStatus.location_id, Location.organization_id == Organization.id, Location.organization_id == org).subquery()
-    # subquery that joins both tables together and ranks them
-    # only queries all locations if not specified further in filter
-    else:
-        subquery = db.session.query(LocationStatus.location_id, LocationStatus.status, LocationStatus.time, Location.address, Location.city, Location.state, Organization.name, Location.name.label("location_name"), Location.zip,
-        func.rank().over(order_by=LocationStatus.time.desc(),
-        partition_by=LocationStatus.location_id).label('rnk')).filter(Location.id == LocationStatus.location_id, Location.organization_id == Organization.id).subquery()
+    # if request.method == 'POST':
+    #     # gets the org and state from dropdown
+    #     org = int(request.form.get('org'))
+    #     state = request.form.get('state')
+    # # only filters by organization if not requesting all organizations
+    # if org != 0:
+    #     subquery = db.session.query(LocationStatus.location_id, LocationStatus.status, LocationStatus.time, Location.address, Location.city, Location.state, Organization.name, Location.name.label("location_name"), Location.zip,
+    #     func.rank().over(order_by=LocationStatus.time.desc(),
+    #     partition_by=LocationStatus.location_id).label('rnk')).filter(Location.id == LocationStatus.location_id, Location.organization_id == Organization.id, Location.organization_id == org).subquery()
+    # # subquery that joins both tables together and ranks them
+    # else:
+    subquery = db.session.query(LocationStatus.location_id, LocationStatus.status, LocationStatus.time, Location.address, Location.city, Location.state, Organization.name, Location.name.label("location_name"), Location.zip,
+    func.rank().over(order_by=LocationStatus.time.desc(),
+    partition_by=LocationStatus.location_id).label('rnk')).filter(Location.id == LocationStatus.location_id, Location.organization_id == Organization.id).subquery()
     # queries locations and takes the first locations
     locations = db.session.query(subquery).filter(
     subquery.c.rnk==1)
