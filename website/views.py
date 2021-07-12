@@ -112,9 +112,6 @@ def delete_location():
 @views.route('/report/<int:id>')
 @views.route('/report<int:id>')
 def report(id):
-    # users = db.session.query(User, Notification, Location).filter(User.id == Notification.user_id, Notification.location_id == id, Location.id == Notification.location_id)
-    # for user in users:
-    #     print(user)
     location = Location.query.get(id)
     status = request.args.get('status')
     # a status is given, create add a new location_status to db for the current location
@@ -137,17 +134,8 @@ def report(id):
                             <a href="http://www.reportthatpantry.org/status"> Click Here</a> to check the current status.</p>''' % user[2].name
                     msg = Message(recipients=[user[0].email],
                                 body=message, html=html,
-                                subject=subject, sender='info@reporthatpantry.org')
+                                subject=subject, sender='info.reportthatpantry@gmail.com')
                     conn.send(msg)
-            # for user in users:
-            #     print(user.email)
-            # msg = Message('Pantry Status Update', sender = 'peter@mailtrap.io', recipients = ['paul@mailtrap.io'])
-            # msg.body = "Temple Beth Orr is currently EMPTY. Click Here to check the current status."
-            # msg.html = '''<p>Temple Beth Orr is currently EMPTY.
-            # <br>
-            # <a href="http://www.reportthatpantry.org/status"> Click Here</a> to check the current status.</p>'''
-
-            # mail.send(msg)
         return redirect(url_for('views.home'))
     
     return render_template("report.html", user=current_user, title="Report")
@@ -259,4 +247,5 @@ def notifications():
             elif notification:
                 db.session.delete(notification)
                 db.session.commit()
+        flash("Your preferences have been updated.", category="success")
     return render_template("notifications.html", title="Manage Notifications", user=current_user, locations=locations)

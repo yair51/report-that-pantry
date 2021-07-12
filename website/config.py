@@ -20,12 +20,12 @@ class Config(object):
 class StagingConfig(Config):
     if os.getenv("APP_SETTINGS") == "StagingConfig":
         SQLALCHEMY_DATABASE_URI = "postgresql" + os.getenv("DATABASE_URL")[8:]
-        MAIL_SERVER ='smtp.mailtrap.io'
-        MAIL_PORT = 2525
-        MAIL_USERNAME = 'ed497295cc0760'
-        MAIL_PASSWORD = '3bcfb354c19a49'
-        MAIL_USE_TLS = True
-        MAIL_USE_SSL = False
+        # MAIL_SERVER ='smtp.mailtrap.io'
+        # MAIL_PORT = 2525
+        # MAIL_USERNAME = 'ed497295cc0760'
+        # MAIL_PASSWORD = '3bcfb354c19a49'
+        # MAIL_USE_TLS = True
+        # MAIL_USE_SSL = False
 
 class DevelopmentConfig(Config):
     DEBUG = True
