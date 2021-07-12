@@ -18,6 +18,7 @@ class User(db.Model, UserMixin):
     first_name = db.Column(db.String(150))
     last_name = db.Column(db.String(150))
     organization_id = db.Column(db.Integer, db.ForeignKey('organization.id'))
+    notifications = db.relationship('Notification', backref='user')
 
 class Location(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
@@ -28,6 +29,7 @@ class Location(db.Model, UserMixin):
     zip = db.Column(db.Integer)
     location_status = db.relationship('LocationStatus', backref='location')
     organization_id = db.Column(db.Integer, db.ForeignKey('organization.id'))
+    notifications = db.relationship('Notification', backref='location')
 
 class LocationStatus(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -41,4 +43,9 @@ class Organization(db.Model):
     address = db.Column(db.String(150))
     locations = db.relationship('Location', backref='organization')
     users = db.relationship('User', backref='organization')
+
+class Notification(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    location_id = db.Column(db.Integer, db.ForeignKey('location.id'))
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
 

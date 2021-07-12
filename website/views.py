@@ -1,12 +1,12 @@
 from flask import Blueprint, render_template, request, flash, jsonify, redirect, url_for
 from flask_login import login_required, current_user
 from sqlalchemy.sql.expression import true
-from .models import Location, LocationStatus, Organization, User
-from . import db
+from .models import Location, LocationStatus, Notification, Organization, User
+from . import db, Message, mail
 import json
 from datetime import datetime
 from time import mktime
-from sqlalchemy import func
+from sqlalchemy import func, and_
 
 views = Blueprint('views', __name__)
 
@@ -117,17 +117,27 @@ def report(id):
     # a status is given, create add a new location_status to db for the current location
     if status:
         time = datetime.utcnow()
-        new_status = LocationStatus(status=status, time=time, location_id=location.id)
         # sets the location's last update to current time and status to current status
-        #location.last_update = time
-        #location.current_status = status
+        new_status = LocationStatus(status=status, time=time, location_id=location.id)
         # adds new status to database and commits it
         db.session.add(new_status)
         db.session.commit()
         flash("Thank you for your feedback!", category='success')
+        if status == "Empty":
+            users = db.session.query(User, Notification, Location).filter(User.id == Notification.user_id, Notification.location_id == id, Location.id == Notification.location_id)
+            with mail.connect() as conn:
+                for user in users:
+                    subject = '%s Update' % user[2].name
+                    message = '%s is currently EMPTY. Click Here to check the current status.' % user[2].name
+                    html = '''<p>%s is currently EMPTY.
+                            <br>
+                            <a href="http://www.reportthatpantry.org/status"> Click Here</a> to check the current status.</p>''' % user[2].name
+                    msg = Message(recipients=[user[0].email],
+                                body=message, html=html,
+                                subject=subject, sender='info.reportthatpantry@gmail.com')
+                    conn.send(msg)
         return redirect(url_for('views.home'))
-        
-
+    
     return render_template("report.html", user=current_user, title="Report")
 
 @views.route('/status', methods=['GET', 'POST'])
@@ -209,3 +219,33 @@ def setup():
 @views.route('/contactus/', methods=['GET','POST'])
 def contact_us():
     return render_template('contact_us.html', user=current_user, title = 'Contact Us')
+
+@login_required
+@views.route('/notifications', methods=['GET', 'POST'])
+@views.route('/notifications/', methods=['GET', 'POST'])
+def notifications():
+    # queries all of the locations under the organization with the users notification preferances
+    locations = db.session.query(Location, Notification).outerjoin(Notification, and_(Notification.location_id == Location.id, current_user.id == Notification.user_id)).filter(Location.organization_id == current_user.organization_id).order_by(Location.name)
+    for location in locations:
+        print(location)
+    if request.method == "POST":
+        # loops through list of locations to find the selected ones
+        for location in locations:
+            selected_location = request.form.get("location" + str(location[0].id))
+            # converts the location id to an integer
+            # checks to see if the user is already recieving notifications for a specific loction
+            notification = db.session.query(Notification).filter(Notification.location_id == location[0].id, Notification.user_id == current_user.id).first()
+            #print(notification)
+            if selected_location:
+                selected_location = int(selected_location)
+                # if not recieving notification from a selected organization, adds current user and that location to the database
+                if not notification:
+                    notification = Notification(location_id=location[0].id, user_id=current_user.id)
+                    db.session.add(notification)
+                    db.session.commit()
+            # else if the notification exists, it should be removed
+            elif notification:
+                db.session.delete(notification)
+                db.session.commit()
+        flash("Your preferences have been updated.", category="success")
+    return render_template("notifications.html", title="Manage Notifications", user=current_user, locations=locations)

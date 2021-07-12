@@ -10,6 +10,7 @@ from flask import render_template, request, redirect
 
 db = SQLAlchemy()
 migrate = Migrate()
+mail = Mail()
 DB_NAME = "database.db"
 
 
@@ -30,14 +31,14 @@ def create_app():
     # app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{DB_NAME}'
     # mail config: 
     
-    app.config['MAIL_SERVER'] = 'smtp.gmail.com'
-    app.config['MAIL_PORT'] = 465
-    app.config["MAIL_USE_TLS"]= False
-    app.config['MAIL_USE_SSL'] = True
-    app.config['MAIL_USERNAME'] = 'info.reportthatpantry@gmail.com'
-    app.config['MAIL_PASSWORD'] = 'vrucxrsmpacwcdsk'
+    # app.config['MAIL_SERVER'] = 'smtp.gmail.com'
+    # app.config['MAIL_PORT'] = 465
+    # app.config["MAIL_USE_TLS"]= False
+    # app.config['MAIL_USE_SSL'] = True
+    # app.config['MAIL_USERNAME'] = 'info.reportthatpantry@gmail.com'
+    # app.config['MAIL_PASSWORD'] = 'vrucxrsmpacwcdsk'
     
-    email = Mail(app)
+    # email = Mail(app)
 
     @app.route('/sendmail', methods=['GET', 'POST'])
     def sendmail():
@@ -48,12 +49,13 @@ def create_app():
         bodyText += 'Message: ' + request.form['subject'] + '\n'
         msg = Message('Message from \'Contact Us Page\'', sender= 'info.reportthatpantry@gmail.com', 
         recipients=['info.reportthatpantry@gmail.com'], body = bodyText)
-        email.send(msg)
+        mail.send(msg)
         return redirect(url_for('views.contact_us'))
 
     
     db.init_app(app)
     migrate.init_app(app, db)
+    mail.init_app(app)
 
     from .views import views
     from .auth import auth
