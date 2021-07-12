@@ -377,3 +377,7 @@ a.sticky:hover{
   padding-right: 20px !important; 
   padding-left: 20px !important; 
 }
+
+#notification-list {
+  text-align: center;
+}

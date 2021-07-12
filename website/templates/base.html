@@ -36,6 +36,7 @@
   </script>
   </head>
   <body>
+    <!--Desktop Navbar-->
     <div class="d-none d-md-block">
     <nav class="navbar navbar-expand-sm navbar-dark">
       <!-- <button
@@ -70,7 +71,9 @@
         
               <!-- <a class="nav-item nav-link {% if title == 'About Us' %}active{% endif %}" id="locations" href="/about">About Us</a> -->
               {% if user.is_authenticated %}
-              <a class="nav-item nav-link {% if title == 'Locations' %}active{% endif %}" id="locations" style="font-family:Calibri, sans-serif, arial, 'Trebuchet MS'; font-weight: lighter;" href="/locations">Add Locations</a>          <a class="nav-item nav-link {% if title == 'Logout' %}active{% endif %}" style="font-family:Calibri, sans-serif, arial, 'Trebuchet MS'; font-weight: lighter;" id="logout" href="/logout">Logout</a>
+              <a class="nav-item nav-link {% if title == 'Locations' %}active{% endif %}" id="locations" style="font-family:Calibri, sans-serif, arial, 'Trebuchet MS'; font-weight: lighter;" href="/locations">Add Locations</a>
+              <a class="nav-item nav-link {% if title == 'Manage Notifications' %}active{% endif %}" id="notifications" style="font-family:Calibri, sans-serif, arial, 'Trebuchet MS'; font-weight: lighter;" href="/notifications">Manage Notifications</a>
+              <a class="nav-item nav-link {% if title == 'Logout' %}active{% endif %}" style="font-family:Calibri, sans-serif, arial, 'Trebuchet MS'; font-weight: lighter;" id="logout" href="/logout">Logout</a>
               {% else %}
               <a class="nav-item nav-link {% if title == 'Login' %}active{% endif %}" id="login" style="font-family:Calibri, sans-serif, arial, 'Trebuchet MS'; font-weight: lighter;" href="/login">Login</a>
               <a class="nav-item nav-link {% if title == 'Sign Up' %}active{% endif %}" id="signUp" style="font-family:Calibri, sans-serif, arial, 'Trebuchet MS'; font-weight: lighter;" href="/sign-up">Sign Up</a>
@@ -96,6 +99,7 @@
         </div>
         </div>
     </nav>
+    <!--Mobile Navbar-->
     <div class="d-md-none">
       <nav class="navbar navbar-dark fixed-top" id="mobileNavbar">
         <a class="navbar-brand" href="/">Report That Pantry</a>
@@ -110,7 +114,9 @@
       
             <!-- <a class="nav-item nav-link {% if title == 'About Us' %}active{% endif %}" id="locations" href="/about">About Us</a> -->
             {% if user.is_authenticated %}
-            <a class="nav-item nav-link {% if title == 'Locations' %}active{% endif %}" id="locations" style="font-family:Calibri, sans-serif, arial, 'Trebuchet MS'; font-weight: lighter;" href="/locations">Add Locations</a>          <a class="nav-item nav-link {% if title == 'Logout' %}active{% endif %}" style="font-family:Calibri, sans-serif, arial, 'Trebuchet MS'; font-weight: lighter;" id="logout" href="/logout">Logout</a>
+            <a class="nav-item nav-link {% if title == 'Locations' %}active{% endif %}" id="locations" style="font-family:Calibri, sans-serif, arial, 'Trebuchet MS'; font-weight: lighter;" href="/locations">Add Locations</a>
+            <a class="nav-item nav-link {% if title == 'Manage Notifications' %}active{% endif %}" id="notifications" style="font-family:Calibri, sans-serif, arial, 'Trebuchet MS'; font-weight: lighter;" href="/notifications">Manage Notifications</a>
+            <a class="nav-item nav-link {% if title == 'Logout' %}active{% endif %}" style="font-family:Calibri, sans-serif, arial, 'Trebuchet MS'; font-weight: lighter;" id="logout" href="/logout">Logout</a>
             {% else %}
             <a class="nav-item nav-link {% if title == 'Login' %}active{% endif %}" id="login" style="font-family:Calibri, sans-serif, arial, 'Trebuchet MS'; font-weight: lighter;" href="/login">Login</a>
             <a class="nav-item nav-link {% if title == 'Sign Up' %}active{% endif %}" id="signUp" style="font-family:Calibri, sans-serif, arial, 'Trebuchet MS'; font-weight: lighter;" href="/sign-up">Sign Up</a>
