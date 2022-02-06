@@ -221,7 +221,7 @@
                 <td scope="row">{{ location.location_id }}</td>
                 <!-- <td id="location">{{ location.address }} {{ location.city }}, {{ location.state }} {{ location.zip }}</td> -->
                 <td id="location">{{location.location_name}}<br> {{location.address}}, {{location.city}}, {{location.state}}</td>
-                <td class="alert{% if location.status == 'Full' %}-success{% elif location.status == 'Half Full' %}-warning{% else %}-danger{% endif %}">{{ location.status }}</td>
+                <td class="alert{% if location.status == 'Full' %}-success{% elif location.status == 'Half Full' %}-warning{% elif location.status == 'Empty' %}-danger{% else %}-secondary{% endif %}">{{ location.status }}</td>
                 <td id="time{{location.location_id}}">{{ location.time.strftime("%c") }}</td>
                 <td>{{location.name}}</td>
                 <td><a href="/logs/{{ location.location_id }}" style="color:white;"><button type="button" class="btn btn-info">Logs</button></a></td>

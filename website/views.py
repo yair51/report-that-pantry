@@ -136,6 +136,19 @@ def report(id):
                                 body=message, html=html,
                                 subject=subject, sender='info.reportthatpantry@gmail.com')
                     conn.send(msg)
+        elif status == "Damaged":
+            users = db.session.query(User, Notification, Location).filter(User.id == Notification.user_id, Notification.location_id == id, Location.id == Notification.location_id)
+            with mail.connect() as conn:
+                for user in users:
+                    subject = '%s Update' % user[2].name
+                    message = '%s is currently DAMAGED. Click Here to check the current status.' % user[2].name
+                    html = '''<p>%s is currently DAMAGED.
+                            <br>
+                            <a href="http://www.reportthatpantry.org/status"> Click Here</a> to check the current status.</p>''' % user[2].name
+                    msg = Message(recipients=[user[0].email],
+                                body=message, html=html,
+                                subject=subject, sender='info.reportthatpantry@gmail.com')
+                    conn.send(msg)
         return redirect(url_for('views.home'))
     return render_template("report.html", user=current_user, title="Report")
 
