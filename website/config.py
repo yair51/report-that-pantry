@@ -15,7 +15,8 @@ class Config(object):
     MAIL_USE_SSL = True
     MAIL_USERNAME = 'info.reportthatpantry@gmail.com'
     MAIL_PASSWORD = 'vrucxrsmpacwcdsk'
-    
+    GOOGLE_MAPS_KEY = os.environ.get('GOOGLE_MAPS_KEY')
+
 
 class StagingConfig(Config):
     if os.getenv("APP_SETTINGS") == "StagingConfig":
@@ -34,11 +35,11 @@ class DevelopmentConfig(Config):
     FLASK_APP = "main.py"
     MAIL_SERVER ='smtp.mailtrap.io'
     MAIL_PORT = 2525
-    MAIL_USERNAME = 'ed497295cc0760'
-    MAIL_PASSWORD = '3bcfb354c19a49'
+    MAIL_USERNAME = os.environ.get('MAIL_USERNAME')
+    MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD')
     MAIL_USE_TLS = True
     MAIL_USE_SSL = False
-    
+    GOOGLE_MAPS_KEY = os.environ.get('GOOGLE_MAPS_KEY')
 
 
     

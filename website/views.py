@@ -1,3 +1,5 @@
+import os
+
 from flask import Blueprint, render_template, request, flash, jsonify, redirect, url_for
 from flask_login import login_required, current_user
 from sqlalchemy.sql.expression import true
@@ -184,6 +186,25 @@ def status():
     #timezone = datetime.datetime.now().astimezone().tzinfo
     organizations = Organization.query.all()
     return render_template("status.html", user=current_user, title="Status", locations=locations, count=count, organizations=organizations, current_org=org)
+
+@views.route('/map', methods=['GET', 'POST'])
+def map():
+    org = 0
+    # # if logged in, only shows locations affiliated with the user's organization
+    if current_user.is_authenticated:
+        org = current_user.organization_id
+    subquery = db.session.query(LocationStatus.location_id, LocationStatus.status, LocationStatus.time, Location.address, Location.city, Location.state, Organization.name, Location.name.label("location_name"), Location.zip,
+    func.rank().over(order_by=LocationStatus.time.desc(),
+    partition_by=LocationStatus.location_id).label('rnk')).filter(Location.id == LocationStatus.location_id, Location.organization_id == Organization.id).subquery()
+    # queries locations and takes the first locations
+    locations = db.session.query(subquery).filter(
+    subquery.c.rnk==1)
+    # counts number of locations
+    count = 0
+    for location in locations:
+        count += 1
+    organizations = Organization.query.all()
+    return render_template("map.html", user=current_user, title="Map", locations=locations, count=count, organizations=organizations, current_org=org, google_maps_key=os.getenv('GOOGLE_MAPS_KEY'))
 
 @views.route('/team')
 def team():

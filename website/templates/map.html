@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block content %}
+	<script type="text/javascript">
+
+		// markers: https://developers.google.com/maps/documentation/javascript/markers
+		// TODO: these marker configs should be loaded from DB
+		// TODO: each pantry location would be marked red if empty and green if full
+		const pins = [
+			// the whit
+			{ lat: 44.05800786820259, lng: -123.11471746854578 },
+			// skinner butte
+			{ lat: 44.05887139637421, lng: -123.0935172887972 },
+			// hendricks park
+			{ lat: 44.03505807795638, lng: -123.05824087634107 },
+			// BRING recycling
+			{ lat: 44.043079176640596, lng: -123.03086088711113 },
+		];
+
+		// Initialize and add the map
+		function initMap() {
+			// The location of downtown eugene
+			const downtown = { lat: 44.05109918945712, lng: -123.08484838938584 };
+			// The map, centered at downtown eugene
+			const map = new google.maps.Map(document.getElementById("map"), {
+			zoom: 13,
+			center: downtown,
+			});
+
+			// TODO: manually placed markers, source unsure?
+			// TODO: add locations of the regular food banks and show if it’s closed or open
+			// this one has some extra config
+			const marker = new google.maps.Marker({
+				title: "this is Downtown",
+				label: "Downtown!",
+				icon: "https://developers.google.com/maps/documentation/javascript/examples/full/images/beachflag.png",
+				position: downtown,
+				map: map,
+			});
+
+			// iterating over the list of pins and placing them
+			for(const pin in pins){
+				new google.maps.Marker({
+					position: pins[pin],
+					map: map,
+				});
+			}
+		}
+
+		window.initMap = initMap;
+	</script>
+
+	<style type="text/css">
+		/* Set the size of the div element that contains the map */
+		#map {
+		  height: 400px;
+		  /* The height is 400 pixels */
+		  width: 100%;
+		  /* The width is the width of the web page */
+		}
+	</style>
+
+	<div id="map">loading...</div>
+	<div>
+		<ul>
+			<li>adding an additional feature of a text/email notification a user could sign up for if a LFP in their Eugene neighborhood (south Eugene, the whit, downtown) is empty. </li>
+			<li>a pledge that a user could sign up for where they pledge to stock 2-3 LFPs a month. The user would be called a “Friend of Little Free Pantry” (which is where the name comes from on the GitHub page). I’m thinking this could be something they sign up for so that Burrito Brigade could email them LFP updates. </li>
+		</ul>
+	</div>
+    <script
+      src="https://maps.googleapis.com/maps/api/js?key={{ google_maps_key }}&callback=initMap&v=weekly"
+      defer
+    ></script>
+{% endblock %}

@@ -1,0 +1,22 @@
+{
+  "name": "fau_website_2",
+  "version": "1.0.0",
+  "description": "## Setup & Installtion",
+  "main": "index.js",
+  "dependencies": {
+    "bootstrap-table": "^1.18.3"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yair51/fau_website_2.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/yair51/fau_website_2/issues"
+  },
+  "homepage": "https://github.com/yair51/fau_website_2#readme"
+}
