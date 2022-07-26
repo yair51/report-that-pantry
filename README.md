@@ -7,11 +7,11 @@ Make sure you have the latest version of Python installed.
 ```bash
 git clone <repo-url>
 ```
-
+python dependencies:
 ```bash
 pip install -r requirements.txt
 ```
-
+set up your configuration variables:
 ```bash
 create .env file in root directory and add 
 SQLALCHEMY_DATABASE_URI = {database_uri_here} and save it
@@ -20,9 +20,14 @@ MAIL_USERNAME = 'XXX'
 MAIL_PASSWORD = 'XXX'
 
 ```
+javascript dependencies:
+```bash
+cd website/static
+npm i
+```
 
 ## Running The App
-
+from project root:
 ```bash
 . venv/bin/activate
 export FLASK_APP=main

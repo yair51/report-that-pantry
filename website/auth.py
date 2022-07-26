@@ -74,7 +74,7 @@ def sign_up():
     return render_template("sign_up.html", user=current_user, title="Sign Up", organizations=organizations)
 
 
-@auth.route('/organizations', methods=['GET','POST'])
+@auth.route('/organizations', methods=['GET', 'POST'])
 def organizations():
     if request.method == 'POST':
         name = request.form.get('name')

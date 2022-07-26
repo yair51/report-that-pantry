@@ -20,6 +20,7 @@ class User(db.Model, UserMixin):
     organization_id = db.Column(db.Integer, db.ForeignKey('organization.id'))
     notifications = db.relationship('Notification', backref='user')
 
+
 class Location(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(150))
@@ -31,11 +32,13 @@ class Location(db.Model, UserMixin):
     organization_id = db.Column(db.Integer, db.ForeignKey('organization.id'))
     notifications = db.relationship('Notification', backref='location')
 
+
 class LocationStatus(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     status = db.Column(db.String(150))
     time = db.Column(db.DateTime, default=datetime.utcnow)
     location_id = db.Column(db.Integer, db.ForeignKey('location.id'))
+
 
 class Organization(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -44,8 +47,8 @@ class Organization(db.Model):
     locations = db.relationship('Location', backref='organization')
     users = db.relationship('User', backref='organization')
 
+
 class Notification(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     location_id = db.Column(db.Integer, db.ForeignKey('location.id'))
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
-

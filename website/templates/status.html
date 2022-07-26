@@ -1,8 +1,6 @@
 {% extends "base.html" %}
 {% block content %}
 <head>
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
     <style>
         #myInputContainer {
             position: relative;
@@ -284,7 +282,6 @@
                         }
                         clickNumber++;
                         lastColNumber = colNumber;
-                        console.log(clickNumber);    
 
                         table = document.getElementById("myTable");
                         switching = true;
@@ -310,7 +307,7 @@
                                         shouldSwitch = true;
                                         break;
                                     }
-                                    else if(colNumber == 3 && returnDate(x.innerHTML) > returnDate(y.innerHTML)){
+                                    else if(colNumber === 3 && returnDate(x.innerHTML) > returnDate(y.innerHTML)){
                                         shouldSwitch = true;
                                         break; 
                                     }
@@ -397,12 +394,12 @@
                             modal.style.display = "none";
                         }
                         window.onclick = function(event) {
-                            if (event.target == modal) {
+                            if (event.target === modal) {
                                 modal.style.display = "none";
                             }
                         }
                         $(document).on('keydown', function(event) {
-                            if (event.key == "Escape") {
+                            if (event.key === "Escape") {
                                 modal.style.display = "none";
                             }
                         });
@@ -432,12 +429,12 @@
                                 td[j] = tr[i].getElementsByTagName("td")[j];
                             }
                             if (td[0] && td[1] && td[2] && td[3] && td[4]) {
-                                if(filters.every((val, i, arr) => val == 0)){
+                                if(filters.every((val, i, arr) => val === 0)){
                                     txtValue = true; 
                                 }
-                                txtValue &&= td[1].textContent.indexOf(filters[1]) > -1 || filters[1] == 0;
-                                txtValue &&= td[2].textContent.indexOf(filters[2]) == 0 || filters[2] == 0;  
-                                txtValue &&= td[4].textContent.indexOf(filters[0]) > -1 || filters[0] == 0;
+                                txtValue &&= td[1].textContent.indexOf(filters[1]) > -1 || filters[1] === 0;
+                                txtValue &&= td[2].textContent.indexOf(filters[2]) === 0 || filters[2] === 0;
+                                txtValue &&= td[4].textContent.indexOf(filters[0]) > -1 || filters[0] === 0;
                             }
 
                             if (txtValue) {

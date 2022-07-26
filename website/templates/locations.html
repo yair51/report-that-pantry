@@ -37,7 +37,7 @@
     <div class="col-md-6">
       <label for="city" class="form-label">City</label>
       <input type="text" class="form-control" id="city" name="city" placeholder="Enter city" {% if editing %}value="{{ location.city }}"{% endif %} required>
-      </br>
+      <br/>
       <div class="invalid-feedback">
         Please provide a valid city.
       </div>
@@ -118,8 +118,9 @@
   </div>
   <div class="row">
     <div class="col-md-12">
-      </br>
+      <br/>
       <button class="btn btn-primary" type="submit">Submit form</button>
+    </div>
   </div>
 </form>
 {% endblock %}
