@@ -8,7 +8,7 @@
 
         function cacheAddress(address, location) {
             // TODO: persist to model
-            window.localStorage.setItem(address, location)
+            window.localStorage.setItem(address, JSON.stringify({latLong: location}))
         }
 
         function codeAddress(address) {
@@ -36,7 +36,8 @@
             if (latLong) {
                 setPin(latLong)
             } else if(cache) {
-                setPin(cache)
+                const parsedLocation = JSON.parse(cache)
+                setPin(parsedLocation.latLong)
             } else {
                 codeAddress(address)
             }
