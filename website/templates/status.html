@@ -242,7 +242,7 @@
                     var lastColNumber = 0;
                     //to search by name
                     function searchName() {
-                            var input, filter, table, tr, i;
+                        var input, filter, table, tr, i;
                         input = document.getElementById("myInput");
                         filter = input.value.toUpperCase();
                         table = document.getElementById("myTable");
@@ -409,7 +409,8 @@
                         });
                     }
                     //filtering
-                    filter(); 
+                    // TODO: temporarily disabled, investigate
+                    //filter();
                     function filter() {
                         modal.style.display = "none";
                         var table, tr, i, txtValue;
