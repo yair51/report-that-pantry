@@ -6,10 +6,17 @@
         let map;
         let pins = [];
 
+        function cacheAddress(address, location) {
+            // TODO: persist to model
+            window.localStorage.setItem(address, location)
+        }
+
         function codeAddress(address) {
             geocoder.geocode( { 'address': address}, function(results, status) {
             if (status == 'OK') {
-                setPin(results[0].geometry.location)
+                const location = results[0].geometry.location
+                cacheAddress(address, location)
+                setPin(location)
             } else {
                 console.error('Geocode was not successful for the following reason: ' + status);
             }
@@ -22,6 +29,17 @@
                 map: map,
             });
             pins.push(marker)
+        }
+
+        function getLocationData(address, latLong) {
+            let cache = window.localStorage.getItem(address)
+            if (latLong) {
+                setPin(latLong)
+            } else if(cache) {
+                setPin(cache)
+            } else {
+                codeAddress(address)
+            }
         }
 
 		// Initialize and add the map
@@ -38,7 +56,7 @@
 			// TODO: manually placed markers, source unsure?
 			// TODO: add locations of the regular food banks and show if it’s closed or open
 			// this one has some extra config
-			const marker = new google.maps.Marker({
+			new google.maps.Marker({
 				title: "this is Downtown",
 				label: "Downtown!",
 				icon: "https://developers.google.com/maps/documentation/javascript/examples/full/images/beachflag.png",
@@ -47,11 +65,7 @@
 			});
 
             {% for location in locations %}
-                if ('{{location.latLong}}') {
-                    setPin('{{location.latLong}}')
-                } else {
-                    codeAddress('{{location.address}} {{location.city}} {{location.state}}')
-                }
+                getLocationData('{{location.address}} {{location.city}} {{location.state}}', '{{location.latLong}}')
             {% endfor %}
 
 		}
