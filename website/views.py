@@ -247,7 +247,7 @@ def sendmail():
     bodyText += 'Email: ' + email + '\n'
     bodyText += 'State: ' + state + '\n'
     bodyText += 'Message: ' + subject + '\n'
-    msg = Message('Message from \'Contact Us Page\'', sender=email, 
+    msg = Message('Message from \'Contact Us Page\'', sender="yairgritzman@gmail.com", 
     recipients=['info.reportthatpantry@gmail.com'], body = bodyText)
     mail.send(msg)
     return redirect(url_for('views.contact_us'))
