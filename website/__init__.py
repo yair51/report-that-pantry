@@ -47,7 +47,7 @@ def create_app():
         bodyText += 'Email: ' + request.form['email'] + '\n'
         bodyText += 'State: ' + request.form['state'] + '\n'
         bodyText += 'Message: ' + request.form['subject'] + '\n'
-        msg = Message('Message from \'Contact Us Page\'', sender= 'info.reportthatpantry@gmail.com', 
+        msg = Message('Message from \'Contact Us Page\'', sender= request.form['email'], 
         recipients=['info.reportthatpantry@gmail.com'], body = bodyText)
         mail.send(msg)
         return redirect(url_for('views.contact_us'))
