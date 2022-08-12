@@ -159,17 +159,7 @@ def status():
     # # if logged in, only shows locations affiliated with the user's organization
     if current_user.is_authenticated:
         org = current_user.organization_id
-    # if request.method == 'POST':
-    #     # gets the org and state from dropdown
-    #     org = int(request.form.get('org'))
-    #     state = request.form.get('state')
-    # # only filters by organization if not requesting all organizations
-    # if org != 0:
-    #     subquery = db.session.query(LocationStatus.location_id, LocationStatus.status, LocationStatus.time, Location.address, Location.city, Location.state, Organization.name, Location.name.label("location_name"), Location.zip,
-    #     func.rank().over(order_by=LocationStatus.time.desc(),
-    #     partition_by=LocationStatus.location_id).label('rnk')).filter(Location.id == LocationStatus.location_id, Location.organization_id == Organization.id, Location.organization_id == org).subquery()
-    # # subquery that joins both tables together and ranks them
-    # else:
+
     subquery = db.session.query(LocationStatus.location_id, LocationStatus.status, LocationStatus.time, Location.address, Location.city, Location.state, Organization.name, Location.name.label("location_name"), Location.zip,
     func.rank().over(order_by=LocationStatus.time.desc(),
     partition_by=LocationStatus.location_id).label('rnk')).filter(Location.id == LocationStatus.location_id, Location.organization_id == Organization.id).subquery()
@@ -187,21 +177,6 @@ def status():
 @views.route('/team')
 def team():
     return render_template("team.html", user=current_user, title="Team")
-
-# moved to auth.py now to check auth code (can be deleted)
-# @views.route('/organizations', methods=['GET','POST'])
-# def organizations():
-#     if request.method == 'POST':
-#         name = request.form.get('name')
-#         address = request.form.get('address')
-#         # creates new organization
-#         org = Organization(name=name, address=address)
-#         # adds org to db
-#         db.session.add(org)
-#         db.session.commit()
-#         flash('Organization added. Now create an account under your organization.', category='success')
-#         return redirect(url_for('auth.sign_up'))
-#     return render_template("organizations.html", user=current_user, title="Add Organization")
 
 @views.route('/logs/<int:id>')
 @views.route('/logs/<int:id>/')
@@ -258,3 +233,21 @@ def notifications():
                 db.session.commit()
         flash("Your preferences have been updated.", category="success")
     return render_template("notifications.html", title="Manage Notifications", user=current_user, locations=locations)
+
+
+@views.route('/sendmail', methods=['GET', 'POST'])
+def sendmail():
+    fname = request.form.get('fname')
+    lname = request.form.get('lname')
+    email = request.form.get('email')
+    state = request.form.get('state')
+    subject = request.form.get('subject')
+    bodyText = 'First name: ' + fname + '\n'
+    bodyText += 'Last name: ' + lname + '\n'
+    bodyText += 'Email: ' + email + '\n'
+    bodyText += 'State: ' + state + '\n'
+    bodyText += 'Message: ' + subject + '\n'
+    msg = Message('Message from \'Contact Us Page\'', sender=email, 
+    recipients=['info.reportthatpantry@gmail.com'], body = bodyText)
+    mail.send(msg)
+    return redirect(url_for('views.contact_us'))
