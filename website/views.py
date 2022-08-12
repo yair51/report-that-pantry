@@ -235,19 +235,19 @@ def notifications():
     return render_template("notifications.html", title="Manage Notifications", user=current_user, locations=locations)
 
 
-@views.route('/sendmail', methods=['GET', 'POST'])
-def sendmail():
-    fname = request.form.get('fname')
-    lname = request.form.get('lname')
-    email = request.form.get('email')
-    state = request.form.get('state')
-    subject = request.form.get('subject')
-    bodyText = 'First name: ' + fname + '\n'
-    bodyText += 'Last name: ' + lname + '\n'
-    bodyText += 'Email: ' + email + '\n'
-    bodyText += 'State: ' + state + '\n'
-    bodyText += 'Message: ' + subject + '\n'
-    msg = Message('Message from \'Contact Us Page\'', sender="yairgritzman@gmail.com", 
-    recipients=['info.reportthatpantry@gmail.com'], body = bodyText)
-    mail.send(msg)
-    return redirect(url_for('views.contact_us'))
+# @views.route('/sendmail', methods=['GET', 'POST'])
+# def sendmail():
+#     fname = request.form.get('fname')
+#     lname = request.form.get('lname')
+#     email = request.form.get('email')
+#     state = request.form.get('state')
+#     subject = request.form.get('subject')
+#     bodyText = 'First name: ' + fname + '\n'
+#     bodyText += 'Last name: ' + lname + '\n'
+#     bodyText += 'Email: ' + email + '\n'
+#     bodyText += 'State: ' + state + '\n'
+#     bodyText += 'Message: ' + subject + '\n'
+#     msg = Message('Message from \'Contact Us Page\'', sender=email, 
+#     recipients=['info.reportthatpantry@gmail.com'], body = bodyText)
+#     mail.send(msg)
+#     return redirect(url_for('views.contact_us'))
