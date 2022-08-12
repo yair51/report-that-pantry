@@ -13,19 +13,13 @@ class Config(object):
     MAIL_PORT = 465
     MAIL_USE_TLS = False
     MAIL_USE_SSL = True
-    MAIL_USERNAME = 'info.reportthatpantry@gmail.com'
-    MAIL_PASSWORD = 'vrucxrsmpacwcdsk'
+    MAIL_USERNAME = os.getenv("MAIL_USERNAME")
+    MAIL_PASSWORD = os.getenv("MAIL_PASSWORD")
     
 
 class StagingConfig(Config):
     if os.getenv("APP_SETTINGS") == "StagingConfig":
         SQLALCHEMY_DATABASE_URI = "postgresql" + os.getenv("DATABASE_URL")[8:]
-        # MAIL_SERVER ='smtp.mailtrap.io'
-        # MAIL_PORT = 2525
-        # MAIL_USERNAME = 'ed497295cc0760'
-        # MAIL_PASSWORD = '3bcfb354c19a49'
-        # MAIL_USE_TLS = True
-        # MAIL_USE_SSL = False
 
 class DevelopmentConfig(Config):
     DEBUG = True
@@ -34,8 +28,6 @@ class DevelopmentConfig(Config):
     FLASK_APP = "main.py"
     MAIL_SERVER ='smtp.mailtrap.io'
     MAIL_PORT = 2525
-    MAIL_USERNAME = 'ed497295cc0760'
-    MAIL_PASSWORD = '3bcfb354c19a49'
     MAIL_USE_TLS = True
     MAIL_USE_SSL = False
     

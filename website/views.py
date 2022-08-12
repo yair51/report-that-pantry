@@ -180,8 +180,7 @@ def status():
     count = 0
     for location in locations:
         count += 1
-        #print(location.time.strftime("%c"))
-    #timezone = datetime.datetime.now().astimezone().tzinfo
+
     organizations = Organization.query.all()
     return render_template("status.html", user=current_user, title="Status", locations=locations, count=count, organizations=organizations, current_org=org)
 
@@ -246,7 +245,6 @@ def notifications():
             # converts the location id to an integer
             # checks to see if the user is already recieving notifications for a specific loction
             notification = db.session.query(Notification).filter(Notification.location_id == location[0].id, Notification.user_id == current_user.id).first()
-            #print(notification)
             if selected_location:
                 selected_location = int(selected_location)
                 # if not recieving notification from a selected organization, adds current user and that location to the database
