@@ -2,7 +2,7 @@
 
 ## Description
 
-Little free pantries are located around the world to combat food insecurity. Our website, [ReportThatPantry.org](http://www.reportthatpantry.org/), utilizes QR code technology to keep food pantries stocked. Our QR codes are placed on every pantry, allowing pantry stewards to track the current status of their pantries.
+Little Free Pantries are small food pantries located around the world aimed at targeted food insecurity. ReportThatPantry.org is dedicated to helping food pantries remain stocked through the use of QR code technology. QR codes that link to our site are placed on food pantries, which allow pantry stewards to stay up to date on the current status of their pantries.
 
 ## Setup & Installtion
 
