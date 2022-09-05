@@ -173,17 +173,7 @@ def status():
     # # if logged in, only shows locations affiliated with the user's organization
     if current_user.is_authenticated:
         org = current_user.organization_id
-    # if request.method == 'POST':
-    #     # gets the org and state from dropdown
-    #     org = int(request.form.get('org'))
-    #     state = request.form.get('state')
-    # # only filters by organization if not requesting all organizations
-    # if org != 0:
-    #     subquery = db.session.query(LocationStatus.location_id, LocationStatus.status, LocationStatus.time, Location.address, Location.city, Location.state, Organization.name, Location.name.label("location_name"), Location.zip,
-    #     func.rank().over(order_by=LocationStatus.time.desc(),
-    #     partition_by=LocationStatus.location_id).label('rnk')).filter(Location.id == LocationStatus.location_id, Location.organization_id == Organization.id, Location.organization_id == org).subquery()
-    # # subquery that joins both tables together and ranks them
-    # else:
+
     subquery = db.session.query(LocationStatus.location_id, LocationStatus.status, LocationStatus.time,
                                 Location.address, Location.city, Location.state, Organization.name,
                                 Location.name.label("location_name"), Location.zip,
@@ -197,8 +187,6 @@ def status():
     count = 0
     for location in locations:
         count += 1
-        # print(location.time.strftime("%c"))
-    # timezone = datetime.datetime.now().astimezone().tzinfo
     organizations = Organization.query.all()
     return render_template("status.html", user=current_user, title="Status", locations=locations, count=count,
                            organizations=organizations, current_org=org)
@@ -308,7 +296,7 @@ def notifications():
             # checks to see if the user is already recieving notifications for a specific loction
             notification = db.session.query(Notification).filter(Notification.location_id == location[0].id,
                                                                  Notification.user_id == current_user.id).first()
-            # print(notification)
+
             if selected_location:
                 selected_location = int(selected_location)
                 # if not recieving notification from a selected organization, adds current user and that location to the database
@@ -322,3 +310,21 @@ def notifications():
                 db.session.commit()
         flash("Your preferences have been updated.", category="success")
     return render_template("notifications.html", title="Manage Notifications", user=current_user, locations=locations)
+
+
+# @views.route('/sendmail', methods=['GET', 'POST'])
+# def sendmail():
+#     fname = request.form.get('fname')
+#     lname = request.form.get('lname')
+#     email = request.form.get('email')
+#     state = request.form.get('state')
+#     subject = request.form.get('subject')
+#     bodyText = 'First name: ' + fname + '\n'
+#     bodyText += 'Last name: ' + lname + '\n'
+#     bodyText += 'Email: ' + email + '\n'
+#     bodyText += 'State: ' + state + '\n'
+#     bodyText += 'Message: ' + subject + '\n'
+#     msg = Message('Message from \'Contact Us Page\'', sender=email,
+#     recipients=['info.reportthatpantry@gmail.com'], body = bodyText)
+#     mail.send(msg)
+#     return redirect(url_for('views.contact_us'))
