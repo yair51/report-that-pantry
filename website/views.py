@@ -44,7 +44,7 @@ def locations(id=0):
     current_org = 'none'
     pantrynum = id
     if id != 0:
-        # sets editing to true if the post is being editing
+        # sets editing to true if the post is being edited
         editing = True
         current_org = Organization.query.get(location.organization_id)
     if request.method == 'POST':
@@ -92,8 +92,16 @@ def locations(id=0):
         return redirect(url_for("views.poster", id=pantrynum, isNew1=1))
     # locations = Location.query.all()
     organizations = Organization.query.all()
-    return render_template("locations.html", user=current_user, editing=editing, location=location, title="Locations",
-                           organizations=organizations, current_org=current_org)
+    return render_template(
+        "locations.html",
+        user=current_user,
+        editing=editing,
+        location=location,
+        title="Locations",
+        organizations=organizations,
+        current_org=current_org,
+        google_maps_key=os.getenv('GOOGLE_MAPS_KEY')
+    )
 
     # @views.route('/edit', methods=['GET','POST'])
     # def edit():

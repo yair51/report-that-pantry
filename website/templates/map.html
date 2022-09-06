@@ -13,13 +13,13 @@
 
         function codeAddress(address) {
             geocoder.geocode( { 'address': address}, function(results, status) {
-            if (status == 'OK') {
-                const location = results[0].geometry.location
-                cacheAddress(address, location)
-                setPin(location)
-            } else {
-                console.error('Geocode was not successful for the following reason: ' + status);
-            }
+                if (status === 'OK') {
+                    const location = results[0].geometry.location
+                    cacheAddress(address, location)
+                    setPin(location)
+                } else {
+                    console.error('Geocode was not successful for the following reason: ' + status);
+                }
             });
         }
 
@@ -74,13 +74,10 @@
 		window.initMap = initMap;
 	</script>
 
-	<style type="text/css">
-		/* Set the size of the div element that contains the map */
+	<style>
 		#map {
 		  height: 400px;
-		  /* The height is 400 pixels */
 		  width: 100%;
-		  /* The width is the width of the web page */
 		}
 	</style>
 
