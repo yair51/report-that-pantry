@@ -3,6 +3,7 @@ website/__pycache__
 website/database.db
 aws-elastic-beanstalk-cli-setup
 venv/
+.venv
 __pycache__/
 .ebignore
 pylintrc
