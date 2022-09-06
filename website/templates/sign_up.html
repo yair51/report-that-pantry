@@ -113,18 +113,18 @@ content %}
   <button type="submit" class="btn btn-primary" onclick="return checkEmail()">Submit</button>
 </form>
 <script>
+
   // for pop up
   $(document).ready(function(){
     $('[data-toggle="tooltip"]').tooltip();   
   });
 
-
   // for email validation
-  var email = document.getElementById('email');
+  const email = document.getElementById('email');
 
   function isNotEmpty(value) {
       if (value == null || typeof value == 'undefined' ) return false;
-          return (value.length > 0);
+      return (value.length > 0);
   }
   
   function isEmail(email) {
@@ -134,28 +134,24 @@ content %}
   
   function fieldValidation() {
       if (email == null) return false;
-      
+
       let isFieldValid = isEmail(email.value)
       if (!isFieldValid) {
         alert("Invalid Email Address");
       } else {
-      email.className = '';
+        email.className = '';
       }
-  
-  return isFieldValid;
+
+      return isFieldValid;
   }
   
   function isValid() {
-      var valid = fieldValidation(email, isEmail);
-      return valid;
+      return fieldValidation(email, isEmail);
   }
+
   function checkEmail() {
-    if(isValid()){         
-        return true;
-    }
-    else{
-        return false;
-    }
+      return !!isValid();
   }
+
 </script>
 {% endblock %}
