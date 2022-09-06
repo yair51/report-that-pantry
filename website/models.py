@@ -14,6 +14,7 @@ from datetime import datetime
 class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(150), unique=True)
+    phone = db.Column(db.String(150))
     password = db.Column(db.String(150))
     first_name = db.Column(db.String(150))
     last_name = db.Column(db.String(150))
@@ -50,5 +51,6 @@ class Organization(db.Model):
 
 class Notification(db.Model):
     id = db.Column(db.Integer, primary_key=True)
+    medium = db.Column(db.String(150))  # phone or email or web
     location_id = db.Column(db.Integer, db.ForeignKey('location.id'))
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))

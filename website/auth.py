@@ -44,6 +44,7 @@ def sign_up():
         email = request.form.get('email')
         first_name = request.form.get('firstName')
         last_name = request.form.get('lastName')
+        phone = request.form.get('phone')
         password1 = request.form.get('password1')
         password2 = request.form.get('password2')
         authorization = request.form.get('authorization')
@@ -63,8 +64,8 @@ def sign_up():
         elif authorization != '123':
             flash('Invalid authorization code. Please contact the developer for access.', category='error')
         else:
-            new_user = User(email=email, first_name=first_name, last_name=last_name, password=generate_password_hash(
-                password1, method='sha256'), organization_id=org_id)
+            new_user = User(email=email, first_name=first_name, last_name=last_name, 
+                phone=phone, password=generate_password_hash(password1, method='sha256'), organization_id=org_id)
             db.session.add(new_user)
             db.session.commit()
             login_user(new_user, remember=True)
