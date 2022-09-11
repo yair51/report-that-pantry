@@ -11,3 +11,4 @@ pylintrc
 c:backup_file.tar
 raspi.py
 /website/static/node_modules/
+.DS_Store
