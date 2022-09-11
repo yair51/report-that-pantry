@@ -3,6 +3,7 @@ website/__pycache__
 website/database.db
 aws-elastic-beanstalk-cli-setup
 venv/
+.venv
 __pycache__/
 .ebignore
 pylintrc
@@ -10,3 +11,4 @@ pylintrc
 c:backup_file.tar
 raspi.py
 /website/static/node_modules/
+.DS_Store

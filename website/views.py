@@ -10,6 +10,7 @@ import json
 from datetime import datetime
 from time import mktime
 from sqlalchemy import func, and_
+from twilio.rest import Client
 
 views = Blueprint('views', __name__)
 
@@ -142,6 +143,10 @@ def report(id):
             users = db.session.query(User, Notification, Location).filter(User.id == Notification.user_id,
                                                                           Notification.location_id == id,
                                                                           Location.id == Notification.location_id)
+            account_sid = os.environ.get('TWILIO_ACCOUNT_SID')
+            auth_token = os.environ.get('TWILIO_AUTH_TOKEN')
+            client = Client(account_sid, auth_token)
+            
             with mail.connect() as conn:
                 for user in users:
                     subject = '%s Update' % user[2].name
@@ -154,6 +159,14 @@ def report(id):
                                   body=message, html=html,
                                   subject=subject, sender='info.reportthatpantry@gmail.com')
                     conn.send(msg)
+                    if users[1].medium == "phone":
+                        message = client.messages \
+                                    .create(
+                                        body=f"{user[2].name} is currently EMPTY.",
+                                        from_='+16187597422',
+                                        to=user[0].phone
+                                    )
+                        print(message.sid)
         elif status == "Damaged":
             users = db.session.query(User, Notification, Location).filter(User.id == Notification.user_id,
                                                                           Notification.location_id == id,
