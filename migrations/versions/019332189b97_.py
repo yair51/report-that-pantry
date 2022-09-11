@@ -8,6 +8,8 @@ Create Date: 2021-06-12 15:37:30.876920
 from alembic import op
 import sqlalchemy as sa
 
+from migrations.utils import column_exists
+
 
 # revision identifiers, used by Alembic.
 revision = '019332189b97'
@@ -26,9 +28,10 @@ def upgrade():
     # sa.UniqueConstraint('name')
     # )
     # op.add_column('location', sa.Column('name', sa.String(length=150), nullable=True))
-    op.add_column('location', sa.Column('organization_id', sa.Integer(), nullable=True))
-    op.create_foreign_key(None, 'location', 'organization', ['organization_id'], ['id'])
-    # ### end Alembic commands ###
+    if not column_exists('location', 'organization_id'):
+        op.add_column('location', sa.Column('organization_id', sa.Integer(), nullable=True))
+        op.create_foreign_key(None, 'location', 'organization', ['organization_id'], ['id'])
+        # ### end Alembic commands ###
 
 
 def downgrade():
