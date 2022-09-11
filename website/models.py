@@ -25,6 +25,7 @@ class User(db.Model, UserMixin):
 class Location(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(150))
+    latlong = db.Column(db.String(150), nullable=True)
     address = db.Column(db.String(150), unique=True)
     city = db.Column(db.String(150))
     state = db.Column(db.String(50))
