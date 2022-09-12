@@ -139,50 +139,40 @@ def report(id):
         db.session.add(new_status)
         db.session.commit()
         flash("Thank you for your feedback!", category='success')
-        if status == "Empty":
+        if status in ["Empty", "Damaged"]:
             users = db.session.query(User, Notification, Location).filter(User.id == Notification.user_id,
                                                                           Notification.location_id == id,
                                                                           Location.id == Notification.location_id)
-            account_sid = os.environ.get('TWILIO_ACCOUNT_SID')
-            auth_token = os.environ.get('TWILIO_AUTH_TOKEN')
-            client = Client(account_sid, auth_token)
             
             with mail.connect() as conn:
                 for user in users:
-                    subject = '%s Update' % user[2].name
-                    message = '%s is currently EMPTY. Click Here to check the current status.' % user[2].name
-                    html = '''<p>%s is currently EMPTY.
-                            <br>
-                            <a href="http://www.reportthatpantry.org/status"> Click Here</a> to check the current status.</p>''' % \
-                           user[2].name
-                    msg = Message(recipients=[user[0].email],
-                                  body=message, html=html,
-                                  subject=subject, sender='info.reportthatpantry@gmail.com')
-                    conn.send(msg)
-                    if users[1].medium == "phone":
+                    notification = user[1]
+                    
+                    # Send email notifications
+                    if notification.is_email:
+                        subject = f'{user[2].name} Update'
+                        message = f'{user[2].name} is currently {status}. Click Here to check the current status.'
+                        html = f'''<p>{user[2].name} is currently {status}.
+                                <br>
+                                <a href="http://www.reportthatpantry.org/status"> Click Here</a> to check the current status.</p>'''
+                        msg = Message(recipients=[user[0].email],
+                                    body=message, html=html,
+                                    subject=subject, sender='info.reportthatpantry@gmail.com')
+                        conn.send(msg)
+
+                    # Send SMS notifications
+                    if notification.is_sms:
+                        account_sid = os.environ.get('TWILIO_ACCOUNT_SID')
+                        auth_token = os.environ.get('TWILIO_AUTH_TOKEN')
+                        client = Client(account_sid, auth_token)
                         message = client.messages \
                                     .create(
-                                        body=f"{user[2].name} is currently EMPTY.",
+                                        body=f"""
+                                        {user[2].name} ({user[2].name}) is currently {status}.""",
                                         from_='+16187597422',
                                         to=user[0].phone
                                     )
-                        print(message.sid)
-        elif status == "Damaged":
-            users = db.session.query(User, Notification, Location).filter(User.id == Notification.user_id,
-                                                                          Notification.location_id == id,
-                                                                          Location.id == Notification.location_id)
-            with mail.connect() as conn:
-                for user in users:
-                    subject = '%s Update' % user[2].name
-                    message = '%s is currently DAMAGED. Click Here to check the current status.' % user[2].name
-                    html = '''<p>%s is currently DAMAGED.
-                            <br>
-                            <a href="http://www.reportthatpantry.org/status"> Click Here</a> to check the current status.</p>''' % \
-                           user[2].name
-                    msg = Message(recipients=[user[0].email],
-                                  body=message, html=html,
-                                  subject=subject, sender='info.reportthatpantry@gmail.com')
-                    conn.send(msg)
+
         return redirect(url_for('views.home'))
     return render_template("report.html", user=current_user, title="Report")
 
@@ -307,30 +297,25 @@ def notifications():
                                                                    and_(Notification.location_id == Location.id,
                                                                         current_user.id == Notification.user_id)).filter(
         Location.organization_id == current_user.organization_id).order_by(Location.name)
-    for location in locations:
-        print(location)
-    if request.method == "POST":
-        # loops through list of locations to find the selected ones
-        for location in locations:
-            selected_location = request.form.get("location" + str(location[0].id))
-            # converts the location id to an integer
-            # checks to see if the user is already recieving notifications for a specific loction
-            notification = db.session.query(Notification).filter(Notification.location_id == location[0].id,
-                                                                 Notification.user_id == current_user.id).first()
 
-            if selected_location:
-                selected_location = int(selected_location)
-                # if not recieving notification from a selected organization, adds current user and that location to the database
-                if not notification:
-                    notification = Notification(location_id=location[0].id, user_id=current_user.id)
+    if request.method == "POST":
+        for location in locations:
+                is_email = request.form.get(f"email-location-{location[0].id}") == 'on'
+                is_sms = request.form.get(f"sms-location-{location[0].id}") == 'on'
+                
+                notification_ = db.session.query(Notification).filter(Notification.location_id == location[0].id,
+                                                                    Notification.user_id == current_user.id).first()
+                if not notification_:
+                    notification = Notification(location_id=location[0].id, user_id=current_user.id, is_email = is_email, is_sms = is_sms)
                     db.session.add(notification)
-                    db.session.commit()
-            # else if the notification exists, it should be removed
-            elif notification:
-                db.session.delete(notification)
+                else:
+                    notification_.is_sms = is_sms
+                    notification_.is_email = is_email
+
                 db.session.commit()
+                                
         flash("Your preferences have been updated.", category="success")
-    return render_template("notifications.html", title="Manage Notifications", user=current_user, locations=locations)
+    return render_template("notifications.html", title="Manage Notifications", user=current_user, locations=locations, has_locations=(locations.count() >= 1))
 
 
 # @views.route('/sendmail', methods=['GET', 'POST'])

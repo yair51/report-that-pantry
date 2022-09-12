@@ -52,6 +52,7 @@ class Organization(db.Model):
 
 class Notification(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    medium = db.Column(db.String(150))  # phone or email or web
+    is_email = db.Column(db.Boolean, default=True, nullable=False)
+    is_sms = db.Column(db.Boolean, default=False, nullable=False)
     location_id = db.Column(db.Integer, db.ForeignKey('location.id'))
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
