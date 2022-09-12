@@ -1,45 +1,55 @@
 {% extends "base.html" %}
 {% block content %}
-<form method="POST" class="container">
-  <table class="table">
-    <thead>
-      <tr>
-        <th scope="col">Name</th>
-        <th scope="col">Address</th>
-        <th scope="col">SMS</th>
-        <th scope="col">Email</th>
-      </tr>
-    </thead>
-    <tbody>  
-      {% for location in locations %}
-      <tr>
-        <th scope="row">
-          <strong>{{location[0].name}}</strong>
-        </th>
-        <td>
-          
-            {{location[0].address}}, {{location[0].city}}, {{location[0].state}}
-          
-        </td>
-        <td>
-          <label class="form-check-label sr-only" for="sms-location{{location[0].id}}">
-            sms
-          </label>
-          <input class="ml-2 form-check-input" type="checkbox" value="{{location[0].id}}" id="sms-location{{location[0].id}}" name="sms-location{{location[0].id}}" 
-          {% if location[1].user_id == user.id and location[1].medium == 'phone' %}checked{%endif%}>
-        </td>
-        <td>
-          <label class="form-check-label sr-only" for="email-location{{location[0].id}}">
-            email
-          </label>
-          <input class="ml-2 form-check-input" type="checkbox" value="{{location[0].id}}" id="email-location{{location[0].id}}" name="email-location{{location[0].id}}" 
-            {% if location[1].user_id == user.id and location[1].medium == 'email' %}checked{%endif%}>
-        </td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
+<div class="container">
   
-  <button type="submit" class="btn btn-primary">Update Preferences</button>
-</form>
+  {% if has_locations %}
+  <form method="POST">
+    <table class="table">
+      <thead>
+        <tr>
+          <th scope="col">Name</th>
+          <th scope="col">Address</th>
+          <th scope="col">SMS</th>
+          <th scope="col">Email</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for location in locations %}
+        <tr>
+          <th scope="row">
+            <strong>{{location[0].name}}</strong>
+          </th>
+          <td>
+            {{location[0].address}}, {{location[0].city}}, {{location[0].state}}
+          </td>
+          <td>
+            <label class="form-check-label sr-only" for="sms-location-{{location[0].id}}">
+              sms
+            </label>
+            <input class="ml-2 form-check-input" type="checkbox"
+              id="sms-location-{{location[0].id}}" name="sms-location-{{location[0].id}}" {% if
+              location[1].user_id==user.id and location[1].is_sms %}checked{%endif%}>
+          </td>
+          <td>
+            <label class="form-check-label sr-only" for="email-location-{{location[0].id}}">
+              email
+            </label>
+            <input class="ml-2 form-check-input" type="checkbox"
+              id="email-location-{{location[0].id}}" name="email-location-{{location[0].id}}" {% if
+              location[1].user_id==user.id and location[1].is_email %}checked{%endif%}>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <button type="submit" class="btn btn-primary">Update Preferences</button>
+  </form>
+
+  {% else %}
+  No locations. <a href="/locations">Add one</a>.
+  {% endif %}
+
+</div>
+
 {% endblock %}
