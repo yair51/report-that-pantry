@@ -1,91 +1,101 @@
-{% extends "base.html" %}
-{% block content %}
-	<script type="text/javascript">
+{% extends "base.html" %} {% block content %}
+<script type="text/javascript">
 
-        let geocoder;
-        let map;
-        let pins = [];
+    let geocoder;
+    let map;
+    let pins = [];
 
-        function cacheAddress(address, location) {
-            // TODO: persist to model
-            window.localStorage.setItem(address, JSON.stringify({latLong: location}))
-        }
+    function cacheAddress(locationData) {
+        // TODO: persist to model
+        window.localStorage.setItem(locationData.address, JSON.stringify({latLong: locationData.latLong}))
+    }
 
-        function codeAddress(address) {
-            geocoder.geocode( { 'address': address}, function(results, status) {
-                if (status === 'OK') {
-                    const location = results[0].geometry.location
-                    cacheAddress(address, location)
-                    setPin(location)
-                } else {
-                    console.error('Geocode was not successful for the following reason: ' + status);
-                }
-            });
-        }
-
-        function setPin(pin){
-            const marker = new google.maps.Marker({
-                position: pin,
-                map: map,
-            });
-            pins.push(marker)
-        }
-
-        function getLocationData(address, latLong) {
-            let cache = window.localStorage.getItem(address)
-            if (latLong) {
-                setPin(latLong)
-            } else if(cache) {
-                const parsedLocation = JSON.parse(cache)
-                setPin(parsedLocation.latLong)
+    function codeAddress(locationData) {
+        geocoder.geocode( { 'address': locationData.address}, function(results, status) {
+            if (status === 'OK') {
+                locationData.latLong = results[0].geometry.location
+                cacheAddress(locationData)
+                setPin(location)
             } else {
-                codeAddress(address)
+                console.error('Geocode was not successful for the following reason: ' + status);
             }
+        });
+    }
+
+    function setPin(locationData){
+        const marker = new google.maps.Marker({
+            position: locationData.latLong,
+            map: map,
+            title: locationData.name,
+        });
+        pins.push(marker)
+        marker.addListener("click", () => {
+            window.infoWindow.close();
+            window.infoWindow.setContent(marker.getTitle());
+            window.infoWindow.open(marker.getMap(), marker);
+        });
+
+    }
+
+    function getLocationData(locationData) {
+        console.log(locationData)
+        let cache = window.localStorage.getItem(locationData.address)
+        if (locationData.latLong) {
+            setPin(locationData)
+        } else if(cache) {
+            const parsedLocation = JSON.parse(cache)
+            locationData.latLong = parsedLocation.latLong
+            setPin(locationData)
+        } else {
+            codeAddress(locationData)
         }
+    }
 
-		// Initialize and add the map
-		function initMap() {
-			// The location of downtown eugene
-			const downtown = { lat: 44.05109918945712, lng: -123.08484838938584 };
-			// The map, centered at downtown eugene
-            geocoder = new google.maps.Geocoder();
-			map = new google.maps.Map(document.getElementById("map"), {
-                zoom: 13,
-                center: downtown,
-			});
+  // Initialize and add the map
+  function initMap() {
+  	// The location of downtown eugene
+  	const downtown = { lat: 44.05109918945712, lng: -123.08484838938584 };
+  	// The map, centered at downtown eugene
+    geocoder = new google.maps.Geocoder();
+    window.infoWindow = new google.maps.InfoWindow();
 
-			// TODO: manually placed markers, source unsure?
-			// TODO: add locations of the regular food banks and show if it’s closed or open
-			// this one has some extra config
-			new google.maps.Marker({
-				title: "this is Downtown",
-				label: "Downtown!",
-				icon: "https://developers.google.com/maps/documentation/javascript/examples/full/images/beachflag.png",
-				position: downtown,
-				map: map,
-			});
+  	map = new google.maps.Map(document.getElementById("map"), {
+        zoom: 13,
+        center: downtown,
+  	});
 
-            {% for location in locations %}
-                getLocationData('{{location.address}} {{location.city}} {{location.state}}', '{{location.latLong}}')
-            {% endfor %}
+  	// TODO: manually placed markers, source unsure?
+  	// TODO: add locations of the regular food banks and show if it’s closed or open
+  	// this one has some extra config
+  	new google.maps.Marker({
+  		title: "this is Downtown",
+  		label: "Downtown!",
+  		icon: "https://developers.google.com/maps/documentation/javascript/examples/full/images/beachflag.png",
+  		position: downtown,
+  		map: map,
+  	});
 
-		}
+    {% for location in locations %}
+        getLocationData({address: '{{location.address}} {{location.city}} {{location.state}}', latLong: '{{location.latLong}}', name: '{{location.name}}'})
+    {% endfor %}
 
-		window.initMap = initMap;
-	</script>
+  }
 
-	<style>
-		#map {
-		  height: 400px;
-		  width: 100%;
-		}
-	</style>
+  window.initMap = initMap;
+</script>
 
-	<div id="map">loading...</div>
+<style>
+  #map {
+    height: 400px;
+    width: 100%;
+  }
+</style>
 
-    <script
-      src="https://maps.googleapis.com/maps/api/js?key={{ google_maps_key }}&callback=initMap&v=weekly"
-      defer
-    ></script>
+<div id="map">loading...</div>
+
+<script
+  src="https://maps.googleapis.com/maps/api/js?key={{ google_maps_key }}&callback=initMap&v=weekly"
+  defer
+></script>
 
 {% endblock %}
