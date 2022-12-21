@@ -23,10 +23,12 @@
     }
 
     function buildPopUp(locationData) {
-        const para = document.createElement("div");
-        const node = document.createTextNode(locationData.name + ', ' + locationData.address);
-        para.appendChild(node);
-        return para
+        const template = document.getElementById('box-detail-template').content.cloneNode(true);
+        template.querySelector('.name').innerHTML = locationData.name
+        template.querySelector('.address').innerHTML = locationData.address
+        template.querySelector('.status').classList.add(locationData.status.toLowerCase())
+        template.querySelector('.status').innerHTML = locationData.status
+        return template
     }
 
     function setPin(locationData){
@@ -60,9 +62,10 @@
 
   // Initialize and add the map
   function initMap() {
-    // TODO: derive from org
+    const orgLatLong = 'organization.latlong'.split(',')
+    console.log('org latlong:', orgLatLong)
   	const downtown = { lat: 44.05109918945712, lng: -123.08484838938584 };
-  	// The map, centered at downtown eugene
+  	// The map, centered at organization
     geocoder = new google.maps.Geocoder();
     window.infoWindow = new google.maps.InfoWindow();
 
@@ -78,7 +81,8 @@
         getLocationData({
             address: '{{location.address}} {{location.city}} {{location.state}}',
             latLong: '{{location.latLong}}',
-            name: '{{location.name}}'
+            name: '{{location.name}}',
+            status: '{{location.status}}',
         })
     {% endfor %}
 
@@ -92,9 +96,27 @@
     height: 400px;
     width: 100%;
   }
+  .box-detail-modal {
+    
+  }
+  .status.full {
+    color: green;
+  }
+  .status.empty {
+    color: red;
+  }
 </style>
 
 <div id="map">loading...</div>
+
+<template id="box-detail-template">
+    <div class"box-detail-modal">
+        <h2 class="name"></h2>
+        <img src="" />
+        <span class="address"></span>
+        <span class="status"></span>
+    </div>
+</template>
 
 <script
   src="https://maps.googleapis.com/maps/api/js?key={{ google_maps_key }}&callback=initMap&v=weekly"
