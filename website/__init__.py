@@ -17,7 +17,7 @@ DB_NAME = "database.db"
 def create_app():
     app = Flask(__name__)
     # sets development/production enviornment
-    #env_config = DevelopmentConfig
+    # env_config = DevelopmentConfig
     env_config = getenv("APP_SETTINGS", "DevelopmentConfig")
     if env_config == 'Config':
         env_config = Config
@@ -29,19 +29,17 @@ def create_app():
     app.config.from_object(env_config)
     # app.config['SECRET_KEY'] = 'hjshjhdjah kjshkjdhjs'
     # app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{DB_NAME}'
-    # mail config: 
-    
+    # mail config:
+
     # app.config['MAIL_SERVER'] = 'smtp.gmail.com'
     # app.config['MAIL_PORT'] = 465
     # app.config["MAIL_USE_TLS"]= False
     # app.config['MAIL_USE_SSL'] = True
     # app.config['MAIL_USERNAME'] = 'info.reportthatpantry@gmail.com'
     # app.config['MAIL_PASSWORD'] = 'vrucxrsmpacwcdsk'
-    
+
     # email = Mail(app)
 
-
-    
     db.init_app(app)
     migrate.init_app(app, db)
     mail.init_app(app)

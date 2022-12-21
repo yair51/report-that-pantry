@@ -62,14 +62,16 @@ def sign_up():
         elif len(password1) < 7:
             flash('Password must be at least 7 characters.', category='error')
         elif authorization != '123':
-            flash('Invalid authorization code. Please contact the developer for access.', category='error')
+            flash(
+                'Invalid authorization code. Please contact the developer for access.', category='error')
         else:
-            new_user = User(email=email, first_name=first_name, last_name=last_name, 
-                phone=phone, password=generate_password_hash(password1, method='sha256'), organization_id=org_id)
+            new_user = User(email=email, first_name=first_name, last_name=last_name,
+                            phone=phone, password=generate_password_hash(password1, method='sha256'), organization_id=org_id)
             db.session.add(new_user)
             db.session.commit()
             login_user(new_user, remember=True)
-            flash('Account created! Now add locations for your organization.', category='success')
+            flash('Account created! Now add locations for your organization.',
+                  category='success')
             return redirect(url_for('views.locations'))
 
     return render_template("sign_up.html", user=current_user, title="Sign Up", organizations=organizations)
@@ -82,13 +84,15 @@ def organizations():
         address = request.form.get('address')
         authorization = request.form.get('authorization')
         if authorization != '852':
-            flash('Invalid authorization code. Please contact the developer for access.', category='error')
-        else: 
+            flash(
+                'Invalid authorization code. Please contact the developer for access.', category='error')
+        else:
             # creates new organization
             org = Organization(name=name, address=address)
             # adds org to db
             db.session.add(org)
             db.session.commit()
-            flash('Organization added. Now create an account under your organization.', category='success')
+            flash('Organization added. Now create an account under your organization.',
+                  category='success')
             return redirect(url_for('auth.sign_up'))
     return render_template("organizations.html", user=current_user, title="Add Organization")

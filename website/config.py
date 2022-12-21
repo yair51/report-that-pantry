@@ -2,6 +2,7 @@ import os
 from dotenv import load_dotenv
 load_dotenv()
 
+
 class Config(object):
     DEBUG = False
     DEVELOPMENT = False
@@ -17,22 +18,22 @@ class Config(object):
     MAIL_PASSWORD = os.getenv("MAIL_PASSWORD")
     GOOGLE_MAPS_KEY = os.environ.get('GOOGLE_MAPS_KEY')
 
+
 class StagingConfig(Config):
     if os.getenv("APP_SETTINGS") == "StagingConfig":
         SQLALCHEMY_DATABASE_URI = "postgresql" + os.getenv("DATABASE_URL")[8:]
 
+
 class DevelopmentConfig(Config):
     DEBUG = True
     DEVELOPMENT = True
-    SQLALCHEMY_DATABASE_URI = os.getenv("SQLALCHEMY_DATABASE_URI", "sqlite:///database.db")
+    SQLALCHEMY_DATABASE_URI = os.getenv(
+        "SQLALCHEMY_DATABASE_URI", "sqlite:///database.db")
     FLASK_APP = "main.py"
-    MAIL_SERVER ='smtp.mailtrap.io'
+    MAIL_SERVER = 'smtp.mailtrap.io'
     MAIL_PORT = 2525
     MAIL_USERNAME = os.environ.get('MAIL_USERNAME')
     MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD')
     MAIL_USE_TLS = True
     MAIL_USE_SSL = False
     GOOGLE_MAPS_KEY = os.environ.get('GOOGLE_MAPS_KEY')
-
-
-    

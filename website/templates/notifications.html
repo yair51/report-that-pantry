@@ -1,7 +1,5 @@
-{% extends "base.html" %}
-{% block content %}
+{% extends "base.html" %} {% block content %}
 <div class="container">
-  
   {% if has_locations %}
   <form method="POST">
     <table class="table">
@@ -23,20 +21,30 @@
             {{location[0].address}}, {{location[0].city}}, {{location[0].state}}
           </td>
           <td>
-            <label class="form-check-label sr-only" for="sms-location-{{location[0].id}}">
+            <label
+              class="form-check-label sr-only"
+              for="sms-location-{{location[0].id}}"
+            >
               sms
             </label>
             <input class="ml-2 form-check-input" type="checkbox"
-              id="sms-location-{{location[0].id}}" name="sms-location-{{location[0].id}}" {% if
-              location[1].user_id==user.id and location[1].is_sms %}checked{%endif%}>
+            id="sms-location-{{location[0].id}}"
+            name="sms-location-{{location[0].id}}" {% if
+            location[1].user_id==user.id and location[1].is_sms
+            %}checked{%endif%}>
           </td>
           <td>
-            <label class="form-check-label sr-only" for="email-location-{{location[0].id}}">
+            <label
+              class="form-check-label sr-only"
+              for="email-location-{{location[0].id}}"
+            >
               email
             </label>
             <input class="ml-2 form-check-input" type="checkbox"
-              id="email-location-{{location[0].id}}" name="email-location-{{location[0].id}}" {% if
-              location[1].user_id==user.id and location[1].is_email %}checked{%endif%}>
+            id="email-location-{{location[0].id}}"
+            name="email-location-{{location[0].id}}" {% if
+            location[1].user_id==user.id and location[1].is_email
+            %}checked{%endif%}>
           </td>
         </tr>
         {% endfor %}
@@ -46,10 +54,7 @@
     <button type="submit" class="btn btn-primary">Update Preferences</button>
   </form>
 
-  {% else %}
-  No locations. <a href="/locations">Add one</a>.
-  {% endif %}
-
+  {% else %} No locations. <a href="/locations">Add one</a>. {% endif %}
 </div>
 
 {% endblock %}

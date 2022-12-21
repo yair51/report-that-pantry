@@ -84,7 +84,8 @@ def locations(id=0):
                 id = new_location.id
                 pantrynum = new_location.id
                 # adds a new status row, with status set to full and last_updated to current time
-                new_status = LocationStatus(status='Full', time=datetime.utcnow(), location_id=new_location.id)
+                new_status = LocationStatus(
+                    status='Full', time=datetime.utcnow(), location_id=new_location.id)
                 db.session.add(new_status)
                 db.session.commit()
 
@@ -134,7 +135,8 @@ def report(id):
     if status:
         time = datetime.utcnow()
         # sets the location's last update to current time and status to current status
-        new_status = LocationStatus(status=status, time=time, location_id=location.id)
+        new_status = LocationStatus(
+            status=status, time=time, location_id=location.id)
         # adds new status to database and commits it
         db.session.add(new_status)
         db.session.commit()
@@ -143,11 +145,11 @@ def report(id):
             users = db.session.query(User, Notification, Location).filter(User.id == Notification.user_id,
                                                                           Notification.location_id == id,
                                                                           Location.id == Notification.location_id)
-            
+
             with mail.connect() as conn:
                 for user in users:
                     notification = user[1]
-                    
+
                     # Send email notifications
                     if notification.is_email:
                         subject = f'{user[2].name} Update'
@@ -156,8 +158,8 @@ def report(id):
                                 <br>
                                 <a href="http://www.reportthatpantry.org/status"> Click Here</a> to check the current status.</p>'''
                         msg = Message(recipients=[user[0].email],
-                                    body=message, html=html,
-                                    subject=subject, sender='info.reportthatpantry@gmail.com')
+                                      body=message, html=html,
+                                      subject=subject, sender='info.reportthatpantry@gmail.com')
                         conn.send(msg)
 
                     # Send SMS notifications
@@ -166,12 +168,12 @@ def report(id):
                         auth_token = os.environ.get('TWILIO_AUTH_TOKEN')
                         client = Client(account_sid, auth_token)
                         message = client.messages \
-                                    .create(
-                                        body=f"""
+                            .create(
+                                body=f"""
                                         {user[2].name} ({user[2].name}) is currently {status}.""",
-                                        from_='+16187597422',
-                                        to=user[0].phone
-                                    )
+                                from_='+16187597422',
+                                to=user[0].phone
+                            )
 
         return redirect(url_for('views.home'))
     return render_template("report.html", user=current_user, title="Report")
@@ -187,7 +189,8 @@ def status():
 
     subquery = db.session.query(LocationStatus.location_id, LocationStatus.status, LocationStatus.time,
                                 Location.address, Location.city, Location.state, Organization.name,
-                                Location.name.label("location_name"), Location.zip,
+                                Location.name.label(
+                                    "location_name"), Location.zip,
                                 func.rank().over(order_by=LocationStatus.time.desc(),
                                                  partition_by=LocationStatus.location_id).label('rnk')).filter(
         Location.id == LocationStatus.location_id, Location.organization_id == Organization.id).subquery()
@@ -209,12 +212,13 @@ def map():
     # # if logged in, only shows locations affiliated with the user's organization
     if current_user.is_authenticated:
         org = current_user.organization_id
-    subquery = db.session.query(LocationStatus.location_id, LocationStatus.status, LocationStatus.time,
-                                Location.address, Location.city, Location.state, Organization.name,
-                                Location.name.label("location_name"), Location.zip,
-                                func.rank().over(order_by=LocationStatus.time.desc(),
-                                                 partition_by=LocationStatus.location_id).label('rnk')).filter(
-        Location.id == LocationStatus.location_id, Location.organization_id == Organization.id).subquery()
+        subquery = db.session.query(LocationStatus.location_id, LocationStatus.status, LocationStatus.time,
+                                    Location.address, Location.city, Location.state, Organization.name,
+                                    Location.name.label(
+                                        "location_name"), Location.zip,
+                                    func.rank().over(order_by=LocationStatus.time.desc(),
+                                                     partition_by=LocationStatus.location_id).label('rnk')).filter(
+            Location.id == LocationStatus.location_id, Location.organization_id == Organization.id).subquery()
     # queries locations and takes the first locations
     locations = db.session.query(subquery).filter(
         subquery.c.rnk == 1)
@@ -271,7 +275,8 @@ def logs(id):
 @views.route('/poster<int:isNew1>/<int:id>')
 @views.route('/poster/<int:isNew1>/<int:id>')
 def poster(isNew1, id):
-    location = db.session.query(Location.name.label("location_name")).filter(Location.id == id)[0][0]
+    location = db.session.query(Location.name.label(
+        "location_name")).filter(Location.id == id)[0][0]
     return render_template("poster.html", user=current_user, title="Poster", pantrynumber=id, isNew=isNew1,
                            name=location)
 
@@ -300,20 +305,22 @@ def notifications():
 
     if request.method == "POST":
         for location in locations:
-                is_email = request.form.get(f"email-location-{location[0].id}") == 'on'
-                is_sms = request.form.get(f"sms-location-{location[0].id}") == 'on'
-                
-                notification_ = db.session.query(Notification).filter(Notification.location_id == location[0].id,
-                                                                    Notification.user_id == current_user.id).first()
-                if not notification_:
-                    notification = Notification(location_id=location[0].id, user_id=current_user.id, is_email = is_email, is_sms = is_sms)
-                    db.session.add(notification)
-                else:
-                    notification_.is_sms = is_sms
-                    notification_.is_email = is_email
+            is_email = request.form.get(
+                f"email-location-{location[0].id}") == 'on'
+            is_sms = request.form.get(f"sms-location-{location[0].id}") == 'on'
 
-                db.session.commit()
-                                
+            notification_ = db.session.query(Notification).filter(Notification.location_id == location[0].id,
+                                                                  Notification.user_id == current_user.id).first()
+            if not notification_:
+                notification = Notification(
+                    location_id=location[0].id, user_id=current_user.id, is_email=is_email, is_sms=is_sms)
+                db.session.add(notification)
+            else:
+                notification_.is_sms = is_sms
+                notification_.is_email = is_email
+
+            db.session.commit()
+
         flash("Your preferences have been updated.", category="success")
     return render_template("notifications.html", title="Manage Notifications", user=current_user, locations=locations, has_locations=(locations.count() >= 1))
 

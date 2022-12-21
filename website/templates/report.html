@@ -1,18 +1,37 @@
-{% extends "base.html" %}
-{% block content %}
+{% extends "base.html" %} {% block content %}
 <form>
-    <!-- {% for i in range(1,11) %}
+  <!-- {% for i in range(1,11) %}
     <input type="radio" id="status{{i}}" name="status" value="{{i}}">
     <label for="status">{{i}}</label>
     <br>
     {% endfor %} -->
-    <h2 class="text-center">Estimate the amount of food in the pantry:</h2>
-    <div class="container text-center report-button">
-        <!-- <div><input type="submit" value="Submit" onclick="window.location='/'" class="block" style="margin-bottom: 20px;"></div> -->
-        <input type="submit" name="status" value="Full" class="btn btn-success btn-block report-button">
-        <input type="submit" name="status" value="Half Full" class="btn btn-warning btn-block report-button">
-        <input type="submit" name="status" value="Empty" class="btn btn-danger btn-block report-button">
-        <input type="submit" name="status" value="Damaged" class="btn btn-secondary btn-block report-button">
-    </div>
+  <h2 class="text-center">Estimate the amount of food in the pantry:</h2>
+  <div class="container text-center report-button">
+    <!-- <div><input type="submit" value="Submit" onclick="window.location='/'" class="block" style="margin-bottom: 20px;"></div> -->
+    <input
+      type="submit"
+      name="status"
+      value="Full"
+      class="btn btn-success btn-block report-button"
+    />
+    <input
+      type="submit"
+      name="status"
+      value="Half Full"
+      class="btn btn-warning btn-block report-button"
+    />
+    <input
+      type="submit"
+      name="status"
+      value="Empty"
+      class="btn btn-danger btn-block report-button"
+    />
+    <input
+      type="submit"
+      name="status"
+      value="Damaged"
+      class="btn btn-secondary btn-block report-button"
+    />
+  </div>
 </form>
 {% endblock %}
