@@ -75,6 +75,7 @@ def locations(id=0):
                 flash('Address already exists.', category='error')
                 return redirect(url_for('views.locations'))
             else:
+                # TODO: geocode org latLong
                 # create a location with the following information
                 new_location = Location(address=address, name=name, organization_id=organization_id, city=city,
                                         state=state, zip=zip)

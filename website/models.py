@@ -45,6 +45,7 @@ class LocationStatus(db.Model):
 class Organization(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(150), unique=True)
+    latlong = db.Column(db.String(150), nullable=True)
     address = db.Column(db.String(150))
     locations = db.relationship('Location', backref='organization')
     users = db.relationship('User', backref='organization')
