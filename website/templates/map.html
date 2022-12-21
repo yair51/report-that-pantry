@@ -53,7 +53,7 @@
 
   // Initialize and add the map
   function initMap() {
-  	// The location of downtown eugene
+    // TODO: derive from org
   	const downtown = { lat: 44.05109918945712, lng: -123.08484838938584 };
   	// The map, centered at downtown eugene
     geocoder = new google.maps.Geocoder();
@@ -66,17 +66,13 @@
 
   	// TODO: manually placed markers, source unsure?
   	// TODO: add locations of the regular food banks and show if it’s closed or open
-  	// this one has some extra config
-  	new google.maps.Marker({
-  		title: "this is Downtown",
-  		label: "Downtown!",
-  		icon: "https://developers.google.com/maps/documentation/javascript/examples/full/images/beachflag.png",
-  		position: downtown,
-  		map: map,
-  	});
 
     {% for location in locations %}
-        getLocationData({address: '{{location.address}} {{location.city}} {{location.state}}', latLong: '{{location.latLong}}', name: '{{location.name}}'})
+        getLocationData({
+            address: '{{location.address}} {{location.city}} {{location.state}}',
+            latLong: '{{location.latLong}}',
+            name: '{{location.name}}'
+        })
     {% endfor %}
 
   }
