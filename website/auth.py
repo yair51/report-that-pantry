@@ -1,5 +1,5 @@
 from flask import Blueprint, render_template, request, flash, redirect, url_for
-from .models import User, Organization
+from .models import User
 from werkzeug.security import generate_password_hash, check_password_hash
 from . import db
 from flask_login import login_user, login_required, logout_user, current_user
@@ -39,17 +39,18 @@ def logout():
 @auth.route('/sign-up', methods=['GET', 'POST'])
 @auth.route('/sign-up/', methods=['GET', 'POST'])
 def sign_up():
-    organizations = Organization.query.all()
     if request.method == 'POST':
         email = request.form.get('email')
         first_name = request.form.get('firstName')
         last_name = request.form.get('lastName')
         password1 = request.form.get('password1')
         password2 = request.form.get('password2')
-        authorization = request.form.get('authorization')
-        org_id = int(request.form.get('org'))
+        age = request.form.get('age')
+        user_type = request.form.get('description')
 
+        # Check if email already exists
         user = User.query.filter_by(email=email).first()
+        # Server-side form validation
         if user:
             flash('Email already exists.', category='error')
         elif len(email) < 4:
@@ -60,34 +61,37 @@ def sign_up():
             flash('Passwords don\'t match.', category='error')
         elif len(password1) < 7:
             flash('Password must be at least 7 characters.', category='error')
-        elif authorization != '123':
-            flash('Invalid authorization code. Please contact the developer for access.', category='error')
+        # Create new user
         else:
             new_user = User(email=email, first_name=first_name, last_name=last_name, password=generate_password_hash(
-                password1, method='sha256'), organization_id=org_id)
+                password1, method='sha256'), age=age, user_type=user_type)
             db.session.add(new_user)
             db.session.commit()
             login_user(new_user, remember=True)
-            flash('Account created! Now add locations for your organization.', category='success')
-            return redirect(url_for('views.locations'))
+            if user_type == "owner":
+                flash('Account created! Now add your pantry locations, if you have any.', category='success')
+                return redirect(url_for('views.add_location'))
+            else:
+                flash("Account created! Now set your notification preferences.")
+                return redirect(url_for('views.notifications'))
 
-    return render_template("sign_up.html", user=current_user, title="Sign Up", organizations=organizations)
+    return render_template("sign_up.html", user=current_user, title="Sign Up")
 
 
-@auth.route('/organizations', methods=['GET','POST'])
-def organizations():
-    if request.method == 'POST':
-        name = request.form.get('name')
-        address = request.form.get('address')
-        authorization = request.form.get('authorization')
-        if authorization != '852':
-            flash('Invalid authorization code. Please contact the developer for access.', category='error')
-        else: 
-            # creates new organization
-            org = Organization(name=name, address=address)
-            # adds org to db
-            db.session.add(org)
-            db.session.commit()
-            flash('Organization added. Now create an account under your organization.', category='success')
-            return redirect(url_for('auth.sign_up'))
-    return render_template("organizations.html", user=current_user, title="Add Organization")
+# @auth.route('/organizations', methods=['GET','POST'])
+# def organizations():
+#     if request.method == 'POST':
+#         name = request.form.get('name')
+#         address = request.form.get('address')
+#         authorization = request.form.get('authorization')
+#         if authorization != '852':
+#             flash('Invalid authorization code. Please contact the developer for access.', category='error')
+#         else: 
+#             # creates new organization
+#             org = Organization(name=name, address=address)
+#             # adds org to db
+#             db.session.add(org)
+#             db.session.commit()
+#             flash('Organization added. Now create an account under your organization.', category='success')
+#             return redirect(url_for('auth.sign_up'))
+#     return render_template("organizations.html", user=current_user, title="Add Organization")

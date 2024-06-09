@@ -17,8 +17,12 @@ class User(db.Model, UserMixin):
     password = db.Column(db.String(150))
     first_name = db.Column(db.String(150))
     last_name = db.Column(db.String(150))
-    organization_id = db.Column(db.Integer, db.ForeignKey('organization.id'))
+    age = db.Column(db.Integer)
+    user_type = db.Column(db.String(150))
     notifications = db.relationship('Notification', backref='user')
+    locations = db.relationship('Location', backref='user')
+    reports = db.relationship('Report', backref='user')
+
 
 class Location(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
@@ -27,22 +31,17 @@ class Location(db.Model, UserMixin):
     city = db.Column(db.String(150))
     state = db.Column(db.String(50))
     zip = db.Column(db.Integer)
-    location_status = db.relationship('LocationStatus', backref='location')
-    organization_id = db.Column(db.Integer, db.ForeignKey('organization.id'))
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    location_status = db.relationship('Report', backref='location')
     notifications = db.relationship('Notification', backref='location')
 
-class LocationStatus(db.Model):
+class Report(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     status = db.Column(db.String(150))
     time = db.Column(db.DateTime, default=datetime.utcnow)
     location_id = db.Column(db.Integer, db.ForeignKey('location.id'))
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
 
-class Organization(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(150), unique=True)
-    address = db.Column(db.String(150))
-    locations = db.relationship('Location', backref='organization')
-    users = db.relationship('User', backref='organization')
 
 class Notification(db.Model):
     id = db.Column(db.Integer, primary_key=True)

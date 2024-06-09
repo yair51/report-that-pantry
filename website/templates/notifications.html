@@ -1,16 +1,56 @@
 {% extends "base.html" %}
 {% block content %}
-<form method="POST" id="notification-list">
+<div class="row">
+  <div class="col-md-12">
+    <input type="text" class="form-control mb-3" id="searchInput" placeholder="Search locations...">
+  </div>
+</div>
+<table class="table table-striped" id="locationTable">
+  <thead>
+    <tr>
+      <th scope="col">
+        <input type="checkbox" id="selectAll">
+        <label for="selectAll">Select All</label>
+      </th>
+      <th scope="col">Location</th>
+      <th scope="col">Address</th>
+    </tr>
+  </thead>
+  <tbody>
     {% for location in locations %}
-    <div class="form-group">
-        <div class="form-check">
-            <input class="form-check-input" type="checkbox" value="{{location[0].id}}" id="location{{location[0].id}}" name="location{{location[0].id}}" {% if location[1].user_id == user.id %}checked{%endif%}>
-            <label class="form-check-label" for="location{{location[0].id}}">
-              {{location[0].name}} --> {{location[0].address}}, {{location[0].city}}, {{location[0].state}}
-            </label>
-          </div>
-    </div>
+    <tr id="locationRow{{ location[0].id }}">
+      <td>
+        <input class="form-check-input locationCheckbox" type="checkbox" value="{{location[0].id}}" id="location{{location[0].id}}" name="location{{location[0].id}}" {% if location[1].user_id == user.id %}checked{%endif%}>
+      </td>
+      <td>{{location[0].name}}</td>
+      <td>{{location[0].address}}, {{location[0].city}}, {{location[0].state}}</td>
+    </tr>
     {% endfor %}
-    <button type="submit" class="btn btn-primary">Submit</button>
-</form>
+  </tbody>
+</table>
+<button type="submit" class="btn btn-primary">Submit</button>
+<script>
+$(document).ready(function() {
+  const searchInput = $('#searchInput');
+  const locationTable = $('#locationTable');
+  const selectAllCheckbox = $('#selectAll');
+
+  searchInput.on('keyup', function() {
+    const searchTerm = $(this).val().toLowerCase();
+    locationTable.find('tbody tr').each(function() {
+      const locationText = $(this).text().toLowerCase();
+      $(this).toggleClass('d-none', !locationText.includes(searchTerm));
+    });
+  });
+
+  selectAllCheckbox.on('change', function() {
+    locationTable.find('.locationCheckbox').prop('checked', $(this).prop('checked'));
+  });
+
+  $('.locationCheckbox').on('change', function() {
+    const allChecked = locationTable.find('.locationCheckbox:checked').length === locationTable.find('.locationCheckbox').length;
+    selectAllCheckbox.prop('checked', allChecked);
+  });
+});
+</script>
 {% endblock %}

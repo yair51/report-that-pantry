@@ -71,13 +71,12 @@
         
               <!-- <a class="nav-item nav-link {% if title == 'About Us' %}active{% endif %}" id="locations" href="/about">About Us</a> -->
               {% if user.is_authenticated %}
-              <a class="nav-item nav-link {% if title == 'Locations' %}active{% endif %}" id="locations" style="font-family:Calibri, sans-serif, arial, 'Trebuchet MS'; font-weight: lighter;" href="/locations">Add Locations</a>
+              <a class="nav-item nav-link {% if title == 'Locations' %}active{% endif %}" id="locations" style="font-family:Calibri, sans-serif, arial, 'Trebuchet MS'; font-weight: lighter;" href="/location/add">Add Location</a>
               <a class="nav-item nav-link {% if title == 'Manage Notifications' %}active{% endif %}" id="notifications" style="font-family:Calibri, sans-serif, arial, 'Trebuchet MS'; font-weight: lighter;" href="/notifications">Manage Notifications</a>
               <a class="nav-item nav-link {% if title == 'Logout' %}active{% endif %}" style="font-family:Calibri, sans-serif, arial, 'Trebuchet MS'; font-weight: lighter;" id="logout" href="/logout">Logout</a>
               {% else %}
               <a class="nav-item nav-link {% if title == 'Login' %}active{% endif %}" id="login" style="font-family:Calibri, sans-serif, arial, 'Trebuchet MS'; font-weight: lighter;" href="/login">Login</a>
               <a class="nav-item nav-link {% if title == 'Sign Up' %}active{% endif %}" id="signUp" style="font-family:Calibri, sans-serif, arial, 'Trebuchet MS'; font-weight: lighter;" href="/sign-up">Sign Up</a>
-              <a class="nav-item nav-link {% if title == 'Add Organization' %}active{% endif %}" id="add-org" style="font-family:Calibri, sans-serif, arial, 'Trebuchet MS'; font-weight: lighter;" href="/organizations">Add Organization</a>
               {% endif %}
               <a class="nav-item nav-link {% if title == 'Contact Us' %}active{% endif %}" id="contact-us" style="font-family:Calibri, sans-serif, arial, 'Trebuchet MS'; font-weight: lighter;" href="/contactus">Contact Us</a>
               <a class="nav-item nav-link {% if title == 'Setup' %}active{% endif %}" id="setup" style="font-family:Calibri, sans-serif, arial, 'Trebuchet MS'; font-weight: lighter;" href="/setup">Setup</a>
@@ -114,13 +113,12 @@
       
             <!-- <a class="nav-item nav-link {% if title == 'About Us' %}active{% endif %}" id="locations" href="/about">About Us</a> -->
             {% if user.is_authenticated %}
-            <a class="nav-item nav-link {% if title == 'Locations' %}active{% endif %}" id="locations" style="font-family:Calibri, sans-serif, arial, 'Trebuchet MS'; font-weight: lighter;" href="/locations">Add Locations</a>
+            <a class="nav-item nav-link {% if title == 'Locations' %}active{% endif %}" id="locations" style="font-family:Calibri, sans-serif, arial, 'Trebuchet MS'; font-weight: lighter;" href="/locations">Add Location</a>
             <a class="nav-item nav-link {% if title == 'Manage Notifications' %}active{% endif %}" id="notifications" style="font-family:Calibri, sans-serif, arial, 'Trebuchet MS'; font-weight: lighter;" href="/notifications">Manage Notifications</a>
             <a class="nav-item nav-link {% if title == 'Logout' %}active{% endif %}" style="font-family:Calibri, sans-serif, arial, 'Trebuchet MS'; font-weight: lighter;" id="logout" href="/logout">Logout</a>
             {% else %}
             <a class="nav-item nav-link {% if title == 'Login' %}active{% endif %}" id="login" style="font-family:Calibri, sans-serif, arial, 'Trebuchet MS'; font-weight: lighter;" href="/login">Login</a>
             <a class="nav-item nav-link {% if title == 'Sign Up' %}active{% endif %}" id="signUp" style="font-family:Calibri, sans-serif, arial, 'Trebuchet MS'; font-weight: lighter;" href="/sign-up">Sign Up</a>
-            <a class="nav-item nav-link {% if title == 'Add Organization' %}active{% endif %}" id="add-org" style="font-family:Calibri, sans-serif, arial, 'Trebuchet MS'; font-weight: lighter;" href="/organizations">Add Organization</a>
             {% endif %}
             <a class="nav-item nav-link {% if title == 'Contact Us' %}active{% endif %}" id="contact-us" style="font-family:Calibri, sans-serif, arial, 'Trebuchet MS'; font-weight: lighter;" href="/contactus">Contact Us</a>
             <a class="nav-item nav-link {% if title == 'Setup' %}active{% endif %}" id="setup" style="font-family:Calibri, sans-serif, arial, 'Trebuchet MS'; font-weight: lighter;" href="/setup">Setup</a>

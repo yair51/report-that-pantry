@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, request, flash, jsonify, redirect, url_for
 from flask_login import login_required, current_user
 from sqlalchemy.sql.expression import true
-from .models import Location, LocationStatus, Notification, Organization, User
+from .models import Location, Report, Notification, User
 from . import db, Message, mail
 import json
 from datetime import datetime
@@ -13,85 +13,81 @@ views = Blueprint('views', __name__)
 
 @views.route('/', methods=['GET', 'POST'])
 @views.route('/index')
-@views.route('/<int:id>')
-@views.route('/<int:id>/')
 def home(id=0):
     # # queries all of the locations
     locations = Location.query.all()
 
-    # if id != 0:
-        # location = Location.query.get(id)
-        # weight = request.args.get('weight')
-        # if weight:
-        #     location.weight = weight
-        #     db.session.commit()
-    return render_template("index.html", user=current_user, locations=locations, title="Home")
+    return render_template("index.html", user=current_user, title="Home")
 
-# @views.route('/mission')
-# def mission():
-#     return render_template("mission.html", user=current_user, title="Mission")
 
-@views.route('/locations', methods=['GET', 'POST'])
-@views.route('/locations/<int:id>', methods=['GET', 'POST'])
-def locations(id=0):
-    editing = False
-    # queries the location and the organization associated with it
-    location = Location.query.get(id)
-    current_org = 'none'
-    pantrynum = id
-    if id != 0:
-        # sets editing to true if the post is being editing
-        editing = True
-        current_org = Organization.query.get(location.organization_id)
+# # view details of location
+# @views.route('/location', methods=['GET'])
+# @views.route('/location/', methods=['GET'])
+# def location():
+#     return render_template("locations.html", user=current_user, editing=False, location=location, title="Location")
+
+
+@views.route('/location/add', methods=['GET', 'POST'])
+@views.route('/location/add/', methods=['GET', 'POST'])
+# @views.route('/add/<int:id>', methods=['GET', 'POST'])
+def add_location():
+    # handles form submissions
     if request.method == 'POST':
+        # Get form details
         name = request.form.get('name')
-        # returns the org as an int representing organization_id
-        organization_id = current_user.organization_id
         address = request.form.get('address')
         city = request.form.get('city')
         state = request.form.get('state')
         zip = request.form.get('zipCode')
-        # if editing changes, reset all fields of the location to the current values
-        if id != 0:
-            location.name = name
-            location.organization_id = current_user.organization_id
-            location.address = address
-            location.city = city
-            location.state = state
-            location.zip = zip
-            db.session.commit()
-            flash('Location edited.', category='success')
-            return redirect(url_for("views.status"))
-
+        # checks if the location exists
+        location = Location.query.filter_by(address=address).first()
+        if location:
+            flash('Address already exists.', category='error')
+            return redirect(url_for('views.locations'))
+        # Add location to database
         else:
-            # checks if the location exists
-            location = Location.query.filter_by(address=address).first()
-            if location:
-                flash('Address already exists.', category='error')
-                return redirect(url_for('views.locations'))
-            else:
-                # create a location with the following information
-                new_location = Location(address=address, name=name, organization_id=organization_id, city=city, state=state, zip=zip)
-                # adds the location to the database
-                db.session.add(new_location)
-                db.session.commit()
-                id = new_location.id
-                pantrynum = new_location.id
-                # adds a new status row, with status set to full and last_updated to current time
-                new_status = LocationStatus(status='Full', time=datetime.utcnow(), location_id=new_location.id)
-                db.session.add(new_status)
-                db.session.commit()
+            new_location = Location(address=address, name=name, city=city, state=state, zip=zip)
+            db.session.add(new_location)
+            db.session.commit()
+            id = new_location.id
+            # Create intial status update for location
+            new_status = Report(status='Full', time=datetime.utcnow(), location_id=new_location.id)
+            db.session.add(new_status)
+            db.session.commit()
 
-                # flash('Location added.', category='success')
-                # sends user back to home page after new location is created
-        return redirect(url_for("views.poster", id = pantrynum, isNew1 = 1))
-    #locations = Location.query.all()
-    organizations = Organization.query.all()
-    return render_template("locations.html", user=current_user, editing=editing, location=location, title="Locations", organizations=organizations, current_org=current_org)
+        # Redirect user to poster page
+        return redirect(url_for("views.poster", id=id, isNew1=1))
 
-    # @views.route('/edit', methods=['GET','POST'])
-    # def edit():
-    #     return render_template("locations.html", user=current_user)
+    return render_template("locations.html", user=current_user, editing=False, title="Locations")
+
+
+# Handles Location edits
+@views.route('/location/edit/<int:location_id>', methods=['GET','POST'])
+@views.route('/location/edit/<int:location_id>/', methods=['GET','POST'])
+def edit(location_id):
+    # Check if location exists
+    location = Location.query.get(location_id)
+    if not location:
+        flash("Location does not exist", category='error')
+        return redirect(url_for('views.status'))
+    # Check if user owns this location
+    if current_user.id != location.user_id:
+        print(current_user.id)
+        print(location.user_id)
+        flash("You cannot edit this location.", category='error')
+        return redirect(url_for('views.status'))
+    if request.method == 'POST':
+        # Edit details of given location
+        location.name = request.form.get('name')
+        location.address = request.form.get('address')
+        location.city = request.form.get('city')
+        location.state = request.form.get('state')
+        location.zip = request.form.get('zipCode')
+        db.session.commit()
+        flash('Location updated.', category='success')
+        # Redirect to status page
+        return redirect(url_for('views.status'))
+    return render_template("locations.html", user=current_user, location=location, editing=True)
 
 
 @views.route('/delete-location', methods=['POST'])
@@ -108,6 +104,8 @@ def delete_location():
 
     return jsonify({})
 
+
+# Report on status of given location
 @views.route('report/<int:id>/')
 @views.route('/report/<int:id>')
 @views.route('/report<int:id>')
@@ -117,12 +115,13 @@ def report(id):
     # a status is given, create add a new location_status to db for the current location
     if status:
         time = datetime.utcnow()
-        # sets the location's last update to current time and status to current status
-        new_status = LocationStatus(status=status, time=time, location_id=location.id)
-        # adds new status to database and commits it
+        # Create location status object
+        new_status = Report(status=status, time=time, location_id=location.id)
+        # Commit status to database
         db.session.add(new_status)
         db.session.commit()
         flash("Thank you for your feedback!", category='success')
+        # send email if empty
         if status == "Empty":
             users = db.session.query(User, Notification, Location).filter(User.id == Notification.user_id, Notification.location_id == id, Location.id == Notification.location_id)
             with mail.connect() as conn:
@@ -154,25 +153,21 @@ def report(id):
 
 @views.route('/status', methods=['GET', 'POST'])
 def status():
-    #state = 'FL'
-    org = 0
-    # # if logged in, only shows locations affiliated with the user's organization
-    if current_user.is_authenticated:
-        org = current_user.organization_id
-
-    subquery = db.session.query(LocationStatus.location_id, LocationStatus.status, LocationStatus.time, Location.address, Location.city, Location.state, Organization.name, Location.name.label("location_name"), Location.zip,
-    func.rank().over(order_by=LocationStatus.time.desc(),
-    partition_by=LocationStatus.location_id).label('rnk')).filter(Location.id == LocationStatus.location_id, Location.organization_id == Organization.id).subquery()
-    # queries locations and takes the first locations
-    locations = db.session.query(subquery).filter(
-    subquery.c.rnk==1)
+    # Joins Report and Location tables, ordered by most recently reported
+    subquery = db.session.query(Report.user_id, Report.location_id, Report.status,
+                                 Report.time, Location.address, Location.city, Location.state,
+                                   Location.name.label("location_name"), Location.zip, Location.user_id,
+                                   func.rank().over(order_by=Report.time.desc(),
+                                    partition_by=Report.location_id).label('rnk')).filter(
+                                        Location.id == Report.location_id).subquery()
+    # Query most recent update from each location
+    locations = db.session.query(subquery).filter(subquery.c.rnk==1)
     # counts number of locations
     count = 0
     for location in locations:
         count += 1
 
-    organizations = Organization.query.all()
-    return render_template("status.html", user=current_user, title="Status", locations=locations, count=count, organizations=organizations, current_org=org)
+    return render_template("status.html", user=current_user, title="Status", locations=locations, count=count)
 
 @views.route('/team')
 def team():
@@ -182,9 +177,8 @@ def team():
 @views.route('/logs/<int:id>/')
 def logs(id):
     count = 0
-    # count variable used for numbers on logs
-    # queries location status table and shows only the current location based on the route
-    logs = db.session.query(LocationStatus.time, LocationStatus.id, LocationStatus.status).filter(LocationStatus.location_id == id).order_by(LocationStatus.time.desc())
+    # Get report logs for given location
+    logs = db.session.query(Report.time, Report.id, Report.status).filter(Report.location_id == id).order_by(Report.time.desc())
     for log in logs:
         count += 1
     return render_template("logs.html", user=current_user, title="Logs", logs=logs, count=count)
@@ -209,8 +203,8 @@ def contact_us():
 @views.route('/notifications', methods=['GET', 'POST'])
 @views.route('/notifications/', methods=['GET', 'POST'])
 def notifications():
-    # queries all of the locations under the organization with the users notification preferances
-    locations = db.session.query(Location, Notification).outerjoin(Notification, and_(Notification.location_id == Location.id, current_user.id == Notification.user_id)).filter(Location.organization_id == current_user.organization_id).order_by(Location.name)
+    # queries all of the locations under the organization with the user's notification preferances
+    locations = db.session.query(Location, Notification).outerjoin(Notification, and_(Notification.location_id == Location.id, current_user.id == Notification.user_id)).order_by(Location.name)
     for location in locations:
         print(location)
     if request.method == "POST":
@@ -234,20 +228,3 @@ def notifications():
         flash("Your preferences have been updated.", category="success")
     return render_template("notifications.html", title="Manage Notifications", user=current_user, locations=locations)
 
-
-# @views.route('/sendmail', methods=['GET', 'POST'])
-# def sendmail():
-#     fname = request.form.get('fname')
-#     lname = request.form.get('lname')
-#     email = request.form.get('email')
-#     state = request.form.get('state')
-#     subject = request.form.get('subject')
-#     bodyText = 'First name: ' + fname + '\n'
-#     bodyText += 'Last name: ' + lname + '\n'
-#     bodyText += 'Email: ' + email + '\n'
-#     bodyText += 'State: ' + state + '\n'
-#     bodyText += 'Message: ' + subject + '\n'
-#     msg = Message('Message from \'Contact Us Page\'', sender=email, 
-#     recipients=['info.reportthatpantry@gmail.com'], body = bodyText)
-#     mail.send(msg)
-#     return redirect(url_for('views.contact_us'))

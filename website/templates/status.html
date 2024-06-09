@@ -101,7 +101,7 @@
         }
     </style>
 </head>
-    <div class="container-fluid">
+    <!-- <div class="container-fluid">
         <div class="row">
             <div id="statusModal" class="modal">
                 <div class="modal-content">
@@ -192,7 +192,7 @@
                 </div>
             </div>
         </div>
-    </div>
+    </div> -->
     <div class="container">
         <div class="row">
             <div id="myInputContainer">
@@ -211,8 +211,8 @@
                         Status<img id= "statCol" class="sortImg" src="{{url_for('static', filename='whiteSort.png')}}" alt=""></button></th>
                     <th scope="col"><button class="btn btn-dark btn-block sortButtons" onclick="sortTable('last updated', 'updateCol')">
                         Last Updated<img id= "updateCol" class="sortImg" src="{{url_for('static', filename='whiteSort.png')}}" alt=""></button></th>
-                    <th scope="col" data-filter-control="select"><button class="btn btn-dark btn-block sortButtons" onclick="sortTable('organization', 'orgCol')">
-                        Organization<img id= "orgCol" class="sortImg" src="{{url_for('static', filename='whiteSort.png')}}" alt=""></button></th>
+                    <!-- <th scope="col" data-filter-control="select"><button class="btn btn-dark btn-block sortButtons" onclick="sortTable('organization', 'orgCol')">
+                        Organization<img id= "orgCol" class="sortImg" src="{{url_for('static', filename='whiteSort.png')}}" alt=""></button></th> -->
                 </tr>
             </thead>
             <tbody>
@@ -227,12 +227,12 @@
                 <td><a href="/logs/{{ location.location_id }}" style="color:white;"><button type="button" class="btn btn-info">Logs</button></a></td>
                 <!-- <td><a href="/poster/{{ location.location_id }}" style="color:white;"><button type="button" class="btn btn-warning">Poster</button></a></td> -->
                 <!-- <td><a href="/report/{{ location.location_id }}" style="color:white;"><button type="button" class="btn btn-warning">Report</button></a></td> -->
-                {% if user.is_authenticated %}
-                <td><a href="/poster/0/{{ location.location_id }}" style="color:white;"><button type="button" class="btn btn-warning">Poster</button></a></td>
-                <td><button type="button" class="btn btn-link"><a href="/locations/{{ location.location_id }}">Edit</a></button></td>
-                <td><button method="POST" type="button" class="btn btn-danger btn-close" id="deleteButton" onClick="deleteLocation({{ location.location_id }})">
-                    <span aria-hidden="true">&times;</span>
-                </button></td>
+                {% if user.is_authenticated and location.user_id == user.id %}
+                    <td><a href="/poster/0/{{ location.location_id }}" style="color:white;"><button type="button" class="btn btn-warning">Poster</button></a></td>
+                    <td><button type="button" class="btn btn-link"><a href="/location/edit/{{ location.location_id }}">Edit</a></button></td>
+                    <td><button method="POST" type="button" class="btn btn-danger btn-close" id="deleteButton" onClick="deleteLocation({{ location.location_id }})">
+                        <span aria-hidden="true">&times;</span>
+                    </button></td>
                 {% endif %}
                 </tr>
                 <script>
@@ -274,9 +274,6 @@
                         }
                         else if (sortType === 'last updated'){
                             colNumber = 3;
-                        }
-                        else if (sortType === 'organization'){
-                            colNumber = 4;
                         }
 
                         if(clickNumber === 3 || colNumber !== lastColNumber){
