@@ -228,3 +228,17 @@ def notifications():
         flash("Your preferences have been updated.", category="success")
     return render_template("notifications.html", title="Manage Notifications", user=current_user, locations=locations)
 
+
+@login_required
+@views.route('/subscribe/<int:location_id>', methods=['POST'])
+@views.route('/subscribe/<int:location_id>/', methods=['POST'])
+def subscribe(location_id):
+    # Check if user is authenticated
+    if not current_user.is_authenticated:
+        flash("You must create an account to subscribe to locations.", category='error')
+        return redirect(url_for('auth.sign_up'))
+    # Check if user if subscription exists for this location
+    notification = Notification(location_id=location_id, user_id=current_user.id)
+    
+    flash('Subscribed to location {INSERT number}', category='success')
+    return redirect(url_for('views.status'))
