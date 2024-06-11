@@ -35,9 +35,18 @@ class Location(db.Model, UserMixin):
     location_status = db.relationship('Report', backref='location')
     notifications = db.relationship('Notification', backref='location')
 
+
+    def to_dict(self):
+        return {
+            'id': self.location_id,
+            'location': f"{self.location_name}<br>{self.address}, {self.city}, {self.state}",
+            'status': self.status,
+            'time': self.time.strftime("%c")  # Format the datetime object
+        }
+
 class Report(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    status = db.Column(db.String(150))
+    pantry_fullness  = db.Column(db.Integer)
     time = db.Column(db.DateTime, default=datetime.utcnow)
     location_id = db.Column(db.Integer, db.ForeignKey('location.id'))
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))

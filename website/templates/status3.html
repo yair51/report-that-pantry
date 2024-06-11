@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+{% block content %}
+
+<style>
+    .container {
+        margin-top: 20px; 
+    }
+
+    #searchInput {
+        width: 100%;
+        margin-bottom: 15px;
+    }
+</style>
+
+<div class="container mt-5">
+    <div class="row mb-3">
+        <input type="text" id="searchInput" placeholder="Search..." class="form-control" data-search-on-enter-key="false">
+    </div>
+
+    <div class="table-responsive">
+        <table
+            id="myTable"
+            data-toggle="table"
+            data-search="true"
+            data-search-selector="#searchInput"
+            data-show-columns-toggle-all="true"
+            data-sort-name="time"
+            data-sort-order="desc"
+            class="table table-dark table-hover">
+            <thead>
+                <tr>
+                    <th data-field="id" data-sortable="true">ID</th>
+                    <th data-field="location" data-sortable="true">Location</th>
+                    <th data-field="status" data-sortable="true" data-formatter="statusFormatter">Status</th>
+                    <th data-field="time" data-sortable="true">Last Updated</th>
+                    {% if user.is_authenticated %}
+                        <th data-field="actions" data-sortable="false"></th> 
+                    {% endif %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for location in locations %}
+                    <tr>
+                        <td>{{ location.location_id }}</td>
+                        <td><a href="/location/{{ location.location_id }}">{{ location.location_name }}
+                                <br>{{ location.address }}, {{ location.city }}, {{ location.state }}
+                                <span class="badge badge-{{ 'success' if location.status == 'Full' else ('warning' if location.status == 'Half Full' else 'danger') }}">
+                                    {{ location.status }}
+                                </span>
+                            </a></td>
+                        <td>{{ location.time.strftime("%Y-%m-%d %H:%M:%S") }}</td> 
+                        {% if user.is_authenticated and location.user_id == user.id %}
+                            <td>
+                                <a href="/poster/0/{{ location.location_id }}" style="color:white;"><button type="button" class="btn btn-warning">Poster</button></a> 
+                                <button type="button" class="btn btn-link"><a href="/location/edit/{{ location.location_id }}">Edit</a></button>
+                                <button method="POST" type="button" class="btn btn-danger btn-close" id="deleteButton" onClick="deleteLocation({{ location.location_id }})">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </td>
+                        {% endif %}
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block script %}
+<script src="https://code.jquery.com/jquery-3.4.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.4.1/dist/js/bootstrap.min.js"></script>
+<script src="{{ url_for('static', filename='index.js') }}"></script>
+<script src="https://unpkg.com/bootstrap-table@1.18.3/dist/bootstrap-table.min.js"></script>
+<script src="https://unpkg.com/bootstrap-table@1.18.3/dist/extensions/filter-control/bootstrap-table-filter-control.min.js"></script>
+<script>
+    function statusFormatter(value, row, index) {
+        let badgeClass = '';
+        if (value === 'Full') {
+            badgeClass = 'badge-success';
+        } else if (value === 'Half Full') {
+            badgeClass = 'badge-warning';
+        } else if (value === 'Empty') {
+            badgeClass = 'badge-danger';
+        } else {
+            badgeClass = 'badge-secondary';
+        }
+        return '<span class="badge ' + badgeClass + '">' + value + '</span>';
+    }
+
+    $(document).ready(function() {
+        $('#myTable').bootstrapTable(); // Initialize Bootstrap Table
+
+        // Initialize search functionality - after table is rendered
+        $('#searchInput').keyup(function () {
+            $('#myTable').bootstrapTable('search', $(this).val());
+        });
+    });
+</script>
+
+{% endblock %}

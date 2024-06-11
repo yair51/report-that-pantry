@@ -7,6 +7,8 @@ import json
 from datetime import datetime
 from time import mktime
 from sqlalchemy import func, and_
+from werkzeug.utils import secure_filename
+import os
 
 views = Blueprint('views', __name__)
 
@@ -105,51 +107,99 @@ def delete_location():
     return jsonify({})
 
 
+# # Report on status of given location
+# @views.route('report/<int:id>/')
+# @views.route('/report/<int:id>')
+# @views.route('/report<int:id>')
+# def report(id):
+#     # Get current location
+#     location = Location.query.get(id)
+#     status = request.args.get('status')
+#     pantry_fullness = request.form.get('pantryFullness')
+#     print(pantry_fullness)
+#     # a status is given, create add a new location_status to db for the current location
+#     if status:
+#         time = datetime.utcnow()
+#         # Create location status object
+#         new_status = Report(status=status, time=time, location_id=location.id)
+#         # Commit status to database
+#         db.session.add(new_status)
+#         db.session.commit()
+#         flash("Thank you for your feedback!", category='success')
+#         # send email if empty
+#         if status == "Empty":
+#             users = db.session.query(User, Notification, Location).filter(User.id == Notification.user_id, Notification.location_id == id, Location.id == Notification.location_id)
+#             with mail.connect() as conn:
+#                 for user in users:
+#                     subject = '%s Update' % user[2].name
+#                     message = '%s is currently EMPTY. Click Here to check the current status.' % user[2].name
+#                     html = '''<p>%s is currently EMPTY.
+#                             <br>
+#                             <a href="http://www.reportthatpantry.org/status"> Click Here</a> to check the current status.</p>''' % user[2].name
+#                     msg = Message(recipients=[user[0].email],
+#                                 body=message, html=html,
+#                                 subject=subject, sender='info.reportthatpantry@gmail.com')
+#                     conn.send(msg)
+#         elif status == "Damaged":
+#             users = db.session.query(User, Notification, Location).filter(User.id == Notification.user_id, Notification.location_id == id, Location.id == Notification.location_id)
+#             with mail.connect() as conn:
+#                 for user in users:
+#                     subject = '%s Update' % user[2].name
+#                     message = '%s is currently DAMAGED. Click Here to check the current status.' % user[2].name
+#                     html = '''<p>%s is currently DAMAGED.
+#                             <br>
+#                             <a href="http://www.reportthatpantry.org/status"> Click Here</a> to check the current status.</p>''' % user[2].name
+#                     msg = Message(recipients=[user[0].email],
+#                                 body=message, html=html,
+#                                 subject=subject, sender='info.reportthatpantry@gmail.com')
+#                     conn.send(msg)
+#         return redirect(url_for('views.home'))
+#     return render_template("report.html", user=current_user, title="Report")
+
+
 # Report on status of given location
-@views.route('report/<int:id>/')
-@views.route('/report/<int:id>')
-@views.route('/report<int:id>')
+@views.route('/report/<int:id>', methods=['GET', 'POST'])
 def report(id):
+    # Get current location
     location = Location.query.get(id)
-    status = request.args.get('status')
-    # a status is given, create add a new location_status to db for the current location
-    if status:
-        time = datetime.utcnow()
-        # Create location status object
-        new_status = Report(status=status, time=time, location_id=location.id)
-        # Commit status to database
-        db.session.add(new_status)
+    # TODO - check if location exists
+
+    if request.method == 'POST':
+        # Extract the fullness level from the form
+        pantry_fullness = request.form.get('pantryFullness')
+
+        # Get the description and photo
+        description = request.form.get('pantryDescription')
+        photo = request.files.get('pantryPhoto')
+    
+        # Create Report object
+        new_report = Report(
+            pantry_fullness=pantry_fullness,
+            time=datetime.utcnow(),
+            location_id=location.id,
+            user_id=current_user.id if current_user.is_authenticated else None  # Associate with logged-in user if possible
+        )
+
+        # Handle the uploaded photo (if provided)
+        if photo:
+            filename = secure_filename(photo.filename)
+            photo.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+            new_report.photo = filename  # Assuming you have a photo field in your Report model
+
+        db.session.add(new_report)
         db.session.commit()
+
+        # Send email notifications (if applicable)
+        # You can modify the conditions for sending emails based on the pantry_fullness value
+        # For example:
+        # if int(pantry_fullness) <= 33:  # Empty pantry
+        #    # ... your email notification code ...
+
         flash("Thank you for your feedback!", category='success')
-        # send email if empty
-        if status == "Empty":
-            users = db.session.query(User, Notification, Location).filter(User.id == Notification.user_id, Notification.location_id == id, Location.id == Notification.location_id)
-            with mail.connect() as conn:
-                for user in users:
-                    subject = '%s Update' % user[2].name
-                    message = '%s is currently EMPTY. Click Here to check the current status.' % user[2].name
-                    html = '''<p>%s is currently EMPTY.
-                            <br>
-                            <a href="http://www.reportthatpantry.org/status"> Click Here</a> to check the current status.</p>''' % user[2].name
-                    msg = Message(recipients=[user[0].email],
-                                body=message, html=html,
-                                subject=subject, sender='info.reportthatpantry@gmail.com')
-                    conn.send(msg)
-        elif status == "Damaged":
-            users = db.session.query(User, Notification, Location).filter(User.id == Notification.user_id, Notification.location_id == id, Location.id == Notification.location_id)
-            with mail.connect() as conn:
-                for user in users:
-                    subject = '%s Update' % user[2].name
-                    message = '%s is currently DAMAGED. Click Here to check the current status.' % user[2].name
-                    html = '''<p>%s is currently DAMAGED.
-                            <br>
-                            <a href="http://www.reportthatpantry.org/status"> Click Here</a> to check the current status.</p>''' % user[2].name
-                    msg = Message(recipients=[user[0].email],
-                                body=message, html=html,
-                                subject=subject, sender='info.reportthatpantry@gmail.com')
-                    conn.send(msg)
         return redirect(url_for('views.home'))
-    return render_template("report.html", user=current_user, title="Report")
+
+    return render_template("report.html", user=current_user, title="Report", location_id=id) 
+
 
 @views.route('/status', methods=['GET', 'POST'])
 def status():
@@ -168,6 +218,16 @@ def status():
         count += 1
 
     return render_template("status.html", user=current_user, title="Status", locations=locations, count=count)
+
+
+# Returns all locations in JSON format
+@views.route('/get_locations')
+def get_locations():
+    locations = Location.query.all()
+    location_data = [location.to_dict() for location in locations]
+    print(jsonify(location_data))
+    return jsonify(location_data)
+
 
 @views.route('/team')
 def team():
@@ -239,6 +299,6 @@ def subscribe(location_id):
         return redirect(url_for('auth.sign_up'))
     # Check if user if subscription exists for this location
     notification = Notification(location_id=location_id, user_id=current_user.id)
-    
+
     flash('Subscribed to location {INSERT number}', category='success')
     return redirect(url_for('views.status'))

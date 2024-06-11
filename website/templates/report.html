@@ -1,18 +1,167 @@
 {% extends "base.html" %}
 {% block content %}
-<form>
-    <!-- {% for i in range(1,11) %}
-    <input type="radio" id="status{{i}}" name="status" value="{{i}}">
-    <label for="status">{{i}}</label>
-    <br>
-    {% endfor %} -->
-    <h2 class="text-center">Estimate the amount of food in the pantry:</h2>
-    <div class="container text-center report-button">
-        <!-- <div><input type="submit" value="Submit" onclick="window.location='/'" class="block" style="margin-bottom: 20px;"></div> -->
-        <input type="submit" name="status" value="Full" class="btn btn-success btn-block report-button">
-        <input type="submit" name="status" value="Half Full" class="btn btn-warning btn-block report-button">
-        <input type="submit" name="status" value="Empty" class="btn btn-danger btn-block report-button">
-        <input type="submit" name="status" value="Damaged" class="btn btn-secondary btn-block report-button">
+    <style>
+        .range-wrap {
+            position: relative;
+            margin-top: 20px;
+        }
+
+        .range-value {
+            position: absolute;
+            top: -20px;
+            left: calc(50% - 20px);
+        }
+
+        .range-points {
+            position: absolute;
+            top: -20px;
+            right: 0;
+        }
+
+        input[type="range"]::-webkit-slider-runnable-track {
+            background-color: transparent;
+            height: 5px;
+        }
+
+        input[type="range"]::-moz-range-track {
+            background-color: transparent;
+            height: 5px;
+        }
+
+        input[type="range"]::-ms-fill-lower {
+            background-color: transparent;
+        }
+
+        input[type="range"] {
+            background-color: #ccc; /* Default color for visibility */
+        }
+    </style>
+
+<div class="container mt-5">
+    <div class="card mb-3">
+        <div class="card-body">
+            <h2>Report Pantry Status</h2>
+            <form id="reportForm" method="POST" enctype="multipart/form-data">
+                <div class="form-group range-wrap">
+                    <label for="pantryFullness">Drag the slider to indicate the pantry's fullness: <span class="badge badge-primary range-points">10 points</span></label>
+                    <input type="range" class="custom-range" min="0" max="100" value="" step="1" name="pantryFullness" id="pantryFullness" required>
+                    <output class="range-value" id="rangeValue"></output>
+                </div>
+
+                <div class="form-group">
+                    <label for="pantryPhoto">Upload Photo (Optional): <span class="badge badge-primary">5 points</span></label>
+                    <input type="file" class="form-control-file" id="pantryPhoto" accept="image/*">
+                </div>
+
+                <div class="form-group">
+                    <label for="pantryDescription">Description (Optional): <span class="badge badge-primary">2-6 points</span></label>
+                    <textarea class="form-control" id="pantryDescription" rows="3"></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary" id="submitReport">Submit Report</button>
+            </form>
+
+            
+        </div>
     </div>
-</form>
+
+    <div class="card">
+        <div class="card-body">
+            <h2>Your Points</h2>
+            <p>Current Points: <span id="currentPoints">0</span></p>
+            <p>Earned Points: <span id="earnedPoints">0</span></p> 
+        </div>
+    </div>
+</div>
+    
+    <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.4.1/dist/js/bootstrap.min.js"></script>
+    
+    <script>
+        const rangeInput = document.getElementById("pantryFullness");
+        const rangeValue = document.getElementById("rangeValue");
+        const pantryDescription = document.getElementById("pantryDescription");
+        const pantryPhoto = document.getElementById("pantryPhoto");
+        const currentPointsDisplay = document.getElementById("currentPoints");
+        const earnedPointsDisplay = document.getElementById("earnedPoints"); 
+
+        let currentPoints = 0;
+        let earnedPoints = 0;
+        let rangeTouched = false;
+        let descriptionPoints = 0;
+        let photoPoints = 0;
+
+        function updatePointsDisplay() {
+            currentPointsDisplay.textContent = currentPoints;
+            earnedPointsDisplay.textContent = earnedPoints;
+        }
+
+        rangeInput.addEventListener("input", () => {
+            rangeTouched = true; // Mark the range as touched
+            updatePoints(10); // Add 10 points for range input
+            updateRangeDisplay(); 
+        });
+
+        pantryDescription.addEventListener("input", () => {
+            const wordCount = pantryDescription.value.trim().split(/\s+/).length;
+            let newDescriptionPoints = 0;
+            if (wordCount >= 5 && wordCount < 10) {
+                newDescriptionPoints = 2;
+            } else if (wordCount >= 10 && wordCount < 20) {
+                newDescriptionPoints = 4;
+            } else if (wordCount >= 20) {
+                newDescriptionPoints = 6;
+            }
+            updatePoints(newDescriptionPoints - descriptionPoints); 
+            descriptionPoints = newDescriptionPoints; 
+        });
+
+        pantryPhoto.addEventListener("change", () => {
+            if (pantryPhoto.files.length > 0) {
+                updatePoints(5); 
+                photoPoints = 5;
+            } else {
+                updatePoints(-photoPoints); // Subtract points if photo is removed
+                photoPoints = 0;
+            }
+        });
+
+        function updatePoints(points) {
+            earnedPoints += points;
+            currentPoints += points;
+            updatePointsDisplay();
+        }
+
+        function updateRangeDisplay() {
+            const value = rangeInput.value;
+            rangeValue.textContent = value + "%";
+
+            if (value <= 33) {
+                rangeInput.classList.remove("bg-warning", "bg-success");
+                rangeInput.classList.add("bg-danger");
+                rangeValue.textContent += " (Empty)";
+            } else if (value <= 66) {
+                rangeInput.classList.remove("bg-danger", "bg-success");
+                rangeInput.classList.add("bg-warning");
+                rangeValue.textContent += " (Half Full)";
+            } else {
+                rangeInput.classList.remove("bg-danger", "bg-warning");
+                rangeInput.classList.add("bg-success");
+                rangeValue.textContent += " (Full)";
+            }
+        }
+
+        document.getElementById("submitReport").addEventListener("click", () => {
+            const rangeInput = document.getElementById("pantryFullness");
+
+            if (!rangeTouched) {
+                alert("Please indicate the pantry's fullness using the slider.");
+                event.preventDefault(); // Prevent the default form submission behavior
+                return; // Prevent form submission
+            }
+
+            // ... rest of your form submission logic ...
+        });
+    </script>
+
 {% endblock %}

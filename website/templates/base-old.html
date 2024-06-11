@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <script src="https://code.jquery.com/jquery-3.4.0.min.js"> </script> 
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1 user-scalable=false;" />
+    <link
+      rel="stylesheet"
+      href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
+      integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh"
+      crossorigin="anonymous"
+    />
+    <link
+      rel="stylesheet"
+      href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css"
+      crossorigin="anonymous"
+    />
+    <link rel="icon" href="data:;base64,iVBORw0KGgo=">
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link href="https://fonts.googleapis.com/css2?family=Josefin+Sans:wght@348&family=Montserrat:wght@500&display=swap" rel="stylesheet">    
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <link rel="stylesheet" href="https://unpkg.com/bootstrap-table@1.18.3/dist/bootstrap-table.min.css">
+    <link rel="stylesheet" type="text/css" href="https://unpkg.com/bootstrap-table@1.18.3/dist/extensions/filter-control/bootstrap-table-filter-control.css">
+
+    <title>{% block title %}{{title}}{% endblock %}</title>
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-DQN0CT53NR"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-DQN0CT53NR');
+  </script>
+  </head>
+  <body>
+    <!--Desktop Navbar-->
+    <div class="d-none d-md-block">
+    <nav class="navbar navbar-expand-sm navbar-dark">
+        <div class="navbar-nav fixed-top d-flex flex-column" id="navbarCSS">
+          <div id="aboveNavBar">
+            <div id="stuffOnRight" class="d-flex justify-content-start">
+              <a href="/" id="homeLogo"><img src="{{url_for('static', filename='rtp_logo.png') }}" id="logo"></a>
+              <div id="nameAndDescription">
+                <h1 id="site-name">Report That Pantry</h1>
+                <p id="description">Student-Run Organization</p>
+              </div>
+            </div>
+          </div>
+          <div id="belowNavbar" class="d-flex justify-content-between">
+            <div id="navbarButtons" class="d-flex align-items-center">
+              <a class="nav-item nav-link {% if title == 'Home' %}active{% endif %}" style="font-family:Calibri, sans-serif, arial, 'Trebuchet MS'; font-weight: lighter;" id="home" href="/">Home</a>
+                  <!-- <a class="dropdown-item" href="/mission">Misssion</a>
+                  <div class="dropdown-divider"></div>
+                  <a class="dropdown-item" href="#">Something else here</a>
+                </div> -->
+              </li>
+              <a class="nav-item nav-link {% if title == 'Status' %}active{% endif %}" style="font-family:Calibri, sans-serif, arial, 'Trebuchet MS'; font-weight: lighter;" id="status" href="/status">Status</a>
+              <a class="nav-item nav-link {% if title == 'Team' %}active{% endif %}" style="font-family:Calibri, sans-serif, arial, 'Trebuchet MS'; font-weight: lighter;" id="team" href="/team">Team</a>
+        
+              <!-- <a class="nav-item nav-link {% if title == 'About Us' %}active{% endif %}" id="locations" href="/about">About Us</a> -->
+              {% if user.is_authenticated %}
+              <a class="nav-item nav-link {% if title == 'Locations' %}active{% endif %}" id="locations" style="font-family:Calibri, sans-serif, arial, 'Trebuchet MS'; font-weight: lighter;" href="/location/add">Add Location</a>
+              <a class="nav-item nav-link {% if title == 'Manage Notifications' %}active{% endif %}" id="notifications" style="font-family:Calibri, sans-serif, arial, 'Trebuchet MS'; font-weight: lighter;" href="/notifications">Manage Notifications</a>
+              <a class="nav-item nav-link {% if title == 'Logout' %}active{% endif %}" style="font-family:Calibri, sans-serif, arial, 'Trebuchet MS'; font-weight: lighter;" id="logout" href="/logout">Logout</a>
+              {% else %}
+              <a class="nav-item nav-link {% if title == 'Login' %}active{% endif %}" id="login" style="font-family:Calibri, sans-serif, arial, 'Trebuchet MS'; font-weight: lighter;" href="/login">Login</a>
+              <a class="nav-item nav-link {% if title == 'Sign Up' %}active{% endif %}" id="signUp" style="font-family:Calibri, sans-serif, arial, 'Trebuchet MS'; font-weight: lighter;" href="/sign-up">Sign Up</a>
+              {% endif %}
+              <a class="nav-item nav-link {% if title == 'Contact Us' %}active{% endif %}" id="contact-us" style="font-family:Calibri, sans-serif, arial, 'Trebuchet MS'; font-weight: lighter;" href="/contactus">Contact Us</a>
+              <a class="nav-item nav-link {% if title == 'Setup' %}active{% endif %}" id="setup" style="font-family:Calibri, sans-serif, arial, 'Trebuchet MS'; font-weight: lighter;" href="/setup">Setup</a>
+              <!-- <a class="nav-item nav-link {% if title == 'Report' %}active{% endif %}" id="report" href="/report/1">Report</a> -->
+            </div>
+
+            <div id="gmailAndMedia" class="d-flex justify-content-end" style="font-family:Calibri, sans-serif, arial, 'Trebuchet MS'; font-weight: lighter;">
+              <a class="nav-item nav-link {% if title == 'info@reportthatpantry.org' %}active{% endif %}" id="gmail" href="mailto:info@reporthatpantry.org">info@reportthatpantry.org</a>
+              
+              <div id="media">
+                <a target="_blank" href="https://www.facebook.com/reportthatpantry"><img class="nav-item" src="{{ url_for('static', filename='logo_facebook.webp') }}" alt="Facebook" style="width: 20px; height: 20px;" id="facebookLogo"></a>
+                <!-- <img class="nav-item" src="https://cdn.discordapp.com/attachments/784090044893364225/855425103000240148/new-instagram-logo-white-border-icon-png-large.png" alt="Instagram" style="width: 20px; height: 20px;" id="instaLogo"> -->
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="spacer">
+          &nbsp;
+        </div>
+      </nav>
+    <!-- <div class="spacer">
+      &nbsp;
+    </div> -->
+    <!--Mobile Navbar-->
+    <div class="d-md-none">
+      <nav class="navbar navbar-dark fixed-top" id="mobileNavbar">
+        <a class="navbar-brand" href="/">Report That Pantry</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#collapsibleNavbar">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="collapsibleNavbar">
+          <ul class="navbar-nav">
+            <a class="nav-item nav-link {% if title == 'Home' %}active{% endif %}" style="font-family:Calibri, sans-serif, arial, 'Trebuchet MS'; font-weight: lighter;" id="home" href="/">Home</a>
+            <a class="nav-item nav-link {% if title == 'Status' %}active{% endif %}" style="font-family:Calibri, sans-serif, arial, 'Trebuchet MS'; font-weight: lighter;" id="status" href="/status">Status</a>
+            <a class="nav-item nav-link {% if title == 'Team' %}active{% endif %}" style="font-family:Calibri, sans-serif, arial, 'Trebuchet MS'; font-weight: lighter;" id="team" href="/team">Team</a>
+      
+            {% if user.is_authenticated %}
+            <a class="nav-item nav-link {% if title == 'Locations' %}active{% endif %}" id="locations" style="font-family:Calibri, sans-serif, arial, 'Trebuchet MS'; font-weight: lighter;" href="/locations">Add Location</a>
+            <a class="nav-item nav-link {% if title == 'Manage Notifications' %}active{% endif %}" id="notifications" style="font-family:Calibri, sans-serif, arial, 'Trebuchet MS'; font-weight: lighter;" href="/notifications">Manage Notifications</a>
+            <a class="nav-item nav-link {% if title == 'Logout' %}active{% endif %}" style="font-family:Calibri, sans-serif, arial, 'Trebuchet MS'; font-weight: lighter;" id="logout" href="/logout">Logout</a>
+            {% else %}
+            <a class="nav-item nav-link {% if title == 'Login' %}active{% endif %}" id="login" style="font-family:Calibri, sans-serif, arial, 'Trebuchet MS'; font-weight: lighter;" href="/login">Login</a>
+            <a class="nav-item nav-link {% if title == 'Sign Up' %}active{% endif %}" id="signUp" style="font-family:Calibri, sans-serif, arial, 'Trebuchet MS'; font-weight: lighter;" href="/sign-up">Sign Up</a>
+            {% endif %}
+            <a class="nav-item nav-link {% if title == 'Contact Us' %}active{% endif %}" id="contact-us" style="font-family:Calibri, sans-serif, arial, 'Trebuchet MS'; font-weight: lighter;" href="/contactus">Contact Us</a>
+            <a class="nav-item nav-link {% if title == 'Setup' %}active{% endif %}" id="setup" style="font-family:Calibri, sans-serif, arial, 'Trebuchet MS'; font-weight: lighter;" href="/setup">Setup</a>
+          </ul>
+        </div>  
+      </nav>
+      <div class="content-area">
+      <br>
+      <div class="spacertwo">
+        &nbsp;
+      </div>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %} {% if
+    messages %} {% for category, message in messages %} {% if category ==
+    'error' %}
+    <div class="alert alert-danger alter-dismissable fade show" role="alert">
+      {{ message }}
+      <button type="button" class="close" data-dismiss="alert">
+        <span aria-hidden="true">&times;</span>
+      </button>
+    </div>
+    {% else %}
+    <div class="alert alert-success alter-dismissable fade show" role="alert">
+      {{ message }}
+      <button type="button" class="close" data-dismiss="alert">
+        <span aria-hidden="true">&times;</span>
+      </button>
+    </div>
+    {% endif %} {% endfor %} {% endif %} {% endwith %} 
+    {% if title!="Home" or title!="Report" %}
+    <!-- <div class="d-print-none">
+      <div class="jumbotron text-center">
+        <i class="material-icons">volunteer_activism</i>
+        <h1>{% if title == "Home" %}{% else %}{{ title }}{% endif %}</h1>
+      </div>
+    </div> -->
+    {% endif %}
+      <!-- <p id="spaceFilling"></p> -->
+    <div>{% block content %} {% endblock %}</div>
+    {% if title == "Home" or title == "About Us" %}
+    <div class="jumbotron text-center" style="margin-bottom:0; background-color: #2B4E72;">
+      <div class="row">
+        <div class="col">
+          <a href="https://www.dkja.net/" target="_blank">
+              <img src="{{ url_for('static', filename='dkja.jpg') }}" alt="Donna Klein Jewish Academy" class="rounded">
+          </a>
+        </div>
+        <div class="col">
+          <a href="https://btcboca.org/" target="_blank">
+          <img src="{{ url_for('static', filename='bnaitorah.jpg') }}" alt="B'nai Torah Congregation" height="200" class="rounded">
+        </a>
+        </div>
+        <div class="col">
+          <a href="https://www.fau.edu/isense/" target="_blank">
+          <img src="{{ url_for('static', filename='fau_isense.jpg') }}" alt="FAU I-SENSE" height="200" class="rounded">
+        </a>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+    {% if (title == "Home") %}
+    <a href="/status" class="sticky">Check The Status of Pantries</a>
+    {% endif %}
+  </div>
+    <script src="https://cdn.jsdelivr.net/npm/jquery/dist/jquery.min.js"></script>
+    <script
+      src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
+      integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
+      crossorigin="anonymous"
+    ></script>
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
+      integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+      crossorigin="anonymous"
+    ></script>
+    <script
+      src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
+      integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+      crossorigin="anonymous"
+    ></script>
+
+    <script
+      type="text/javascript"
+      src="{{ url_for('static', filename='index.js') }}"
+    ></script>
+    <script src="https://unpkg.com/bootstrap-table@1.18.3/dist/bootstrap-table.min.js"></script>
+    <script src="https://unpkg.com/bootstrap-table@1.18.3/dist/extensions/filter-control/bootstrap-table-filter-control.min.js"></script>
+  </body>
+</html>

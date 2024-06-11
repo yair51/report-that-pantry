@@ -78,8 +78,14 @@ a.sticky:hover{
     padding-right: 30px; */
     background-color: white;
     width: 100%;
+    margin-bottom: 0px; /* Adjust the margin value as needed */
     /* position: relative; */
     /* border: solid .1em white; */
+}
+
+/* Add margin to the content area */
+.content-area {
+  margin-top: 100px; /* Adjust as needed */
 }
 
 #navbarCSS #gmailAndMedia {
@@ -165,7 +171,6 @@ a.sticky:hover{
   
   #topPic {
     /* margin-top: 124px; */
-    /* aiugdhfffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff */
     position: relative;
     text-align: center;
     color: #2B4E72;
@@ -351,6 +356,7 @@ a.sticky:hover{
 
 #mobileNavbar {
   background-color: #353432;
+  margin-bottom: 15px;
 }
 
 .card-title {
@@ -376,3 +382,22 @@ a.sticky:hover{
 #notification-list {
   text-align: center;
 }
+
+/* Media query for smaller screens */
+@media (max-width: 768px) { 
+  #navbarCSS, #mobileNavbar {
+    margin-bottom: 10px; /* Adjust for smaller screens */
+  }
+}
+
+/* Media query for smaller screens */
+@media (max-width: 768px) { 
+  .content-area {
+      margin-top: 80px; /* Adjust for smaller screens if needed */
+  }
+}
+
+
+/* .navbar-brand {
+  font-weight: bold;
+} */
