@@ -9,3 +9,5 @@ pylintrc
 .env
 c:backup_file.tar
 raspi.py
+instance/
+config.py

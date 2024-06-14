@@ -1,12 +1,13 @@
-from flask import Blueprint, render_template, request, flash, jsonify, redirect, url_for
+from flask import Blueprint, render_template, request, flash, jsonify, redirect, url_for, current_app, send_from_directory, abort
 from flask_login import login_required, current_user
 from sqlalchemy.sql.expression import true
+from sqlalchemy.orm import joinedload
 from .models import Location, Report, Notification, User
 from . import db, Message, mail
 import json
 from datetime import datetime
 from time import mktime
-from sqlalchemy import func, and_
+from sqlalchemy import func, and_, desc
 from werkzeug.utils import secure_filename
 import os
 
@@ -22,11 +23,23 @@ def home(id=0):
     return render_template("index.html", user=current_user, title="Home")
 
 
-# # view details of location
-# @views.route('/location', methods=['GET'])
-# @views.route('/location/', methods=['GET'])
-# def location():
-#     return render_template("locations.html", user=current_user, editing=False, location=location, title="Location")
+
+
+@views.route('/location/<int:location_id>')
+def location(location_id):
+    # Eager load reports for the location
+    location = Location.query.options(joinedload(Location.reports)).get_or_404(location_id)
+
+    print(location.reports)
+
+    # Get the latest report
+    latest_report = location.reports[-1] if location.reports else None  # Handle the case where there are no reports
+
+    # Check if user can edit this location
+    can_edit = current_user.is_authenticated and location.user_id == current_user.id
+    return render_template("pantry.html", user=current_user, location=location, latest_report=latest_report, can_edit=can_edit, title="Pantry Details")
+
+
 
 
 @views.route('/location/add', methods=['GET', 'POST'])
@@ -164,7 +177,7 @@ def report(id):
     location = Location.query.get(id)
     # TODO - check if location exists
     if not location:
-        flash("Location does not exists.", category='error')
+        flash("Location does not exist.", category='error')
         return redirect(url_for('views.status'))
 
     if request.method == 'POST':
@@ -173,6 +186,8 @@ def report(id):
 
         # Get the description and photo
         description = request.form.get('pantryDescription')
+
+        print(description)
         photo = request.files.get('pantryPhoto')
     
         # Create Report object
@@ -180,15 +195,20 @@ def report(id):
             pantry_fullness=pantry_fullness,
             time=datetime.utcnow(),
             location_id=location.id,
+            description=description,
             user_id=current_user.id if current_user.is_authenticated else None  # Associate with logged-in user if possible
         )
 
-        # Handle the uploaded photo (if provided)
+        # Add photo to uploads folder
         if photo:
             filename = secure_filename(photo.filename)
-            # Save photo to server
-            photo.save(os.path.join(os.environ('UPLOAD_FOLDER'), str(location.id), filename))
-            new_report.photo = filename  # Assuming you have a photo field in your Report model
+            upload_dir = os.path.join(current_app.config['UPLOAD_FOLDER'], str(location.id))
+            os.makedirs(upload_dir, exist_ok=True)
+            save_path = os.path.join(upload_dir, filename)
+            photo.save(save_path)
+            # Store the relative path (relative to the UPLOAD_FOLDER)
+            relative_path = os.path.join(str(location.id), filename)  # Adjust if necessary
+            new_report.photo = filename 
 
         db.session.add(new_report)
         db.session.commit()
@@ -200,16 +220,77 @@ def report(id):
         #    # ... your email notification code ...
 
         flash("Thank you for your feedback!", category='success')
-        return redirect(url_for('views.home'))
+        return redirect(url_for('views.location', location_id=id))
 
     return render_template("report.html", user=current_user, title="Report", location_id=id) 
+
+
+
+
+@views.route('/uploads/<int:location_id>/<filename>')  
+def uploaded_file(location_id, filename):
+    # Construct the full path to the uploads directory for the given location
+    uploads_folder = os.path.join(current_app.config['UPLOAD_FOLDER'], str(location_id))
+    print(uploads_folder)
+
+    # Check if the file exists and is allowed
+    if not filename or not os.path.exists(os.path.join(uploads_folder, filename)):
+        abort(404)  # Return 404 Not Found if file doesn't exist
+    
+    # Check if the file extension is allowed (optional, but recommended)
+    allowed_extensions = {'png', 'jpg', 'jpeg', 'gif'}
+    if '.' not in filename or filename.rsplit('.', 1)[1].lower() not in allowed_extensions:
+        abort(403)  # Return 403 Forbidden for invalid file types
+
+    return send_from_directory(uploads_folder, filename) 
+
+
 
 
 @views.route('/status', methods=['GET', 'POST'])
 def status():
     # Get every report for every location, ordered by report time
-    locations = db.session.query(Location, Report).outerjoin(Report, and_(Location.id == Report.location_id)).order_by(Report.time)
-    return render_template("status5.html", user=current_user, title="Status", locations=locations)
+    # locations = db.session.query(Location, Report).outerjoin(Report, and_(Location.id == Report.location_id)).order_by(Report.time)
+
+    locations = db.session.query(Location).options(joinedload(Location.reports)).all()
+    for location in locations:
+        print(location.reports)
+    return render_template("status.html", user=current_user, title="Status", locations=locations)
+
+# @views.route('/status', methods=['GET', 'POST'])
+# def status():
+#     # Subquery to get the latest report time for each location
+#     latest_reports_subquery = (
+#         db.session.query(
+#             Report.location_id,
+#             db.func.max(Report.time).label('latest_time')
+#         )
+#         .group_by(Report.location_id)
+#         .subquery()  # Give the subquery an alias
+#     )
+
+#     locations = (
+#         db.session.query(latest_reports_subquery)
+#         .outerjoin(
+#             Location, Report,
+#             and_(
+#                 Location.id == Report.location_id,
+#                 Report.time == latest_reports_subquery.c.latest_time
+#             )
+#         )
+#         .order_by(desc(Report.time))
+#         .all()
+#     )
+
+#     locations_with_reports = []
+#     for location, latest_report in locations:
+#         locations_with_reports.append({
+#             'location': location,
+#             'latest_report': latest_report,
+#         })
+#     print(locations_with_reports)
+#     return render_template("status5.html", user=current_user, title="Status", locations=locations_with_reports)
+
 
 
 # Returns all locations in JSON format
@@ -221,9 +302,9 @@ def get_locations():
     return jsonify(location_data)
 
 
-@views.route('/team')
-def team():
-    return render_template("team.html", user=current_user, title="Team")
+# @views.route('/team')
+# def team():
+#     return render_template("team.html", user=current_user, title="Team")
 
 @views.route('/logs/<int:id>')
 @views.route('/logs/<int:id>/')

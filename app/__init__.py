@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, current_app
 from flask.helpers import url_for
 from flask_sqlalchemy import SQLAlchemy
 from os import environ

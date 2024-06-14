@@ -38,9 +38,9 @@
             <li class="nav-item {% if title == 'Status' %}active{% endif %}">
               <a class="nav-link" href="/status">Status</a>
             </li>
-            <li class="nav-item {% if title == 'Team' %}active{% endif %}">
+            <!-- <li class="nav-item {% if title == 'Team' %}active{% endif %}">
               <a class="nav-link" href="/team">Team</a>
-            </li>
+            </li> -->
             {% if user.is_authenticated %}
               <li class="nav-item {% if title == 'Locations' %}active{% endif %}">
                 <a class="nav-link" href="/location/add">Add Location</a>
@@ -62,9 +62,9 @@
             <li class="nav-item {% if title == 'Contact Us' %}active{% endif %}">
               <a class="nav-link" href="/contactus">Contact Us</a>
             </li>
-            <li class="nav-item {% if title == 'Setup' %}active{% endif %}">
+            <!-- <li class="nav-item {% if title == 'Setup' %}active{% endif %}">
               <a class="nav-link" href="/setup">Setup</a>
-            </li>
+            </li> -->
           </ul>
         </div>
     </nav>

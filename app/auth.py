@@ -1,8 +1,10 @@
-from flask import Blueprint, render_template, request, flash, redirect, url_for
-from .models import User
+from flask import Blueprint, render_template, request, flash, redirect, url_for, current_app
+from app.models import User
 from werkzeug.security import generate_password_hash, check_password_hash
-from . import db
+from . import db, mail
 from flask_login import login_user, login_required, logout_user, current_user
+from itsdangerous import URLSafeTimedSerializer
+from flask_mail import Message
 
 
 auth = Blueprint('auth', __name__)
@@ -78,20 +80,61 @@ def sign_up():
     return render_template("sign_up.html", user=current_user, title="Sign Up")
 
 
-# @auth.route('/organizations', methods=['GET','POST'])
-# def organizations():
-#     if request.method == 'POST':
-#         name = request.form.get('name')
-#         address = request.form.get('address')
-#         authorization = request.form.get('authorization')
-#         if authorization != '852':
-#             flash('Invalid authorization code. Please contact the developer for access.', category='error')
-#         else: 
-#             # creates new organization
-#             org = Organization(name=name, address=address)
-#             # adds org to db
-#             db.session.add(org)
-#             db.session.commit()
-#             flash('Organization added. Now create an account under your organization.', category='success')
-#             return redirect(url_for('auth.sign_up'))
-#     return render_template("organizations.html", user=current_user, title="Add Organization")
+@auth.route('/forgot_password', methods=['GET', 'POST'])
+def forgot_password():
+    # Intialize serializer
+    serializer = URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
+    if request.method == 'POST':
+        email = request.form['email']
+        user = User.query.filter_by(email=email).first()
+        if user:
+            # Generate a token (time-sensitive)
+            token = serializer.dumps(user.id, salt='password-reset-salt')
+
+            # Create the reset password link
+            reset_link = url_for('auth.reset_password', token=token, _external=True)
+
+            # Pass the token to the send_email function
+            send_email(user.email, "Reset Your Password", token)
+
+            flash('An email with instructions to reset your password has been sent.', 'info')
+            return redirect(url_for('auth.login'))
+
+        flash('That email does not exist.', category='error')
+    return render_template('forgot_password.html', user=current_user, title='Forgot Password')
+    
+
+@auth.route('/reset_password/<token>', methods=['GET', 'POST'])
+def reset_password(token):
+    serializer = URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
+    try:
+        user_id = serializer.loads(token, salt='password-reset-salt', max_age=3600)  # 1 hour expiry
+    except:
+        flash('The password reset link is invalid or has expired.', 'error')
+        return redirect(url_for('auth.login'))
+    
+    if request.method == 'POST':
+        new_password = request.form['newPassword']
+        confirm_password = request.form['confirmPassword']
+        
+        if new_password == confirm_password:
+            user = User.query.get(user_id)
+            user.password = generate_password_hash(new_password, method='sha256')  # Hash the new password
+            db.session.commit()
+            flash('Your password has been updated! You can now log in.', 'success')
+            return redirect(url_for('auth.login'))
+        else:
+            flash("Passwords do not match", category="error")
+
+    return render_template('reset_password.html', token=token, user=current_user, title='Reset Password')
+
+
+# Function to send emails
+def send_email(to, subject, token):
+    msg = Message(subject, sender='info.reportthatpantry@gmail.com', recipients=[to])
+    
+    # Create a clickable reset link with HTML
+    reset_link = url_for('auth.reset_password', token=token, _external=True)  # Generate the full URL
+    msg.html = f'<p>To reset your password, please click on the following link:</p><a href="{reset_link}">{reset_link}</a>'
+
+    mail.send(msg)

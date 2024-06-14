@@ -50,12 +50,12 @@
 
                 <div class="form-group">
                     <label for="pantryPhoto">Upload Photo (Optional): <span class="badge badge-primary">5 points</span></label>
-                    <input type="file" class="form-control-file" id="pantryPhoto" accept="image/*">
+                    <input type="file" class="form-control-file" id="pantryPhoto" name="pantryPhoto" accept="image/*">
                 </div>
 
                 <div class="form-group">
                     <label for="pantryDescription">Description (Optional, maximum 250 characters): <span class="badge badge-primary">2-6 points</span></label>
-                    <textarea class="form-control" id="pantryDescription" rows="3" maxlength="250"></textarea>
+                    <textarea class="form-control" id="pantryDescription" name="pantryDescription" rows="3" maxlength="250"></textarea>
                 </div>
 
                 
@@ -100,9 +100,12 @@
         }
 
         rangeInput.addEventListener("input", () => {
+            if (!rangeTouched) {
+                updatePoints(10); // Add 10 points for range input 
+            }
+            updateRangeDisplay();
             rangeTouched = true; // Mark the range as touched
-            updatePoints(10); // Add 10 points for range input
-            updateRangeDisplay(); 
+        
         });
 
         pantryDescription.addEventListener("input", () => {

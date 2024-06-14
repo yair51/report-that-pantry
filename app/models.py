@@ -50,6 +50,7 @@ class Report(db.Model):
     time = db.Column(db.DateTime, default=datetime.utcnow)
     photo = db.Column(db.String(150))
     description = db.Column(db.String(250))
+    points = db.Column(db.Integer)
     location_id = db.Column(db.Integer, db.ForeignKey('location.id'))
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
 
