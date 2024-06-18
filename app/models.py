@@ -17,7 +17,7 @@ class User(db.Model, UserMixin):
     password = db.Column(db.String(150))
     first_name = db.Column(db.String(150))
     last_name = db.Column(db.String(150))
-    age = db.Column(db.Integer)
+    age = db.Column(db.Integer, nullable=True)
     user_type = db.Column(db.String(150))
     notifications = db.relationship('Notification', backref='user')
     locations = db.relationship('Location', backref='user')
@@ -31,6 +31,9 @@ class Location(db.Model, UserMixin):
     city = db.Column(db.String(150))
     state = db.Column(db.String(50))
     zip = db.Column(db.Integer)
+    photo = db.Column(db.String(255), nullable=True)
+    description = db.Column(db.String(250), nullable=True)
+    contact_info = db.Column(db.String(250))
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     reports = db.relationship('Report', backref='location')
     notifications = db.relationship('Notification', backref='location')
@@ -48,9 +51,9 @@ class Report(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     pantry_fullness  = db.Column(db.Integer)
     time = db.Column(db.DateTime, default=datetime.utcnow)
-    photo = db.Column(db.String(150))
-    description = db.Column(db.String(250))
-    points = db.Column(db.Integer)
+    photo = db.Column(db.String(150), nullable=True)
+    description = db.Column(db.String(250), nullable=True)
+    # points = db.Column(db.Integer)
     location_id = db.Column(db.Integer, db.ForeignKey('location.id'))
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
 
@@ -59,4 +62,7 @@ class Notification(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     location_id = db.Column(db.Integer, db.ForeignKey('location.id'))
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    low_inventory = db.Column(db.Boolean, default=True)   
+    # ... other preferences you want to add ...
+
 

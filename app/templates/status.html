@@ -25,6 +25,7 @@
             data-show-columns-toggle-all="true"
             data-sort-name="time"
             data-sort-order="desc"
+            data-pagination="true"
             class="table table-dark table-hover">
             <thead>
                 <tr>
@@ -39,7 +40,7 @@
                     {% if latest_report %}
                     <tr>
                         <td>
-                            <p>{{ location.location_name }}
+                            <p>{{ location.name }}
                                 <span class="badge badge-{{ 'success' if latest_report.pantry_fullness > 66 else ('warning' if latest_report.pantry_fullness > 33 else 'danger') }}">{{ latest_report.pantry_fullness }}% ({{ 'Full' if latest_report.pantry_fullness > 66 else ('Half Full' if latest_report.pantry_fullness > 33 else 'Empty') }})</span><br>{{ location.address }}, {{ location.city }}, {{ location.state }}</p> 
                         </td>
                         <td>{{ latest_report.time.timestamp() | tojson }}</td> 
@@ -64,7 +65,14 @@
                                         {% else %}
                                             <p>No photo available.</p>
                                         {% endif %}
-                                        <a href="/location/{{ location.id }}" class="btn btn-info d-block">View More Details</a>
+                                        <button id="subscribeButton{{ location.id }}" type="button" class="btn {% if location.id in subscribed_locations %}btn-danger{% else %}btn-success{% endif %}" onclick="toggleSubscription({{ location.id }})">
+                                            {% if location.id in subscribed_locations %}
+                                                Unsubscribe
+                                            {% else %}
+                                                Subscribe
+                                            {% endif %}
+                                        </button>
+                                        <a href="/location/{{ location.id }}" class="btn btn-info">View More Details</a>
                                     </div>
                                 </div>
                             </div>
@@ -99,6 +107,40 @@
         } else {
             return updatedAt.toLocaleDateString(); // Fallback to date if older
         }
+    }
+
+
+    function toggleSubscription(locationId) {
+    const button = document.getElementById(`subscribeButton${locationId}`);
+    const currentStatus = button.innerText.trim().toLowerCase();
+
+    fetch('/subscribe', {
+        method: 'POST',
+        headers: {
+        'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: 'location_id=' + locationId
+    })
+        .then(response => response.json())
+        .then(data => {
+        if (data.status === 'subscribed') {
+            button.innerText = 'Unsubscribe';
+            button.classList.remove("btn-success");
+            button.classList.add("btn-danger");
+            // alert(data.message);
+        } else if (data.status === 'unsubscribed') {
+            button.innerText = 'Subscribe';
+            button.classList.remove("btn-danger");
+            button.classList.add("btn-success");
+            // alert(data.message);
+        } else {
+            alert("Error subscribing/unsubscribing");
+        }
+        })
+        .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred while processing your request.');
+        });
     }
 </script>
 

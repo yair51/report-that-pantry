@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h2>Your Profile</h2>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('auth.update_profile') }}">
+                        <div class="form-group">
+                            <label for="email">Email Address</label>
+                            <input type="email" class="form-control" id="email" name="email" value="{{ user.email }}" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="firstName">First Name</label>
+                            <input type="text" class="form-control" id="firstName" name="firstName" value="{{ user.first_name }}">
+                        </div>
+                        <div class="form-group">
+                            <label for="lastName">Last Name</label>
+                            <input type="text" class="form-control" id="lastName" name="lastName" value="{{ user.last_name }}">
+                        </div>
+                        <div class="form-group">
+                            <label for="userType">What best describes you?</label>
+                            <select class="form-control" id="userType" name="userType">
+                              <option value="volunteer" {% if user.user_type == "volunteer" %}selected{% endif %}>Pantry Volunteer</option>
+                              <option value="owner" {% if user.user_type == "owner" %}selected{% endif %}>Pantry Owner</option>
+                              <option value="beneficiary" {% if user.user_type == "beneficiary" %}selected{% endif %}>Pantry Beneficiary</option>
+                              <option value="other" {% if user.user_type == "other" %}selected{% endif %}>Prefer not to say</option>
+                            </select>
+                          </div>
+                        <button type="submit" class="btn btn-primary">Update Profile</button>
+                    </form>
+                </div>
+            </div>
+            <!-- <div class="card mt-3">
+                <div class="card-header">
+                    <h2>Notification Preferences</h2>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('auth.update_notifications') }}">
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input" id="low_inventory" name="low_inventory"
+                                   {% if user.notifications and user.notifications[0].low_inventory %}checked{% endif %}>
+                            <label class="form-check-label" for="low_inventory">Notify me when a pantry is low on food</label>
+                        </div>
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input" id="new_location" name="new_location"
+                                   {% if user.notifications and user.notifications[0].new_location %}checked{% endif %}>
+                            <label class="form-check-label" for="new_location">Notify me when a new pantry is added</label>
+                        </div>
+                        <button type="submit" class="btn btn-primary mt-3">Save Preferences</button>
+                    </form>
+                </div>
+            </div> -->
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h2>Manage Subscriptions</h2>
+                    <h6 class="card-subtitle mb-2 text-muted">You will recieve an email notification when these locations are low on stock.</h6>
+
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('auth.update_subscriptions') }}">
+                        {% for location in locations %}
+                        {% if location.id in subscribed_locations %}
+                            <div class="custom-control custom-switch">  
+                                <input type="checkbox" class="custom-control-input" id="subscription_{{ location.id }}" name="subscriptions" value="{{ location.id }}"
+                                       {% if location.id in subscribed_locations %}checked{% endif %}>
+                                <label class="custom-control-label" for="subscription_{{ location.id }}">{{ location.name }}</label>
+                            </div>
+                        {% endif %}
+                        {% endfor %}
+                        <button type="submit" class="btn btn-primary mt-3">Save Subscriptions</button>
+                    </form>
+                </div>
+            </div>
+                        
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+

@@ -1,8 +1,11 @@
 {% extends "base.html" %} {% block title %}Sign Up{% endblock %} {% block
   content %}
-  <head>
-      <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.4.1/dist/css/bootstrap.min.css" integrity="sha384-Vk ungkapwqLwCm3jwbNJiiFmXQshAeFxdzWEMBCLCmWkW/lCUy" crossorigin="anonymous">
-  </head>
+  <style>
+        /* Hide the default Bootstrap invalid feedback */
+        #password-display {
+      display: none;
+    }
+  </style>
   <form method="POST" class="needs-validation" novalidate>
     <div class="row">
       <div class="form-group col-md-6">
@@ -22,9 +25,9 @@
         <input type="email" class="form-control" id="email" name="email" placeholder="Enter email" required />
         <div class="invalid-feedback">Please provide a valid email address.</div> </div>
       <div class="form-group col-md-6">
-        <label for="age">Age</label>
-        <input type="number" class="form-control" id="age" name="age" min="1" placeholder="Enter age" required />
-        <div class="invalid-feedback">Please provide your age.</div>
+        <label for="age">Age (Optional)</label>
+        <input type="number" class="form-control" id="age" name="age" min="1" placeholder="Enter age" />
+        <!-- <div class="invalid-feedback">Please provide your age.</div> -->
       </div>
     </div>
     <div class="row">
@@ -35,19 +38,23 @@
           <option value="volunteer">Pantry Volunteer</option>
           <option value="owner">Pantry Owner</option>
           <option value="beneficiary">Pantry Beneficiary</option>
+          <option value="other">Prefer not to say</option>
         </select>
       </div>
       <div class="form-group col-md-6">
         <label for="password1">Password</label>
         <input type="password" class="form-control" id="password1" name="password1" placeholder="Enter password" required />
-        <div class="invalid-feedback">Password must be at least 7 characters long!</div>
+        <div id="passwordError" class="invalid-feedback" id="password-display">
+          <p></p>Password must be at least 7 characters long!
+        </div>
+        <!-- <div class="invalid-feedback">Password must be at least 7 characters long!</div> -->
       </div>
     </div>
     <div class="row">
       <div class="form-group col-md-6">
         <label for="password2">Password (Confirm)</label>
         <input type="password" class="form-control" id="password2" name="password2" placeholder="Confirm password" required />
-        <div class="invalid-feedback d-none">Passwords do not match.</div> </div>
+        <div class="invalid-feedback password d-none">Passwords do not match.</div> </div>
     </div>
     <br />
     <button id="submitBtn" type="submit" class="btn btn-primary">Submit</button>
@@ -71,5 +78,27 @@
         });
       }, false);
     })();
+
+
+    document
+      .getElementById("password1")
+      .addEventListener("input", validatePassword);
+    document
+      .getElementById("password2")
+      .addEventListener("input", validatePassword);
+
+    function validatePassword() {
+      const password = document.getElementById("password1").value;
+      const confirmPassword = document.getElementById("password2").value;
+      const passwordError = document.getElementById("passwordError");
+
+      if (password.length < 7) {
+        passwordError.textContent =
+          "Password must be at least 7 characters long!";
+        passwordError.style.display = "block";
+      } else {
+        passwordError.style.display = "none";
+      }
+    }
   </script>
   {% endblock %}

@@ -10,6 +10,10 @@ from time import mktime
 from sqlalchemy import func, and_, desc
 from werkzeug.utils import secure_filename
 import os
+import base64  # Import base64 for encoding images
+from PIL import Image, ImageOps
+import io
+import uuid
 
 views = Blueprint('views', __name__)
 
@@ -20,30 +24,40 @@ def home(id=0):
     # # queries all of the locations
     locations = Location.query.all()
 
-    return render_template("index.html", user=current_user, title="Home")
-
-
+    return render_template("home2.html", user=current_user, title="Home")
 
 
 @views.route('/location/<int:location_id>')
 def location(location_id):
+    # Unauthenticated user has no subscribed locations
+    subscribed_locations = None
     # Eager load reports for the location
     location = Location.query.options(joinedload(Location.reports)).get_or_404(location_id)
 
-    print(location.reports)
+    # Get user's subscribed locations if authenticated
+    if current_user.is_authenticated:
+            subscribed_locations = [notification.location_id for notification in current_user.notifications]
+            print(subscribed_locations)
+
+
 
     # Get the latest report
     latest_report = location.reports[-1] if location.reports else None  # Handle the case where there are no reports
 
     # Check if user can edit this location
     can_edit = current_user.is_authenticated and location.user_id == current_user.id
-    return render_template("pantry.html", user=current_user, location=location, latest_report=latest_report, can_edit=can_edit, title="Pantry Details")
+    return render_template("pantry.html", user=current_user, location=location, latest_report=latest_report, subscribed_locations=subscribed_locations, can_edit=can_edit, title="Pantry Details")
 
 
+# Determines if file submitted is allowed
+def allowed_file(filename):
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in {'png', 'jpg', 'jpeg', 'gif'}
 
 
 @views.route('/location/add', methods=['GET', 'POST'])
 @views.route('/location/add/', methods=['GET', 'POST'])
+@login_required
 # @views.route('/add/<int:id>', methods=['GET', 'POST'])
 def add_location():
     # handles form submissions
@@ -54,55 +68,156 @@ def add_location():
         city = request.form.get('city')
         state = request.form.get('state')
         zip = request.form.get('zipCode')
+        description = request.form.get('description')
+        contact_info = request.form.get('contactInfo')
+
         # checks if the location exists
         location = Location.query.filter_by(address=address).first()
         if location:
             flash('Address already exists.', category='error')
-            return redirect(url_for('views.locations'))
+            return render_template()
+    
+
+        print(zip.isnumeric())
+        if not zip.isnumeric():
+            flash('Zip code must contain only digits.', category='error')
+            return redirect(url_for("views.add_location"))
+            # return render_template("locations2.html", user=current_user, location=location, editing=True, title="Edit Location", states=us_states)
         # Add location to database
-        else:
-            new_location = Location(address=address, name=name, city=city, state=state, zip=zip)
-            db.session.add(new_location)
+        new_location = Location(
+            address=address, 
+            name=name, 
+            city=city, 
+            state=state, 
+            zip=zip,
+            user_id=current_user.id,
+            description=description,
+            contact_info=contact_info
+        )
+        db.session.add(new_location)
+        db.session.commit()
+
+        # Handle photo upload
+        photo = request.files.get('locationPhoto')  # Get the uploaded file
+        photo_path = None
+        # Check if photo exists and file type is allowed
+        if photo and allowed_file(photo.filename):
+            filename = secure_filename(photo.filename)
+            # Create or access location file directory
+            upload_dir = os.path.join(current_app.config['UPLOAD_FOLDER'], str(new_location.id))
+            os.makedirs(upload_dir, exist_ok=True)
+            save_path = os.path.join(upload_dir, filename)
+            photo.save(save_path)
+            # Update database value
+            new_location.photo = filename
             db.session.commit()
-            id = new_location.id
-            # Create intial status update for location
-            new_status = Report(status='Full', time=datetime.utcnow(), location_id=new_location.id)
-            db.session.add(new_status)
-            db.session.commit()
+            
+        # Add location to database
+        # else:
+        #     new_location = Location(address=address, name=name, city=city, state=state, zip=zip)
+        #     db.session.add(new_location)
+        #     db.session.commit()
+        # id = new_location.id
+
+        # Create intial status update for location
+        new_status = Report(pantry_fullness=100, time=datetime.utcnow(), location_id=new_location.id)
+        db.session.add(new_status)
+        db.session.commit()
 
         # Redirect user to poster page
-        return redirect(url_for("views.poster", id=id, isNew1=1))
+        return redirect(url_for("views.poster", id=new_location.id, isNew1=1))
 
-    return render_template("locations.html", user=current_user, editing=False, title="Locations")
+    return render_template("location.html", user=current_user, editing=False, title="Add Location", states=us_states)
 
 
-# Handles Location edits
-@views.route('/location/edit/<int:location_id>', methods=['GET','POST'])
-@views.route('/location/edit/<int:location_id>/', methods=['GET','POST'])
-def edit(location_id):
-    # Check if location exists
-    location = Location.query.get(location_id)
-    if not location:
-        flash("Location does not exist", category='error')
+# # Handles Location edits
+# @views.route('/location/edit/<int:location_id>', methods=['GET','POST'])
+# @views.route('/location/edit/<int:location_id>/', methods=['GET','POST'])
+# def edit(location_id):
+#     # Check if location exists
+#     location = Location.query.get(location_id)
+#     if not location:
+#         flash("Location does not exist", category='error')
+#         return redirect(url_for('views.status'))
+#     # Check if user owns this location
+#     if current_user.id != location.user_id:
+#         print(current_user.id)
+#         print(location.user_id)
+#         flash("You cannot edit this location.", category='error')
+#         return redirect(url_for('views.status'))
+#     if request.method == 'POST':
+#         # Edit details of given location
+#         location.name = request.form.get('name')
+#         location.address = request.form.get('address')
+#         location.city = request.form.get('city')
+#         location.state = request.form.get('state')
+#         location.zip = request.form.get('zipCode')
+#         db.session.commit()
+#         flash('Location updated.', category='success')
+#         # Redirect to status page
+#         return redirect(url_for('views.location', location_id=location.id))
+#     return render_template("locations2.html", user=current_user, location=location, editing=True, states=us_states)
+
+# Edit Location
+@views.route('/location/edit/<int:location_id>', methods=['GET', 'POST'])
+@views.route('/location/edit/<int:location_id>/', methods=['GET', 'POST'])
+@login_required  # Ensure the user is logged in
+def edit_location(location_id):
+    location = Location.query.get_or_404(location_id)
+
+    # Check if the user owns this location
+    if location.user_id != current_user.id:
+        flash("You do not have permission to edit this location.", category='error')
         return redirect(url_for('views.status'))
-    # Check if user owns this location
-    if current_user.id != location.user_id:
-        print(current_user.id)
-        print(location.user_id)
-        flash("You cannot edit this location.", category='error')
-        return redirect(url_for('views.status'))
+
     if request.method == 'POST':
-        # Edit details of given location
-        location.name = request.form.get('name')
-        location.address = request.form.get('address')
-        location.city = request.form.get('city')
-        location.state = request.form.get('state')
-        location.zip = request.form.get('zipCode')
-        db.session.commit()
-        flash('Location updated.', category='success')
-        # Redirect to status page
-        return redirect(url_for('views.status'))
-    return render_template("locations.html", user=current_user, location=location, editing=True)
+        # Get form data
+        name = request.form.get('name')
+        address = request.form.get('address')
+        city = request.form.get('city')
+        state = request.form.get('state')
+        zip_code = request.form.get('zipCode')
+        description = request.form.get('description')
+        photo = request.files.get('locationPhoto')
+        contact_info = request.form.get('contactInfo')
+
+
+        # Basic input validation (add more as needed)
+        if not all([name, address, city, state, zip_code]):
+            flash('All fields are required.', category='error')
+        else:
+            # Update location details
+            location.name = name
+            location.address = address
+            location.city = city
+            location.state = state
+            location.zip = zip_code
+            location.description = description
+            location.contact_info = contact_info
+
+            # Handle photo update (if a new photo is uploaded)
+            if photo and allowed_file(photo.filename):
+                # Delete old photo if exists
+                if location.photo:
+                    try:
+                        os.remove(os.path.join(current_app.config['UPLOAD_FOLDER'], location.photo))
+                    except FileNotFoundError:
+                        pass  # Ignore if the file is already deleted
+
+                filename = secure_filename(photo.filename)
+                upload_dir = os.path.join(current_app.config['UPLOAD_FOLDER'], str(location.id))
+                os.makedirs(upload_dir, exist_ok=True)
+                save_path = os.path.join(upload_dir, filename)
+                photo.save(save_path)
+
+                # Store the filename in uploads folder
+                location.photo = filename
+
+            db.session.commit()
+            flash('Location updated successfully!', category='success')
+            return redirect(url_for('views.location', location_id=location.id))
+
+    return render_template("locations.html", user=current_user, location=location, editing=True, title="Edit Location", states=us_states)
 
 
 @views.route('/delete-location', methods=['POST'])
@@ -119,55 +234,6 @@ def delete_location():
 
     return jsonify({})
 
-
-# # Report on status of given location
-# @views.route('report/<int:id>/')
-# @views.route('/report/<int:id>')
-# @views.route('/report<int:id>')
-# def report(id):
-#     # Get current location
-#     location = Location.query.get(id)
-#     status = request.args.get('status')
-#     pantry_fullness = request.form.get('pantryFullness')
-#     print(pantry_fullness)
-#     # a status is given, create add a new location_status to db for the current location
-#     if status:
-#         time = datetime.utcnow()
-#         # Create location status object
-#         new_status = Report(status=status, time=time, location_id=location.id)
-#         # Commit status to database
-#         db.session.add(new_status)
-#         db.session.commit()
-#         flash("Thank you for your feedback!", category='success')
-#         # send email if empty
-#         if status == "Empty":
-#             users = db.session.query(User, Notification, Location).filter(User.id == Notification.user_id, Notification.location_id == id, Location.id == Notification.location_id)
-#             with mail.connect() as conn:
-#                 for user in users:
-#                     subject = '%s Update' % user[2].name
-#                     message = '%s is currently EMPTY. Click Here to check the current status.' % user[2].name
-#                     html = '''<p>%s is currently EMPTY.
-#                             <br>
-#                             <a href="http://www.reportthatpantry.org/status"> Click Here</a> to check the current status.</p>''' % user[2].name
-#                     msg = Message(recipients=[user[0].email],
-#                                 body=message, html=html,
-#                                 subject=subject, sender='info.reportthatpantry@gmail.com')
-#                     conn.send(msg)
-#         elif status == "Damaged":
-#             users = db.session.query(User, Notification, Location).filter(User.id == Notification.user_id, Notification.location_id == id, Location.id == Notification.location_id)
-#             with mail.connect() as conn:
-#                 for user in users:
-#                     subject = '%s Update' % user[2].name
-#                     message = '%s is currently DAMAGED. Click Here to check the current status.' % user[2].name
-#                     html = '''<p>%s is currently DAMAGED.
-#                             <br>
-#                             <a href="http://www.reportthatpantry.org/status"> Click Here</a> to check the current status.</p>''' % user[2].name
-#                     msg = Message(recipients=[user[0].email],
-#                                 body=message, html=html,
-#                                 subject=subject, sender='info.reportthatpantry@gmail.com')
-#                     conn.send(msg)
-#         return redirect(url_for('views.home'))
-#     return render_template("report.html", user=current_user, title="Report")
 
 
 # Report on status of given location
@@ -213,11 +279,14 @@ def report(id):
         db.session.add(new_report)
         db.session.commit()
 
-        # Send email notifications (if applicable)
-        # You can modify the conditions for sending emails based on the pantry_fullness value
-        # For example:
-        # if int(pantry_fullness) <= 33:  # Empty pantry
-        #    # ... your email notification code ...
+        # Send email notification if the pantry is empty
+        if new_report.pantry_fullness <= 33:  # Check for empty status
+            image_data = None
+            if new_report.photo:
+                with open(os.path.join(current_app.config['UPLOAD_FOLDER'], str(location.id), new_report.photo), "rb") as f:
+                    image_data = base64.b64encode(f.read()).decode()  # Encode image to base64
+
+            send_notification_emails(location, new_report, image_data)
 
         flash("Thank you for your feedback!", category='success')
         return redirect(url_for('views.location', location_id=id))
@@ -250,46 +319,11 @@ def uploaded_file(location_id, filename):
 @views.route('/status', methods=['GET', 'POST'])
 def status():
     # Get every report for every location, ordered by report time
-    # locations = db.session.query(Location, Report).outerjoin(Report, and_(Location.id == Report.location_id)).order_by(Report.time)
-
     locations = db.session.query(Location).options(joinedload(Location.reports)).all()
-    for location in locations:
-        print(location.reports)
-    return render_template("status.html", user=current_user, title="Status", locations=locations)
+    # Create a list of all locations the current user is subscribed to. 
+    subscribed_locations = [notification.location_id for notification in current_user.notifications]
 
-# @views.route('/status', methods=['GET', 'POST'])
-# def status():
-#     # Subquery to get the latest report time for each location
-#     latest_reports_subquery = (
-#         db.session.query(
-#             Report.location_id,
-#             db.func.max(Report.time).label('latest_time')
-#         )
-#         .group_by(Report.location_id)
-#         .subquery()  # Give the subquery an alias
-#     )
-
-#     locations = (
-#         db.session.query(latest_reports_subquery)
-#         .outerjoin(
-#             Location, Report,
-#             and_(
-#                 Location.id == Report.location_id,
-#                 Report.time == latest_reports_subquery.c.latest_time
-#             )
-#         )
-#         .order_by(desc(Report.time))
-#         .all()
-#     )
-
-#     locations_with_reports = []
-#     for location, latest_report in locations:
-#         locations_with_reports.append({
-#             'location': location,
-#             'latest_report': latest_report,
-#         })
-#     print(locations_with_reports)
-#     return render_template("status5.html", user=current_user, title="Status", locations=locations_with_reports)
+    return render_template("status.html", user=current_user, title="Status", locations=locations, subscribed_locations=subscribed_locations)
 
 
 
@@ -327,51 +361,186 @@ def poster(isNew1, id):
 def setup():
     return render_template("setup.html", user=current_user, title="Setup")
 
-@views.route('/contactus', methods=['GET','POST'])
-@views.route('/contactus/', methods=['GET','POST'])
-def contact_us():
-    return render_template('contact_us.html', user=current_user, title = 'Contact Us')
+# @views.route('/contactus', methods=['GET','POST'])
+# @views.route('/contactus/', methods=['GET','POST'])
+# def contact_us():
+#     return render_template('contact_us.html', user=current_user, title = 'Contact Us')
 
+# @login_required
+# @views.route('/notifications', methods=['GET', 'POST'])
+# @views.route('/notifications/', methods=['GET', 'POST'])
+# def notifications():
+#     # queries all of the locations under the organization with the user's notification preferances
+#     locations = db.session.query(Location, Notification).outerjoin(Notification, and_(Notification.location_id == Location.id, current_user.id == Notification.user_id)).order_by(Location.name)
+#     for location in locations:
+#         print(location)
+#     if request.method == "POST":
+#         # loops through list of locations to find the selected ones
+#         for location in locations:
+#             selected_location = request.form.get("location" + str(location[0].id))
+#             # converts the location id to an integer
+#             # checks to see if the user is already recieving notifications for a specific loction
+#             notification = db.session.query(Notification).filter(Notification.location_id == location[0].id, Notification.user_id == current_user.id).first()
+#             if selected_location:
+#                 selected_location = int(selected_location)
+#                 # if not recieving notification from a selected organization, adds current user and that location to the database
+#                 if not notification:
+#                     notification = Notification(location_id=location[0].id, user_id=current_user.id)
+#                     db.session.add(notification)
+#                     db.session.commit()
+#             # else if the notification exists, it should be removed
+#             elif notification:
+#                 db.session.delete(notification)
+#                 db.session.commit()
+#         flash("Your preferences have been updated.", category="success")
+#     return render_template("notifications.html", title="Manage Notifications", user=current_user, locations=locations)
+
+
+
+
+
+
+# Handles changes to subscription preferences on status page
+@views.route('/subscribe', methods=['POST'])
 @login_required
-@views.route('/notifications', methods=['GET', 'POST'])
-@views.route('/notifications/', methods=['GET', 'POST'])
-def notifications():
-    # queries all of the locations under the organization with the user's notification preferances
-    locations = db.session.query(Location, Notification).outerjoin(Notification, and_(Notification.location_id == Location.id, current_user.id == Notification.user_id)).order_by(Location.name)
-    for location in locations:
-        print(location)
-    if request.method == "POST":
-        # loops through list of locations to find the selected ones
-        for location in locations:
-            selected_location = request.form.get("location" + str(location[0].id))
-            # converts the location id to an integer
-            # checks to see if the user is already recieving notifications for a specific loction
-            notification = db.session.query(Notification).filter(Notification.location_id == location[0].id, Notification.user_id == current_user.id).first()
-            if selected_location:
-                selected_location = int(selected_location)
-                # if not recieving notification from a selected organization, adds current user and that location to the database
-                if not notification:
-                    notification = Notification(location_id=location[0].id, user_id=current_user.id)
-                    db.session.add(notification)
-                    db.session.commit()
-            # else if the notification exists, it should be removed
-            elif notification:
-                db.session.delete(notification)
-                db.session.commit()
-        flash("Your preferences have been updated.", category="success")
-    return render_template("notifications.html", title="Manage Notifications", user=current_user, locations=locations)
+def subscribe():
+    location_id = request.form.get('location_id')
+
+    if location_id:
+        location_id = int(location_id)
+        # Check if the user is already subscribed
+        existing_subscription = Notification.query.filter_by(user_id=current_user.id, location_id=location_id).first()
+        
+        if existing_subscription:
+            # Unsubscribe
+            db.session.delete(existing_subscription)
+            db.session.commit()
+            return jsonify({'status': 'unsubscribed', 'message': 'Unsubscribed successfully'})
+        else:
+            # Subscribe
+            new_subscription = Notification(user_id=current_user.id, location_id=location_id)
+            db.session.add(new_subscription)
+            db.session.commit()
+            return jsonify({'status': 'subscribed', 'message': 'Subscribed successfully'})
+
+    return jsonify({'status': 'error', 'message': 'Invalid location_id'})
 
 
+# Handles changes to subscription preferances on pantry homepage
+@views.route('/location/subscribe/<int:location_id>', methods=['POST'])
 @login_required
-@views.route('/subscribe/<int:location_id>', methods=['POST'])
-@views.route('/subscribe/<int:location_id>/', methods=['POST'])
-def subscribe(location_id):
-    # Check if user is authenticated
-    if not current_user.is_authenticated:
-        flash("You must create an account to subscribe to locations.", category='error')
-        return redirect(url_for('auth.sign_up'))
-    # Check if user if subscription exists for this location
-    notification = Notification(location_id=location_id, user_id=current_user.id)
+def subscribe_location(location_id):
+    # Check if location exists
+    location = Location.query.get(location_id)
+    print(location)
+    if location:
+        location_id = int(location_id)
+        # Check if the user is already subscribed and toggle the subscription
+        existing_subscription = Notification.query.filter_by(user_id=current_user.id, location_id=location_id).first()
+        
+        if existing_subscription:
+            # Unsubscribe
+            db.session.delete(existing_subscription)
+            db.session.commit()
+            flash('You have successfully unsubscribed from this pantry.', 'success')
+        else:
+            # Subscribe
+            new_subscription = Notification(user_id=current_user.id, location_id=location_id)
+            db.session.add(new_subscription)
+            db.session.commit()
+            flash('You have successfully subscribed to this pantry.', 'success')
+    else:
+        flash("Location does not exist", category='error')
+        return redirect(url_for('views.location', location_id=location_id))
 
-    flash('Subscribed to location {INSERT number}', category='success')
-    return redirect(url_for('views.status'))
+    return redirect(url_for('views.location', location_id=location_id))  # Redirect back to the location page
+
+
+def send_notification_emails(location, report, image_data=None):
+    recipients = [n.user.email for n in location.notifications] 
+    if recipients:
+        subject = f"{location.name} is Empty!"
+        message = f"The Little Free Pantry located at {location.address}, {location.city}, {location.state} is currently empty.<br>"
+        message += "Can you help restock it?<br>"
+        message += f"View more details: {url_for('views.location', location_id=location.id, _external=True)}"
+
+        html = f"""
+            <p>{message}</p>
+            """
+        if report.photo:
+            with Image.open(os.path.join(current_app.config['UPLOAD_FOLDER'], str(report.location_id), report.photo)) as img:
+                # Transpose image
+                img = ImageOps.exif_transpose(img)
+                img.thumbnail((800, 800))  # Resize 
+                # img.show()
+                # Auto-orient to correct rotation
+                # Transpose image  
+                # img = img.rotate(img.getexif().get(274, 1), expand=True) 
+                buffer = io.BytesIO()
+                img.save(buffer, format="JPEG", optimize=True, quality=85)
+                img_data = base64.b64encode(buffer.getvalue()).decode()
+
+            filename = f"{uuid.uuid4().hex}.jpg"
+            html += f'<img src="data:image/jpeg;base64,{img_data}" alt="Pantry Photo" style="max-width: 100%; height: auto; image-orientation: from-image;">'  # Force upright display
+            
+        with mail.connect() as conn:
+            for recipient in recipients:
+                msg = Message(subject, sender='info.reportthatpantry@gmail.com', recipients=[recipient])
+                msg.html = html
+                conn.send(msg)
+
+
+# List of US states and abbreviations
+us_states = {
+        "Alabama": "AL",
+        "Alaska": "AK",
+        "Arizona": "AZ",
+        "Arkansas": "AR",
+        "California": "CA",
+        "Colorado": "CO",
+        "Connecticut": "CT",
+        "Delaware": "DE",
+        "Florida": "FL",
+        "Georgia": "GA",
+        "Hawaii": "HI",
+        "Idaho": "ID",
+        "Illinois": "IL",
+        "Indiana": "IN",
+        "Iowa": "IA",
+        "Kansas": "KS",
+        "Kentucky": "KY",
+        "Louisiana": "LA",
+        "Maine": "ME",
+        "Maryland": "MD",
+        "Massachusetts": "MA",
+        "Michigan": "MI",
+        "Minnesota": "MN",
+        "Mississippi": "MS",
+        "Missouri": "MO",
+        "Montana": "MT",
+        "Nebraska": "NE",
+        "Nevada": "NV",
+        "New Hampshire": "NH",
+        "New Jersey": "NJ",
+        "New Mexico": "NM",
+        "New York": "NY",
+        "North Carolina": "NC",
+        "North Dakota": "ND",
+        "Ohio": "OH",
+        "Oklahoma": "OK",
+        "Oregon": "OR",
+        "Pennsylvania": "PA",
+        "Rhode Island": "RI",
+        "South Carolina": "SC",
+        "South Dakota": "SD",
+        "Tennessee": "TN",
+        "Texas": "TX",
+        "Utah": "UT",
+        "Vermont": "VT",
+        "Virginia": "VA",
+        "Washington": "WA",
+        "West Virginia": "WV",
+        "Wisconsin": "WI",
+        "Wyoming": "WY"
+    }
+

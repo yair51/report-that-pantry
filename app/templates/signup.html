@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="container mt-5">
+  <div class="row justify-content-center">
+    <div class="col-md-6">
+      <div class="card">
+        <div class="card-header">
+          <h2 class="text-center">Sign Up</h2>
+        </div>
+        <div class="card-body">
+          <form method="POST" action="{{ url_for('auth.signup') }}">
+            <div class="form-group">
+              <label for="email">Email Address</label>
+              <input type="email" class="form-control" id="email" name="email" placeholder="Enter email" required>
+            </div>
+            <div class="form-group">
+              <label for="password">Password</label>
+              <input type="password" class="form-control" id="password" name="password" placeholder="Enter password" required>
+            </div>
+            <div class="form-group">
+              <label for="firstName">First Name</label>
+              <input type="text" class="form-control" id="firstName" name="firstName" placeholder="Enter first name" required>
+            </div>
+            <div class="form-group">
+              <label for="lastName">Last Name (Optional)</label>
+              <input type="text" class="form-control" id="lastName" name="lastName" placeholder="Enter last name">
+            </div>
+            <div class="form-group">
+              <label for="userType">User Type</label>
+              <select class="form-control" id="userType" name="userType">
+                <option value="volunteer">Pantry Volunteer</option>
+                <option value="owner">Pantry Owner</option>
+                <option value="beneficiary">Pantry Beneficiary</option>
+              </select>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-block">Sign Up</button>
+
+            <div class="text-center mt-3">
+                <a href="{{ url_for('auth.google_login') }}" class="btn btn-danger btn-block mb-2">
+                    <i class="fab fa-google mr-2"></i>Sign up with Google
+                </a>
+                <a href="{{ url_for('auth.facebook_login') }}" class="btn btn-primary btn-block">
+                    <i class="fab fa-facebook-f mr-2"></i>Sign up with Facebook
+                </a>
+            </div>
+
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}

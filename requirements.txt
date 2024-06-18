@@ -15,7 +15,7 @@ lazy-object-proxy==1.6.0
 Mako==1.1.4
 MarkupSafe==1.1.1
 mccabe==0.6.1
-psycopg2-binary==2.8.6
+# psycopg2-binary==2.8.6
 pylint==2.8.2
 python-dateutil==2.8.1
 python-dotenv==0.17.1
