@@ -58,8 +58,10 @@
                                     <div class="modal-body">
                                         <p><strong>Address:</strong> {{ location.address }}, {{ location.city }}, {{ location.state }}</p>
                                         <p><strong>Status:</strong> <span class="badge badge-{{ 'success' if latest_report.pantry_fullness > 66 else ('warning' if latest_report.pantry_fullness > 33 else 'danger') }}">{{ latest_report.pantry_fullness }}% ({{ 'Full' if latest_report.pantry_fullness > 66 else ('Half Full' if latest_report.pantry_fullness > 33 else 'Empty') }})</span></p>
+                                        {% if latest_report.description %}
                                         <p><strong>Notes:</strong> {{ latest_report.description }}</p>
-                                        <p><strong>Last Updated:</strong> {{ latest_report.time.strftime("%b %d, %Y, %I:%M %p") }}</p>
+                                        {% endif %}
+                                        <p><strong>Last Updated:</strong> <span id="time{{location.id}}">{{ latest_report.time.timestamp() | tojson }}</span></p>
                                         {% if latest_report.photo %}
                                         <img src="{{ url_for('views.uploaded_file', location_id=latest_report.location_id, filename=latest_report.photo) }}" class="img-fluid mb-3" alt="Latest photo of the pantry">
                                         {% else %}
@@ -85,29 +87,29 @@
 </div>
 
 <script>
-    // Formatter functions
-    function timeFormatter(value, row, index) {
-        const now = new Date();
-        const updatedAt = new Date(value * 1000); // Convert timestamp to milliseconds
+    // // Formatter functions
+    // function timeFormatter(value, row, index) {
+    //     const now = new Date();
+    //     const updatedAt = new Date(value * 1000); // Convert timestamp to milliseconds
 
-        // Get user's timezone offset (in minutes)
-        const timezoneOffset = new Date().getTimezoneOffset();
+    //     // Get user's timezone offset (in minutes)
+    //     const timezoneOffset = new Date().getTimezoneOffset();
 
-        // Adjust updatedAt to user's timezone
-        updatedAt.setMinutes(updatedAt.getMinutes() - timezoneOffset);
+    //     // Adjust updatedAt to user's timezone
+    //     updatedAt.setMinutes(updatedAt.getMinutes() - timezoneOffset);
 
-        const secondsAgo = Math.round((now - updatedAt) / 1000);
-        const minutesAgo = Math.round(secondsAgo / 60);
-        const hoursAgo = Math.round(minutesAgo / 60);
+    //     const secondsAgo = Math.round((now - updatedAt) / 1000);
+    //     const minutesAgo = Math.round(secondsAgo / 60);
+    //     const hoursAgo = Math.round(minutesAgo / 60);
 
-        if (hoursAgo < 1) {
-            return minutesAgo + " minute" + (minutesAgo > 1 ? "s" : "") + " ago";
-        } else if (hoursAgo < 24) {
-            return hoursAgo + " hour" + (hoursAgo > 1 ? "s" : "") + " ago";
-        } else {
-            return updatedAt.toLocaleDateString(); // Fallback to date if older
-        }
-    }
+    //     if (hoursAgo < 1) {
+    //         return minutesAgo + " minute" + (minutesAgo > 1 ? "s" : "") + " ago";
+    //     } else if (hoursAgo < 24) {
+    //         return hoursAgo + " hour" + (hoursAgo > 1 ? "s" : "") + " ago";
+    //     } else {
+    //         return updatedAt.toLocaleDateString(); // Fallback to date if older
+    //     }
+    // }
 
 
     function toggleSubscription(locationId) {

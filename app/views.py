@@ -241,7 +241,6 @@ def delete_location():
 def report(id):
     # Get current location
     location = Location.query.get(id)
-    # TODO - check if location exists
     if not location:
         flash("Location does not exist.", category='error')
         return redirect(url_for('views.status'))
@@ -320,8 +319,9 @@ def uploaded_file(location_id, filename):
 def status():
     # Get every report for every location, ordered by report time
     locations = db.session.query(Location).options(joinedload(Location.reports)).all()
-    # Create a list of all locations the current user is subscribed to. 
-    subscribed_locations = [notification.location_id for notification in current_user.notifications]
+    # Safely access subscribed_locations only if the user is authenticated
+    subscribed_locations = [notification.location_id for notification in current_user.notifications] if current_user.is_authenticated else []
+
 
     return render_template("status.html", user=current_user, title="Status", locations=locations, subscribed_locations=subscribed_locations)
 
@@ -462,7 +462,9 @@ def send_notification_emails(location, report, image_data=None):
         subject = f"{location.name} is Empty!"
         message = f"The Little Free Pantry located at {location.address}, {location.city}, {location.state} is currently empty.<br>"
         message += "Can you help restock it?<br>"
-        message += f"View more details: {url_for('views.location', location_id=location.id, _external=True)}"
+        if report.description:
+            message += f"Description: {report.description}<br>"
+        message += f"View more details: <a href='{url_for('views.location', location_id=location.id, _external=True)}''>{url_for('views.location', location_id=location.id, _external=True)}</a>"
 
         html = f"""
             <p>{message}</p>
@@ -472,10 +474,9 @@ def send_notification_emails(location, report, image_data=None):
                 # Transpose image
                 img = ImageOps.exif_transpose(img)
                 img.thumbnail((800, 800))  # Resize 
-                # img.show()
-                # Auto-orient to correct rotation
-                # Transpose image  
-                # img = img.rotate(img.getexif().get(274, 1), expand=True) 
+                # If image has an alpha channel, convert to RGB
+                if img.mode in ('RGBA', 'LA') or (img.mode == 'P' and 'transparency' in img.info):
+                    img = img.convert('RGB')
                 buffer = io.BytesIO()
                 img.save(buffer, format="JPEG", optimize=True, quality=85)
                 img_data = base64.b64encode(buffer.getvalue()).decode()

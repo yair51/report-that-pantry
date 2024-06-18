@@ -24,7 +24,7 @@
                             </button>
                         </form>
                     {% else %}
-                        <a href="/login" class="btn btn-danger btn-block mb-3">Log In to Subscribe</a>
+                        <a href="/login" class="btn btn-success btn-block mb-3">Log In to Subscribe</a>
                     {% endif %}
         
                     <a href="/report/{{ location.id }}" class="btn btn-info btn-block mb-3">Report Status</a>
@@ -51,12 +51,12 @@
             <div class="card">
                 <div class="card-body">
                     <h3>Report History</h3>
-                    <ul class="list-group list-group-flush">
+                    <ul class="list-group">
                         {% for report in location.reports | reverse %}
                             <li class="list-group-item">
                                 <span class="badge badge-{{ 'success' if report.pantry_fullness > 66 else ('warning' if report.pantry_fullness > 33 else 'danger') }}">
                                     {{ report.pantry_fullness }}% ({{ 'Full' if report.pantry_fullness > 66 else ('Half Full' if report.pantry_fullness > 33 else 'Empty') }})
-                                </span>  {{ report.time.strftime('%b %d, %Y, %I:%M %p') }}
+                                </span>     <span id="time{{location.id}}">{{ report.time.timestamp() | tojson }}</span>
                                 {% if report.photo %}
                                 <button type="button" class="btn btn-info btn-sm" data-toggle="modal" data-target="#photoModal{{ report.id }}">
                                     View Photo

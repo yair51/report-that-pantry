@@ -97,8 +97,11 @@
                   <ul class="list-unstyled">
                       <li><a href="/">Home</a></li>
                       <li><a href="/status">Status</a></li>
-                      <li><a href="/about">About Us</a></li>
-                      <li><a href="/contactus">Contact Us</a></li>
+                      {% if user.is_authenticated %}
+
+                      <li><a href="/profile">Profile</a></li>
+                      {% endif %}
+                      <!-- <li><a href="/contactus">Contact Us</a></li> -->
                   </ul>
               </div>
           </div>
