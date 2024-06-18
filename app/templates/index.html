@@ -1,88 +1,130 @@
 {% extends "base.html" %}
 {% block content %}
+
 <style>
     .content-area {
         margin-top: 0px;
     }
     
+    .hero {
+        background-color: #2B4E72;
+        color: white;
+        padding: 3rem 1.5rem;
+        text-align: center;
+    }
+    .hero h1, .hero p {
+        text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5); 
+    }
+
+    .feature-section {
+        padding: 3rem 0;
+        background-color: #f8f9fa; /* Light background for contrast */
+    }
+
+    .feature-icon {
+        font-size: 3rem;
+        color: #2B4E72; 
+    }
+
+    /* Additional styling for readability */
+    .mission-section {
+        padding: 2rem;
+        background-color: #fff; /* White background for content sections */
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Subtle box shadow */
+    }
+
+    .mission-section h2 {
+        color: #2B4E72;
+    }
+
+    .testimonial {
+        background-color: #fff;
+        color: #2B4E72; 
+        padding: 2rem;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); 
+    }
+
+    .testimonial .quote-icon {
+        font-size: 2rem;
+        margin-bottom: 1rem;
+    }
+
+
+    @media(min-width: 768px) {
+        .testimonial {
+            width: 75%;
+        }
+    }
+
+
+
 </style>
-    <!-- Table -->
-    <div class="container-fluid text-center w-100">
 
-        <div id="topPic" class="row">
-            <img class="w-100 d-flex align-items-center" src="{{url_for('static', filename='whiteLFP.png') }}" id="pantryPic"> 
-            <!-- CREDIT: COURTESY OF CORRI BIESEMEYER -->
-            <p id="homeText">Report That Pantry</p>
-        </div>
-
-        <div id="whatPantryTitleAndParagraph" class="row d-flex justify-content-center align-items-center">
-            <div id="whatPantryTitleAndParagraph" class="col-md-6 d-flex align-self-center flex-column align-items-center">
-                <h1 class="d-flex justify-content-center align-items-center" id="whatPantryOrgTitle">About Us</h1>
-                <p class="d-flex justify-content-center" id="whatPantryOrgParagraph">Report That Pantry is a Nonprofit organization dedicated to helping little free pantries restock their shelves faster. The technology consists of QR codes placed on the front of each pantry that connects to our website. Users can scan the QR code and report the level of food inside each pantry, allowing community members to check our website to find out when a pantry needs restocking.
-                    <br><br>Interested in joining the movement?
-                </p>
-                <a href="{{url_for('auth.sign_up')}}" class="btn btn-success w-25">Sign Up</a>
-            </div>
-            <iframe width="560" height="315" src="https://www.youtube.com/embed/IlDt7YsQ8qo?si=BpTZmuy756t88q7B" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
-            <!-- <div class="col-md-6 d-flex align-items-center">
-                <img src="{{url_for('static', filename='us_with_DK_pantry.jpeg') }}" id="whatPantryOrgPic">
-            </div> -->
-        </div>
-
-        <h1 id="howHelp" class="text-center">How to Help!</h1>
-        <div class="container" id="bottomInstructions">
-            <div class="row">
-                <div class="col" id="howToReport">
-                    <h3>Fill Up a Pantry</h3>
-                    <ol id="instructionsListLeft">
-                        <li id="instructionsList2">Subscribe for email notifications on a pantry's homepage to know when a pantry is empty</li>
-                        <li id="instructionsList2">Purchase/gather non-perishables</li>
-                        <li id="instructionsList2">Stop by one of the pantries - any day, any time</li>
-                        <li id="instructionsList2">Pull into a safe parking spot and fill the pantry</li>
-                    </ol>
-                    <a id="bottomHomeLinks" target="_blank" href="http://mapping.littlefreepantry.org/">Locations</a>
-                </div>
-                <div class="col" id="howToReport">
-                    <h3>Report a Pantry</h3>
-                    <ol id="instructionsListRight">
-                        <li id="instructionsList2">Scan the QR code on the pantry</li>
-                        <li id="instructionsList2">Report whether the pantry is full, half full, or empty.</li>
-                        <li id="instructionsList2">Add a description or a photo of the pantry to make sure the community get the best information.</li>
-                    </ol>
-                    <a id="bottomHomeLinks" href="/status">Status</a>
+<div class="container mt-5">
+    <section class="jumbotron text-white" style="background-color: #2B4E72; padding: 3rem; margin-bottom: 3rem;">
+        <div class="row">
+            <div class="col-md-6 order-md-1 d-flex flex-column justify-content-center align-items-center mb-3">
+                <h1 class="display-4 mb-4">Report That Pantry</h1>
+                <p class="lead mb-4 text-left">Connecting Communities to Fight Food Insecurity</p>
+                <div class="testimonial"> 
+                    <i class="fas fa-quote-left quote-icon"></i>
+                    <p>"Report That Pantry has been a game-changer for my Little Free Pantry. Now I know exactly when to restock, and I've connected with so many wonderful volunteers!"</p>
+                    <footer class="blockquote-footer">Sarah, Pantry Steward</footer>
                 </div>
             </div>
+            <div class="col-md-6 order-md-2 embed-responsive embed-responsive-16by9 d-flex justify-content-center align-items-center">
+                <iframe class="embed-responsive-item w-100" src="https://www.youtube.com/embed/IlDt7YsQ8qo" title="YouTube video" allowfullscreen></iframe>
+            </div>
         </div>
-
-        <div id="whatIsPantry" class="container text-center">
-            <h1 id="whatPantryTitle" class="text-center">What are Little Free Pantries?</h1>
-            <p id="whatPantryParagraph">Little Free Pantries are free self-serve food pantries located in high traffic areas around the world. The model is simple, those who can afford leave food and those in need take - no questions asked. Report That Pantry makes it easy for pantry stewards and users to keep track of the contents in these pantries.</p>
+        <div class="d-flex justify-content-center flex-wrap mt-3">
+            <a href="/status" class="btn btn-warning btn-lg mr-md-3">Check Status Now</a> 
         </div>
+    </section>
 
+
+
+    <section class="call-to-action text-center py-5">
+        <div class="container">
+            <h2>Ready to Make a Difference?</h2>
+            <p class="lead">
+                Sign up today!
+            </p>
+            <div class="d-flex flex-column flex-md-row justify-content-center">
+                <a href="/sign-up" class="btn btn-primary btn-lg">Register Now</a>
+            </div>
+        </div>
+    </section>
     
-        <div class="row" id="picRowHome">
 
-            <div class="col-lg-4 col-md-4 col-xs-4 thumb">
-                <a class="thumbnail">
-                    <img style="width: 100%; height: 100%;" class="img-responsive" src="{{url_for('static', filename='setuppantry.jpeg') }}" alt="">
-                </a>
+    <section class="feature-section">
+        <div class="row">
+            <div class="col-md-4">
+                <i class="fas fa-search feature-icon mb-3"></i>
+                <h3>Find a Pantry</h3>
+                <p>Easily locate Little Free Pantries near you that are stocked and ready to help.</p>
             </div>
-            <div class="col-lg-4 col-md-4 col-xs-4 thumb">
-                <a class="thumbnail">
-                    <img style="width: 100%; height: 100%;" class="img-responsive" src="{{url_for('static', filename='woodLFP.jpg') }}" alt="">
-                </a>
+            <div class="col-md-4">
+                <i class="fas fa-hand-holding-heart feature-icon mb-3"></i>
+                <h3>Report a Pantry</h3>
+                <p>Share the status of a pantry you encounter to help others know where to find resources.</p>
             </div>
-            <div class="col-lg-4 col-md-4 col-xs-4 thumb">
-                <a class="thumbnail">
-                    <img style="width: 100%; height: 100%;" class="img-responsive" src="{{url_for('static', filename='blueLFP.png') }}" alt="">
-                </a>
+            <div class="col-md-4">
+                <i class="fas fa-users feature-icon mb-3"></i>
+                <h3>Join the Community</h3>
+                <p>Become a pantry steward, volunteer, or simply spread the word about our mission.</p>
             </div>
         </div>
+    </section>
+    <section class="mission-section mb-4">
+        <h2>Our Mission</h2>
+        <p>Report That Pantry is a student-run organization dedicated to connecting communities and fighting food insecurity through Little Free Pantries. We empower pantry stewards with real-time information and tools, while making it easier for volunteers and those in need to find and support these vital community resources.</p>
+    </section>
+    <section class="mission-section mb-4">
+        <h2>What is a Little Free Pantry?</h2>
+        <p>Little Free Pantries are small, often homemade boxes where people can leave non-perishable food items and hygiene products for their neighbors in need. They operate on the honor system, with anyone free to take what they need or leave what they can.  Report That Pantry makes it easy for pantry stewards and users to keep track of the contents in these pantries.</p>
+    </section>
+</div>
 
-    </div>
-    {% if (title == "Home") %}
-    <a href="/status" class="sticky">Check The Status of Pantries</a>
-    {% endif %}
-</body>
-    </html>
 {% endblock %}

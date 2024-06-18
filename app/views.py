@@ -24,7 +24,7 @@ def home(id=0):
     # # queries all of the locations
     locations = Location.query.all()
 
-    return render_template("home2.html", user=current_user, title="Home")
+    return render_template("index.html", user=current_user, title="Home")
 
 
 @views.route('/location/<int:location_id>')
@@ -129,34 +129,6 @@ def add_location():
 
     return render_template("location.html", user=current_user, editing=False, title="Add Location", states=us_states)
 
-
-# # Handles Location edits
-# @views.route('/location/edit/<int:location_id>', methods=['GET','POST'])
-# @views.route('/location/edit/<int:location_id>/', methods=['GET','POST'])
-# def edit(location_id):
-#     # Check if location exists
-#     location = Location.query.get(location_id)
-#     if not location:
-#         flash("Location does not exist", category='error')
-#         return redirect(url_for('views.status'))
-#     # Check if user owns this location
-#     if current_user.id != location.user_id:
-#         print(current_user.id)
-#         print(location.user_id)
-#         flash("You cannot edit this location.", category='error')
-#         return redirect(url_for('views.status'))
-#     if request.method == 'POST':
-#         # Edit details of given location
-#         location.name = request.form.get('name')
-#         location.address = request.form.get('address')
-#         location.city = request.form.get('city')
-#         location.state = request.form.get('state')
-#         location.zip = request.form.get('zipCode')
-#         db.session.commit()
-#         flash('Location updated.', category='success')
-#         # Redirect to status page
-#         return redirect(url_for('views.location', location_id=location.id))
-#     return render_template("locations2.html", user=current_user, location=location, editing=True, states=us_states)
 
 # Edit Location
 @views.route('/location/edit/<int:location_id>', methods=['GET', 'POST'])
