@@ -9,7 +9,7 @@ class Config:
     TESTING = False
     FLASK_APP = "main.py"
     SECRET_KEY = os.getenv("SECRET_KEY")  # No default; this should always be set externally
-    SQLALCHEMY_DATABASE_URI = "postgresql://" + os.getenv("DATABASE_URL")[8:]  # Include +psycopg2
+    SQLALCHEMY_DATABASE_URI = "postgresql" + os.getenv("DATABASE_URL")[8:]  # Include +psycopg2
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     MAIL_SERVER = os.environ.get('MAIL_SERVER')
     MAIL_PORT = os.environ.get('MAIL_PORT')
