@@ -30,7 +30,7 @@ pip install psycopg2
 
 create .env file in root directory with the following environment variables
 ```
-SQLALCHEMY_DATABASE_URI = {database_uri_here}
+DATABASE_URL = {database_uri_here}
 MAIL_USERNAME = {mail_username_here}
 MAIL_PASSWORD = {mail_password_here}
 MAIL_SERVER = '{mail_server_here}'

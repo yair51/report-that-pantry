@@ -34,6 +34,7 @@ def downgrade():
     op.drop_column('user', 'age')
     op.add_column('location', sa.Column('user_id', sa.INTEGER(), autoincrement=False, nullable=True))
     op.create_foreign_key('location_user_id_fkey', 'location', 'user', ['user_id'], ['id'])
+    # Create organization table
     op.create_table('organization',
     sa.Column('id', sa.INTEGER(), autoincrement=True, nullable=False),
     sa.Column('name', sa.VARCHAR(length=150), autoincrement=False, nullable=True),
