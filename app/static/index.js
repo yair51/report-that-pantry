@@ -46,19 +46,123 @@ function timeFormatter(value, row, index) {
       return updatedAt.toLocaleDateString(); // Fallback to date if older
   }
 }
-// var JSfacebookLogo = $('.facebookLogo');
-// var JSinstaLogo = $('.instaLogo');
 
-// JSfacebookLogo.on("click", goToWebsiteFacebook);
 
-// function goToWebsiteFacebook() {
-//   event.preventDefault();
-//   window.location.href = "https://www.facebook.com/reportthatpantry";
+// const togglePasswordButton = document.getElementById("togglePassword");
+// const passwordInput = document.getElementById("password");
+
+// togglePasswordButton.addEventListener("click", function () {
+//     // toggle the type attribute
+//     const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+//     passwordInput.setAttribute('type', type);
+//     // toggle the eye / eye slash icon
+//     this.querySelector("i").classList.toggle("fa-eye");
+//     this.querySelector("i").classList.toggle("fa-eye-slash");
+// });
+
+// Wait for DOM to load
+document.addEventListener("DOMContentLoaded", function () {
+  // Toggle password inputs
+  const togglePasswordButtons = document.querySelectorAll("[id^=toggle]");
+
+  togglePasswordButtons.forEach(button => {
+      const passwordInputId = button.id.replace("toggle", ""); // Get the corresponding input ID
+      const passwordInput = document.getElementById(passwordInputId);
+
+      button.addEventListener("click", function() {
+          // toggle the type attribute
+          const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+          passwordInput.setAttribute('type', type);
+
+          // toggle the eye / eye slash icon
+          this.querySelector("i").classList.toggle("fa-eye");
+          this.querySelector("i").classList.toggle("fa-eye-slash");
+      });
+  });
+});
+
+// const togglePasswordButton = document.getElementById("togglePassword");
+  const passwordInput = document.getElementById("Password");
+  const passwordGroup = document.getElementById("passwordGroup");
+
+  passwordInput.addEventListener("input", function () {
+    if (passwordInput.checkValidity() === false) {
+      // Customize your error message here
+      passwordGroup.classList.add('is-invalid');
+      passwordInput.classList.add('is-invalid');
+      passwordGroup.classList.remove('is-valid');
+      passwordInput.classList.remove('is-valid');
+    } else {
+      passwordGroup.classList.remove('is-invalid');
+      passwordInput.classList.remove('is-invalid');
+      passwordGroup.classList.add('is-valid');
+      passwordInput.classList.add('is-valid');
+    }
+  });
+
+//   document
+//     .getElementById("newPassword")
+//     .addEventListener("input", validatePassword);
+//   document
+//     .getElementById("confirmPassword")
+//     .addEventListener("input", validatePassword)
+
+// // Password validation
+// function validatePassword() {
+//   const password = document.getElementById("newPassword").value;
+//   const confirmPassword = document.getElementById("confirmPassword").value;
+//   const passwordError = document.getElementById("newPassword");
+
+//   if (password.length < 7) {
+//     passwordError.textContent = "Password must be at least 7 characters long!";
+//     passwordError.style.display = "block";
+//     document.getElementById("newPassword").classList.add('is-invalid');
+//     document.getElementById("newPassword").classList.remove('is-valid');
+//   } else {
+//     passwordError.style.display = "none";
+//     document.getElementById("newPassword").classList.remove('is-invalid');
+//     document.getElementById("newPassword").classList.add('is-valid');
+//   }
+//   if(password != confirmPassword){
+//     document.getElementById("confirmPassword").classList.add('is-invalid');
+//     document.getElementById("confirmPassword").classList.remove('is-valid');
+//   }
+//   else{
+//     document.getElementById("confirmPassword").classList.remove('is-invalid');
+//     document.getElementById("confirmPassword").classList.add('is-valid');
+//   }
 // }
 
-// JSinstaLogo.on("click", goToWebsiteInsta);
 
-// function goToWebsiteInsta() {
-//   event.preventDefault();
-//   window.location.href = "https://www.instagram.com";
-// }
+
+
+// document.addEventListener("DOMContentLoaded", function() { // Wait for the DOM to load
+//   // Get all password toggle buttons
+//   const togglePasswordButtons = document.querySelectorAll("[id^=togglePassword]");
+
+//   togglePasswordButtons.forEach(button => {
+//       const passwordInputId = button.id.replace("toggle", "");
+//       const passwordInput = document.getElementById(passwordInputId);
+
+//       button.addEventListener("click", function() {
+//           // toggle the type attribute
+//           const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+//           passwordInput.setAttribute('type', type);
+//           // toggle the eye / eye slash icon
+//           this.querySelector("i").classList.toggle("fa-eye");
+//           this.querySelector("i").classList.toggle("fa-eye-slash");
+//       });
+//   });
+// });
+
+// const togglePasswordButton = document.getElementById("togglePassword");
+// const passwordInput = document.getElementById("password");
+
+// togglePasswordButton.addEventListener("click", function () {
+//     // toggle the type attribute
+//     const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+//     passwordInput.setAttribute('type', type);
+//     // toggle the eye / eye slash icon
+//     this.querySelector("i").classList.toggle("fa-eye");
+//     this.querySelector("i").classList.toggle("fa-eye-slash");
+// });

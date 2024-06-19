@@ -67,6 +67,7 @@
                                         {% else %}
                                             <p>No photo available.</p>
                                         {% endif %}
+                                        {% if user.is_authenticated %}
                                         <button id="subscribeButton{{ location.id }}" type="button" class="btn {% if location.id in subscribed_locations %}btn-danger{% else %}btn-success{% endif %}" onclick="toggleSubscription({{ location.id }})">
                                             {% if location.id in subscribed_locations %}
                                                 Unsubscribe
@@ -74,6 +75,9 @@
                                                 Subscribe
                                             {% endif %}
                                         </button>
+                                        {% else %}
+                                        <a href="/login" class="btn btn-success">Log In to Subscribe</a>
+                                        {% endif %}
                                         <a href="/location/{{ location.id }}" class="btn btn-info">View More Details</a>
                                     </div>
                                 </div>

@@ -5,6 +5,9 @@ from os import environ
 from flask_login import LoginManager, current_user
 from flask_migrate import Migrate
 from flask_mail import Mail, Message
+from config.config import DevelopmentConfig, ProductionConfig, StagingConfig  # Import all configs
+import os
+
 
 db = SQLAlchemy()
 migrate = Migrate()
@@ -15,16 +18,27 @@ DB_NAME = "database.db"
 def create_app():
     app = Flask(__name__, instance_relative_config=True)
 
-    # Load configuration based on environment
-    env_config = environ.get('APP_SETTINGS') or 'DevelopmentConfig'  # Default to development
-    if env_config == 'DevelopmentConfig':
-        app.config.from_object('instance.config.DevelopmentConfig')
-    elif env_config == 'StagingConfig':
-        app.config.from_object('instance.config.StagingConfig')
-    elif env_config == 'Config':
-        app.config.from_object('instance.config.ProductionConfig')
-    else:
-        raise ValueError(f'Invalid environment: {env_config}')
+    # Determine the config class based on the environment
+    config_class = {
+        'production': ProductionConfig,
+        'development': DevelopmentConfig,
+        'staging': StagingConfig,
+    }.get(os.environ.get('FLASK_ENV'), DevelopmentConfig)  # Default to DevelopmentConfig
+
+    print("config")
+
+    app.config.from_object(config_class)  # Load the appropriate config class
+
+    # # Load configuration based on environment
+    # env_config = environ.get('APP_SETTINGS') or 'DevelopmentConfig'  # Default to development
+    # if env_config == 'DevelopmentConfig':
+    #     app.config.from_object('instance.config.DevelopmentConfig')
+    # elif env_config == 'StagingConfig':
+    #     app.config.from_object('instance.config.StagingConfig')
+    # elif env_config == 'Config':
+    #     app.config.from_object('instance.config.ProductionConfig')
+    # else:
+    #     raise ValueError(f'Invalid environment: {env_config}')
     
 
 

@@ -20,7 +20,7 @@ auth = Blueprint('auth', __name__)
 def login():
     if request.method == 'POST':
         email = request.form.get('email')
-        password = request.form.get('password')
+        password = request.form.get('Password')
 
         user = User.query.filter_by(email=email).first()
         if user:
@@ -50,8 +50,8 @@ def sign_up():
         email = request.form.get('email')
         first_name = request.form.get('firstName')
         last_name = request.form.get('lastName')
-        password1 = request.form.get('password1')
-        password2 = request.form.get('password2')
+        password = request.form.get('Password')
+        # password2 = request.form.get('password2')
         age = request.form.get('age')
         user_type = request.form.get('description')
 
@@ -64,16 +64,16 @@ def sign_up():
             flash('Email must be greater than 3 characters.', category='error')
         elif len(first_name) < 2:
             flash('First name must be greater than 1 character.', category='error')
-        elif password1 != password2:
-            flash('Passwords don\'t match.', category='error')
-        elif len(password1) < 7:
+        # elif password1 != password2:
+        #     flash('Passwords don\'t match.', category='error')
+        elif len(password) < 7:
             flash('Password must be at least 7 characters.', category='error')
         # Create new user
         else:
             print(age)
             print(len(age))
             new_user = User(email=email, first_name=first_name, last_name=last_name, password=generate_password_hash(
-                password1, method='sha256'), user_type=user_type)
+                password, method='sha256'), user_type=user_type)
             
             # Set age if it is inputted
             if len(age) != 0:
@@ -127,17 +127,18 @@ def reset_password(token):
         return redirect(url_for('auth.login'))
     
     if request.method == 'POST':
-        new_password = request.form['newPassword']
+        new_password = request.form['Password']
         confirm_password = request.form['confirmPassword']
         
-        if new_password == confirm_password:
+        # Check password length
+        if len(new_password) > 6:
             user = User.query.get(user_id)
             user.password = generate_password_hash(new_password, method='sha256')  # Hash the new password
             db.session.commit()
             flash('Your password has been updated! You can now log in.', 'success')
             return redirect(url_for('auth.login'))
         else:
-            flash("Passwords do not match", category="error")
+            flash("Password must be at least 7 characters.", category="error")
 
     return render_template('reset_password.html', token=token, user=current_user, title='Reset Password')
 
