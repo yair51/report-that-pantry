@@ -10,3 +10,5 @@ pylintrc
 c:backup_file.tar
 raspi.py
 instance/
+test.py
+backup_file.dump
