@@ -63,7 +63,7 @@
                                         {% endif %}
                                         <p><strong>Last Updated:</strong> <span id="time{{location.id}}">{{ latest_report.time.timestamp() | tojson }}</span></p>
                                         {% if latest_report.photo %}
-                                        <img src="{{ url_for('views.uploaded_file', location_id=latest_report.location_id, filename=latest_report.photo) }}" class="img-fluid mb-3" alt="Latest photo of the pantry">
+                                        <img src="{{ latest_report.get_photo_url() }}" class="img-fluid mb-3" alt="Latest photo of the pantry">
                                         {% else %}
                                             <p>No photo available.</p>
                                         {% endif %}

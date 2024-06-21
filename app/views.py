@@ -5,7 +5,7 @@ from sqlalchemy.orm import joinedload
 from .models import Location, Report, Notification, User
 from . import db, Message, mail
 import json
-from datetime import datetime
+from datetime import datetime, timezone
 from time import mktime
 from sqlalchemy import func, and_, desc
 from werkzeug.utils import secure_filename
@@ -16,6 +16,101 @@ import io
 import uuid
 
 views = Blueprint('views', __name__)
+
+
+# Helper functions
+
+# Takes a report and location as arguments and sends notification emails for that location
+def send_notification_emails(location, report, image_data=None):
+    recipients = [n.user.email for n in location.notifications] 
+    if recipients:
+        subject = f"{location.name} is Empty!"
+        message = f"The Little Free Pantry located at {location.address}, {location.city}, {location.state} is currently empty.<br>"
+        message += "Can you help restock it?<br>"
+        if report.description:
+            message += f"Description: {report.description}<br>"
+        message += f"View more details: <a href='{url_for('views.location', location_id=location.id, _external=True)}''>{url_for('views.location', location_id=location.id, _external=True)}</a>"
+
+        html = f"""
+            <p>{message}</p>
+            """
+        if report.photo:
+            with Image.open(os.path.join(current_app.config['UPLOAD_FOLDER'], str(report.location_id), report.photo)) as img:
+                # Transpose image
+                img = ImageOps.exif_transpose(img)
+                img.thumbnail((800, 800))  # Resize 
+                # If image has an alpha channel, convert to RGB
+                if img.mode in ('RGBA', 'LA') or (img.mode == 'P' and 'transparency' in img.info):
+                    img = img.convert('RGB')
+                buffer = io.BytesIO()
+                img.save(buffer, format="JPEG", optimize=True, quality=85)
+                img_data = base64.b64encode(buffer.getvalue()).decode()
+
+            filename = f"{uuid.uuid4().hex}.jpg"
+            html += f'<img src="data:image/jpeg;base64,{img_data}" alt="Pantry Photo" style="max-width: 100%; height: auto; image-orientation: from-image;">'  # Force upright display
+            
+        with mail.connect() as conn:
+            for recipient in recipients:
+                msg = Message(subject, sender='info.reportthatpantry@gmail.com', recipients=[recipient])
+                msg.html = html
+                conn.send(msg)
+
+
+# List of US states and abbreviations
+us_states = {
+        "Alabama": "AL",
+        "Alaska": "AK",
+        "Arizona": "AZ",
+        "Arkansas": "AR",
+        "California": "CA",
+        "Colorado": "CO",
+        "Connecticut": "CT",
+        "Delaware": "DE",
+        "Florida": "FL",
+        "Georgia": "GA",
+        "Hawaii": "HI",
+        "Idaho": "ID",
+        "Illinois": "IL",
+        "Indiana": "IN",
+        "Iowa": "IA",
+        "Kansas": "KS",
+        "Kentucky": "KY",
+        "Louisiana": "LA",
+        "Maine": "ME",
+        "Maryland": "MD",
+        "Massachusetts": "MA",
+        "Michigan": "MI",
+        "Minnesota": "MN",
+        "Mississippi": "MS",
+        "Missouri": "MO",
+        "Montana": "MT",
+        "Nebraska": "NE",
+        "Nevada": "NV",
+        "New Hampshire": "NH",
+        "New Jersey": "NJ",
+        "New Mexico": "NM",
+        "New York": "NY",
+        "North Carolina": "NC",
+        "North Dakota": "ND",
+        "Ohio": "OH",
+        "Oklahoma": "OK",
+        "Oregon": "OR",
+        "Pennsylvania": "PA",
+        "Rhode Island": "RI",
+        "South Carolina": "SC",
+        "South Dakota": "SD",
+        "Tennessee": "TN",
+        "Texas": "TX",
+        "Utah": "UT",
+        "Vermont": "VT",
+        "Virginia": "VA",
+        "Washington": "WA",
+        "West Virginia": "WV",
+        "Wisconsin": "WI",
+        "Wyoming": "WY"
+    }
+
+
 
 
 @views.route('/', methods=['GET', 'POST'])
@@ -39,8 +134,6 @@ def location(location_id):
             subscribed_locations = [notification.location_id for notification in current_user.notifications]
             print(subscribed_locations)
 
-
-
     # Get the latest report
     latest_report = location.reports[-1] if location.reports else None  # Handle the case where there are no reports
 
@@ -55,6 +148,7 @@ def allowed_file(filename):
            filename.rsplit('.', 1)[1].lower() in {'png', 'jpg', 'jpeg', 'gif'}
 
 
+# Route for adding a location
 @views.route('/location/add', methods=['GET', 'POST'])
 @views.route('/location/add/', methods=['GET', 'POST'])
 @login_required
@@ -77,7 +171,6 @@ def add_location():
             flash('Address already exists.', category='error')
             return render_template()
     
-
         print(zip.isnumeric())
         if not zip.isnumeric():
             flash('Zip code must contain only digits.', category='error')
@@ -111,17 +204,14 @@ def add_location():
             # Update database value
             new_location.photo = filename
             db.session.commit()
-            
-        # Add location to database
-        # else:
-        #     new_location = Location(address=address, name=name, city=city, state=state, zip=zip)
-        #     db.session.add(new_location)
-        #     db.session.commit()
-        # id = new_location.id
 
-        # Create intial status update for location
-        new_status = Report(pantry_fullness=100, time=datetime.utcnow(), location_id=new_location.id)
-        db.session.add(new_status)
+        # Create intial report for location
+        new_report = Report(
+            pantry_fullness=100,
+            time=datetime.now(timezone.utc),  # Use timezone-aware datetime in UTC
+            location_id=new_location.id
+            )
+        db.session.add(new_report)
         db.session.commit()
 
         # Redirect user to poster page
@@ -230,7 +320,7 @@ def report(id):
         # Create Report object
         new_report = Report(
             pantry_fullness=pantry_fullness,
-            time=datetime.utcnow(),
+            time=datetime.now(timezone.utc),  # Use timezone-aware datetime in UTC
             location_id=location.id,
             description=description,
             user_id=current_user.id if current_user.is_authenticated else None  # Associate with logged-in user if possible
@@ -299,11 +389,20 @@ def status():
 
 
 
-# Returns all locations in JSON format
+# Returns all locations in JSON format (for status page)
 @views.route('/get_locations')
 def get_locations():
-    locations = Location.query.all()
-    location_data = [location.to_dict() for location in locations]
+    locations = db.session.query(Location).options(joinedload(Location.reports)).all()
+    location_data = []
+    for location in locations:
+        # Get latest report
+        latest_report = location.reports[-1] if location.reports else None
+        data = {
+            'id': location.id,  # Use location.id instead of location.location_id
+            'location': f"{location.name}<br>{location.address}, {location.city}, {location.state}",
+            'time': latest_report.time.timestamp() if latest_report else None
+        }
+        location_data.append(data)
     print(jsonify(location_data))
     return jsonify(location_data)
 
@@ -332,43 +431,6 @@ def poster(isNew1, id):
 @views.route('/setup/')
 def setup():
     return render_template("setup.html", user=current_user, title="Setup")
-
-# @views.route('/contactus', methods=['GET','POST'])
-# @views.route('/contactus/', methods=['GET','POST'])
-# def contact_us():
-#     return render_template('contact_us.html', user=current_user, title = 'Contact Us')
-
-# @login_required
-# @views.route('/notifications', methods=['GET', 'POST'])
-# @views.route('/notifications/', methods=['GET', 'POST'])
-# def notifications():
-#     # queries all of the locations under the organization with the user's notification preferances
-#     locations = db.session.query(Location, Notification).outerjoin(Notification, and_(Notification.location_id == Location.id, current_user.id == Notification.user_id)).order_by(Location.name)
-#     for location in locations:
-#         print(location)
-#     if request.method == "POST":
-#         # loops through list of locations to find the selected ones
-#         for location in locations:
-#             selected_location = request.form.get("location" + str(location[0].id))
-#             # converts the location id to an integer
-#             # checks to see if the user is already recieving notifications for a specific loction
-#             notification = db.session.query(Notification).filter(Notification.location_id == location[0].id, Notification.user_id == current_user.id).first()
-#             if selected_location:
-#                 selected_location = int(selected_location)
-#                 # if not recieving notification from a selected organization, adds current user and that location to the database
-#                 if not notification:
-#                     notification = Notification(location_id=location[0].id, user_id=current_user.id)
-#                     db.session.add(notification)
-#                     db.session.commit()
-#             # else if the notification exists, it should be removed
-#             elif notification:
-#                 db.session.delete(notification)
-#                 db.session.commit()
-#         flash("Your preferences have been updated.", category="success")
-#     return render_template("notifications.html", title="Manage Notifications", user=current_user, locations=locations)
-
-
-
 
 
 
@@ -426,94 +488,3 @@ def subscribe_location(location_id):
         return redirect(url_for('views.location', location_id=location_id))
 
     return redirect(url_for('views.location', location_id=location_id))  # Redirect back to the location page
-
-
-def send_notification_emails(location, report, image_data=None):
-    recipients = [n.user.email for n in location.notifications] 
-    if recipients:
-        subject = f"{location.name} is Empty!"
-        message = f"The Little Free Pantry located at {location.address}, {location.city}, {location.state} is currently empty.<br>"
-        message += "Can you help restock it?<br>"
-        if report.description:
-            message += f"Description: {report.description}<br>"
-        message += f"View more details: <a href='{url_for('views.location', location_id=location.id, _external=True)}''>{url_for('views.location', location_id=location.id, _external=True)}</a>"
-
-        html = f"""
-            <p>{message}</p>
-            """
-        if report.photo:
-            with Image.open(os.path.join(current_app.config['UPLOAD_FOLDER'], str(report.location_id), report.photo)) as img:
-                # Transpose image
-                img = ImageOps.exif_transpose(img)
-                img.thumbnail((800, 800))  # Resize 
-                # If image has an alpha channel, convert to RGB
-                if img.mode in ('RGBA', 'LA') or (img.mode == 'P' and 'transparency' in img.info):
-                    img = img.convert('RGB')
-                buffer = io.BytesIO()
-                img.save(buffer, format="JPEG", optimize=True, quality=85)
-                img_data = base64.b64encode(buffer.getvalue()).decode()
-
-            filename = f"{uuid.uuid4().hex}.jpg"
-            html += f'<img src="data:image/jpeg;base64,{img_data}" alt="Pantry Photo" style="max-width: 100%; height: auto; image-orientation: from-image;">'  # Force upright display
-            
-        with mail.connect() as conn:
-            for recipient in recipients:
-                msg = Message(subject, sender='info.reportthatpantry@gmail.com', recipients=[recipient])
-                msg.html = html
-                conn.send(msg)
-
-
-# List of US states and abbreviations
-us_states = {
-        "Alabama": "AL",
-        "Alaska": "AK",
-        "Arizona": "AZ",
-        "Arkansas": "AR",
-        "California": "CA",
-        "Colorado": "CO",
-        "Connecticut": "CT",
-        "Delaware": "DE",
-        "Florida": "FL",
-        "Georgia": "GA",
-        "Hawaii": "HI",
-        "Idaho": "ID",
-        "Illinois": "IL",
-        "Indiana": "IN",
-        "Iowa": "IA",
-        "Kansas": "KS",
-        "Kentucky": "KY",
-        "Louisiana": "LA",
-        "Maine": "ME",
-        "Maryland": "MD",
-        "Massachusetts": "MA",
-        "Michigan": "MI",
-        "Minnesota": "MN",
-        "Mississippi": "MS",
-        "Missouri": "MO",
-        "Montana": "MT",
-        "Nebraska": "NE",
-        "Nevada": "NV",
-        "New Hampshire": "NH",
-        "New Jersey": "NJ",
-        "New Mexico": "NM",
-        "New York": "NY",
-        "North Carolina": "NC",
-        "North Dakota": "ND",
-        "Ohio": "OH",
-        "Oklahoma": "OK",
-        "Oregon": "OR",
-        "Pennsylvania": "PA",
-        "Rhode Island": "RI",
-        "South Carolina": "SC",
-        "South Dakota": "SD",
-        "Tennessee": "TN",
-        "Texas": "TX",
-        "Utah": "UT",
-        "Vermont": "VT",
-        "Virginia": "VA",
-        "Washington": "WA",
-        "West Virginia": "WV",
-        "Wisconsin": "WI",
-        "Wyoming": "WY"
-    }
-

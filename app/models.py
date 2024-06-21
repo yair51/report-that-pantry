@@ -1,14 +1,8 @@
 from . import db
+from flask import url_for
 from flask_login import UserMixin
 from sqlalchemy.sql import func
-from datetime import datetime
-
-
-# class Note(db.Model):
-#     id = db.Column(db.Integer, primary_key=True)
-#     data = db.Column(db.String(10000))
-#     date = db.Column(db.DateTime(timezone=True), default=func.now())
-#     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+from datetime import datetime, timezone
 
 
 class User(db.Model, UserMixin):
@@ -50,12 +44,32 @@ class Location(db.Model, UserMixin):
 class Report(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     pantry_fullness  = db.Column(db.Integer)
-    time = db.Column(db.DateTime, default=datetime.utcnow)
+    time = db.Column(db.DateTime(timezone=True), default=datetime.now(timezone.utc))
     photo = db.Column(db.String(150), nullable=True)
     description = db.Column(db.String(250), nullable=True)
     # points = db.Column(db.Integer)
     location_id = db.Column(db.Integer, db.ForeignKey('location.id'))
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+
+    # Return path to photo on server
+    def get_photo_url(self):
+        if self.photo:
+            return url_for('views.uploaded_file', location_id=self.location_id, filename=self.photo)
+        else:
+            return None
+
+    # Get interpretation of status based on pantry fullness
+    def get_status(self):
+        fullness = self.pantry_fullness
+        if fullness is None:
+            return "Unknown"
+        elif fullness > 66:
+            return "Full"
+        elif fullness > 33:
+            return "Half Full"
+        else:
+            return "Empty"
+
 
 
 class Notification(db.Model):

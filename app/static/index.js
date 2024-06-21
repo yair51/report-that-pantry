@@ -25,17 +25,18 @@ $(document).ready(function() {
 
 // Formatter functions
 function timeFormatter(value, row, index) {
+  if (!value) {
+      return 'Never'; // Handle cases where there's no report yet
+  }
+
   const now = new Date();
-  const updatedAt = new Date(value * 1000); // Convert timestamp to milliseconds
+  const updatedAt = new Date(value * 1000); // Convert timestamp to milliseconds (assuming value is in seconds)
 
-  // Get user's timezone offset (in minutes)
-  const timezoneOffset = new Date().getTimezoneOffset();
+  // Get time difference in milliseconds
+  const timeDiff = Math.abs(now - updatedAt);
 
-  // Adjust updatedAt to user's timezone
-  updatedAt.setMinutes(updatedAt.getMinutes() - timezoneOffset);
-
-  const secondsAgo = Math.round((now - updatedAt) / 1000);
-  const minutesAgo = Math.round(secondsAgo / 60);
+  const secondsDiff = Math.round(timeDiff / 1000);
+  const minutesAgo = Math.round(secondsDiff / 60);
   const hoursAgo = Math.round(minutesAgo / 60);
 
   if (hoursAgo < 1) {
@@ -43,9 +44,11 @@ function timeFormatter(value, row, index) {
   } else if (hoursAgo < 24) {
       return hoursAgo + " hour" + (hoursAgo > 1 ? "s" : "") + " ago";
   } else {
-      return updatedAt.toLocaleDateString(); // Fallback to date if older
+      const options = { year: 'numeric', month: 'long', day: 'numeric', hour: 'numeric', minute: 'numeric' };
+      return updatedAt.toLocaleDateString(undefined, options); 
   }
 }
+
 
 
 // const togglePasswordButton = document.getElementById("togglePassword");
