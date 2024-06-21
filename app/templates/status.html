@@ -46,8 +46,8 @@
                         <td>{{ latest_report.time.timestamp() | tojson }}</td> 
                         <td> <button type="button" class="btn btn-info" data-toggle="modal" data-target="#locationModal{{ location.id }}">Details</button></td>
                         
-                        <div class="modal fade" id="locationModal{{ location.id }}" tabindex="-1" role="dialog" aria-labelledby="locationModalLabel{{ location.id }}" aria-hidden="true">
-                            <div class="modal-dialog" role="document">
+                        <div class="modal fade" id="locationModal{{ location.id }}" tabindex="-1" role="dialog" aria-labelledby="locationModalLabel{{ location.id }}" aria-hidden="true" data-backdrop="static">
+                            <div class="modal-dialog modal-dialog-scrollable" role="document">
                                 <div class="modal-content">
                                     <div class="modal-header">
                                         <h5 class="modal-title" id="locationModalLabel{{ location.id }}">{{ location.name }}</h5>
