@@ -128,7 +128,7 @@ def reset_password(token):
     
     if request.method == 'POST':
         new_password = request.form['Password']
-        confirm_password = request.form['confirmPassword']
+        # confirm_password = request.form['confirmPassword']
         
         # Check password length
         if len(new_password) > 6:

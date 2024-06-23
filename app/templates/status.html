@@ -45,9 +45,8 @@
                         </td>
                         <td>{{ latest_report.time.timestamp() | tojson }}</td> 
                         <td> <button type="button" class="btn btn-info" data-toggle="modal" data-target="#locationModal{{ location.id }}">Details</button></td>
-                        
-                        <div class="modal fade" id="locationModal{{ location.id }}" tabindex="-1" role="dialog" aria-labelledby="locationModalLabel{{ location.id }}" aria-hidden="true" data-backdrop="static">
-                            <div class="modal-dialog modal-dialog-scrollable" role="document">
+                        <div class="modal fade" id="locationModal{{ location.id }}" tabindex="-1" role="dialog" aria-labelledby="locationModalLabel{{ location.id }}" aria-hidden="true">
+                            <div class="modal-dialog" role="document">
                                 <div class="modal-content">
                                     <div class="modal-header">
                                         <h5 class="modal-title" id="locationModalLabel{{ location.id }}">{{ location.name }}</h5>
@@ -82,7 +81,7 @@
                                     </div>
                                 </div>
                             </div>
-                        </div>
+                        </div>       
                 {% endif %}
             {% endfor %}
             </tbody>
@@ -90,64 +89,5 @@
     </div>
 </div>
 
-<script>
-    // // Formatter functions
-    // function timeFormatter(value, row, index) {
-    //     const now = new Date();
-    //     const updatedAt = new Date(value * 1000); // Convert timestamp to milliseconds
-
-    //     // Get user's timezone offset (in minutes)
-    //     const timezoneOffset = new Date().getTimezoneOffset();
-
-    //     // Adjust updatedAt to user's timezone
-    //     updatedAt.setMinutes(updatedAt.getMinutes() - timezoneOffset);
-
-    //     const secondsAgo = Math.round((now - updatedAt) / 1000);
-    //     const minutesAgo = Math.round(secondsAgo / 60);
-    //     const hoursAgo = Math.round(minutesAgo / 60);
-
-    //     if (hoursAgo < 1) {
-    //         return minutesAgo + " minute" + (minutesAgo > 1 ? "s" : "") + " ago";
-    //     } else if (hoursAgo < 24) {
-    //         return hoursAgo + " hour" + (hoursAgo > 1 ? "s" : "") + " ago";
-    //     } else {
-    //         return updatedAt.toLocaleDateString(); // Fallback to date if older
-    //     }
-    // }
-
-
-    function toggleSubscription(locationId) {
-    const button = document.getElementById(`subscribeButton${locationId}`);
-    const currentStatus = button.innerText.trim().toLowerCase();
-
-    fetch('/subscribe', {
-        method: 'POST',
-        headers: {
-        'Content-Type': 'application/x-www-form-urlencoded'
-        },
-        body: 'location_id=' + locationId
-    })
-        .then(response => response.json())
-        .then(data => {
-        if (data.status === 'subscribed') {
-            button.innerText = 'Unsubscribe';
-            button.classList.remove("btn-success");
-            button.classList.add("btn-danger");
-            // alert(data.message);
-        } else if (data.status === 'unsubscribed') {
-            button.innerText = 'Subscribe';
-            button.classList.remove("btn-danger");
-            button.classList.add("btn-success");
-            // alert(data.message);
-        } else {
-            alert("Error subscribing/unsubscribing");
-        }
-        })
-        .catch(error => {
-        console.error('Error:', error);
-        alert('An error occurred while processing your request.');
-        });
-    }
-</script>
 
 {% endblock %}

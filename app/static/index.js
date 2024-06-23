@@ -10,6 +10,41 @@ function deleteLocation(locationId) {
   }
 }
 
+
+// Takes a location id as input and toggles the subscription button for the status page
+function toggleSubscription(locationId) {
+  const button = document.getElementById(`subscribeButton${locationId}`);
+  const currentStatus = button.innerText.trim().toLowerCase();
+
+  fetch('/subscribe', {
+      method: 'POST',
+      headers: {
+      'Content-Type': 'application/x-www-form-urlencoded'
+      },
+      body: 'location_id=' + locationId
+  })
+      .then(response => response.json())
+      .then(data => {
+      if (data.status === 'subscribed') {
+          button.innerText = 'Unsubscribe';
+          button.classList.remove("btn-success");
+          button.classList.add("btn-danger");
+          // alert(data.message);
+      } else if (data.status === 'unsubscribed') {
+          button.innerText = 'Subscribe';
+          button.classList.remove("btn-danger");
+          button.classList.add("btn-success");
+          // alert(data.message);
+      } else {
+          alert("Error subscribing/unsubscribing");
+      }
+      })
+      .catch(error => {
+      console.error('Error:', error);
+      alert('An error occurred while processing your request.');
+      });
+  }
+
 $(document).ready(function() {
 
   // Update time values in the table cells on page load
