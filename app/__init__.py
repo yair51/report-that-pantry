@@ -25,8 +25,6 @@ def create_app():
         'staging': StagingConfig,
     }.get(os.environ.get('FLASK_ENV'), DevelopmentConfig)  # Default to DevelopmentConfig
 
-    print("config")
-
     app.config.from_object(config_class)  # Load the appropriate config class
 
     # # Load configuration based on environment

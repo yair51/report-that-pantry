@@ -14,6 +14,7 @@ import base64  # Import base64 for encoding images
 from PIL import Image, ImageOps
 import io
 import uuid
+import boto3
 
 views = Blueprint('views', __name__)
 
@@ -29,25 +30,31 @@ def send_notification_emails(location, report, image_data=None):
         message += "Can you help restock it?<br>"
         if report.description:
             message += f"Description: {report.description}<br>"
+        if report.photo:
+            message += "New pantry photo available on website!<br>"
         message += f"View more details: <a href='{url_for('views.location', location_id=location.id, _external=True)}''>{url_for('views.location', location_id=location.id, _external=True)}</a>"
+
 
         html = f"""
             <p>{message}</p>
             """
-        if report.photo:
-            with Image.open(os.path.join(current_app.config['UPLOAD_FOLDER'], str(report.location_id), report.photo)) as img:
-                # Transpose image
-                img = ImageOps.exif_transpose(img)
-                img.thumbnail((800, 800))  # Resize 
-                # If image has an alpha channel, convert to RGB
-                if img.mode in ('RGBA', 'LA') or (img.mode == 'P' and 'transparency' in img.info):
-                    img = img.convert('RGB')
-                buffer = io.BytesIO()
-                img.save(buffer, format="JPEG", optimize=True, quality=85)
-                img_data = base64.b64encode(buffer.getvalue()).decode()
+        
 
-            filename = f"{uuid.uuid4().hex}.jpg"
-            html += f'<img src="data:image/jpeg;base64,{img_data}" alt="Pantry Photo" style="max-width: 100%; height: auto; image-orientation: from-image;">'  # Force upright display
+        # TODO - show photo in email
+        # if report.photo:
+        #     with Image.open(os.path.join(current_app.config['UPLOAD_FOLDER'], str(report.location_id), report.photo)) as img:
+        #         # Transpose image
+        #         img = ImageOps.exif_transpose(img)
+        #         img.thumbnail((800, 800))  # Resize 
+        #         # If image has an alpha channel, convert to RGB
+        #         if img.mode in ('RGBA', 'LA') or (img.mode == 'P' and 'transparency' in img.info):
+        #             img = img.convert('RGB')
+        #         buffer = io.BytesIO()
+        #         img.save(buffer, format="JPEG", optimize=True, quality=85)
+        #         img_data = base64.b64encode(buffer.getvalue()).decode()
+
+        #     filename = f"{uuid.uuid4().hex}.jpg"
+        #     html += f'<img src="data:image/jpeg;base64,{img_data}" alt="Pantry Photo" style="max-width: 100%; height: auto; image-orientation: from-image;">'  # Force upright display
             
         with mail.connect() as conn:
             for recipient in recipients:
@@ -55,6 +62,23 @@ def send_notification_emails(location, report, image_data=None):
                 msg.html = html
                 conn.send(msg)
 
+
+
+# Get Amazon S3 client credentials
+def get_s3_client():
+    sts_client = boto3.client('sts')
+    assumed_role_object=sts_client.assume_role(
+        RoleArn="arn:aws:iam::YOUR_ACCOUNT_ID:role/YOUR_ROLE_NAME",  # Replace with your role ARN
+        RoleSessionName="AssumeRoleSession1"
+    )
+    credentials = assumed_role_object['Credentials']
+    s3 = boto3.client(
+        's3',
+        aws_access_key_id=credentials['AccessKeyId'],
+        aws_secret_access_key=credentials['SecretAccessKey'],
+        aws_session_token=credentials['SessionToken']
+    )
+    return s3
 
 # List of US states and abbreviations
 us_states = {
@@ -139,7 +163,7 @@ def location(location_id):
 
     # Check if user can edit this location
     can_edit = current_user.is_authenticated and location.user_id == current_user.id
-    return render_template("pantry.html", user=current_user, location=location, latest_report=latest_report, subscribed_locations=subscribed_locations, can_edit=can_edit, title="Pantry Details")
+    return render_template("pantry.html", user=current_user, location=location, latest_report=latest_report, subscribed_locations=subscribed_locations, can_edit=can_edit, current_app=current_app, title="Pantry Details")
 
 
 # Determines if file submitted is allowed
@@ -326,26 +350,82 @@ def report(id):
             user_id=current_user.id if current_user.is_authenticated else None  # Associate with logged-in user if possible
         )
 
-        # Add photo to uploads folder
-        if photo:
-            filename = secure_filename(photo.filename)
-            upload_dir = os.path.join(current_app.config['UPLOAD_FOLDER'], str(location.id))
-            os.makedirs(upload_dir, exist_ok=True)
-            save_path = os.path.join(upload_dir, filename)
-            photo.save(save_path)
-            # Store the relative path (relative to the UPLOAD_FOLDER)
-            relative_path = os.path.join(str(location.id), filename)  # Adjust if necessary
-            new_report.photo = filename 
+        if photo and allowed_file(photo.filename):
+            original_filename = secure_filename(photo.filename)
+            _, extension = os.path.splitext(original_filename)  # Get the file extension
+            unique_filename = f"{uuid.uuid4().hex}{extension}"
+            s3 = boto3.client(
+                's3',
+                aws_access_key_id=current_app.config['S3_KEY'],
+                aws_secret_access_key=current_app.config['S3_SECRET']
+            )
+            # Generate path for photo
+            environment = current_app.config['FLASK_ENV']
+            s3_key = os.path.join(environment, 'uploads', str(location.id), unique_filename)  # Add location_id to the key
+
+            # upload file to S3 with uploads path prefix
+            s3.upload_fileobj(photo, current_app.config['S3_BUCKET'], s3_key)
+
+            # Construct the S3 URL for the image (adjust based on your S3 configuration)
+            image_url = f"https://{current_app.config['S3_BUCKET']}.s3.amazonaws.com/{s3_key}"
+
+            new_report.photo = s3_key  # Store the path to filename in the database
+            print(f"Photo uploaded to: {image_url}")
+
+
+
+
+        # # Handle the uploaded photo (if provided)
+        # if photo and allowed_file(photo.filename):
+        #     filename = secure_filename(photo.filename)
+        #     try:
+        #         s3 = boto3.client('s3',
+        #             aws_access_key_id=current_app.config['S3_KEY'],
+        #             aws_secret_access_key=current_app.config['S3_SECRET'])
+        #         # Open the image using Pillow
+        #         img = Image.open(photo)
+
+        #         # If image has an alpha channel, convert to RGB
+        #         if img.mode in ('RGBA', 'LA') or (img.mode == 'P' and 'transparency' in img.info):
+        #             img = img.convert('RGB')
+
+        #         # Optionally, resize the image for efficiency
+        #         img.thumbnail((800, 800))  # Example: Resize to max width/height of 800px
+
+        #         # Convert to JPEG format for S3 upload
+        #         buffer = io.BytesIO()  
+        #         img.save(buffer, format="JPEG", optimize=True, quality=85)
+        #         buffer.seek(0)  # Reset buffer position to the beginning
+
+        #         # Upload to S3
+        #         s3.upload_fileobj(buffer, current_app.config['S3_BUCKET'], filename)
+        #         new_report.photo = filename
+
+        #     except Exception as e:  # Add error handling
+        #         flash("Error processing or uploading the photo.", "error")
+        #         return render_template("report.html", user=current_user, title="Report", location_id=id)
+
+        # # Add photo to Amazon S3 bucket
+        # if photo and allowed_file(photo.filename):
+        #     filename = secure_filename(photo.filename)
+        #     s3_key = os.path.join('uploads', str(location.id), filename)  # Construct the key with location ID
+        #     s3 = boto3.client('s3',
+        #           aws_access_key_id=current_app.config['S3_KEY'],
+        #           aws_secret_access_key=current_app.config['S3_SECRET'])
+        #     s3.upload_fileobj(photo, current_app.config['S3_BUCKET'], filename)
+        #     new_report.photo = filename
+        #     print(f"Photo uploaded to: {filename}")
 
         db.session.add(new_report)
         db.session.commit()
 
         # Send email notification if the pantry is empty
         if new_report.pantry_fullness <= 33:  # Check for empty status
+            # TODO - send image in email
             image_data = None
-            if new_report.photo:
-                with open(os.path.join(current_app.config['UPLOAD_FOLDER'], str(location.id), new_report.photo), "rb") as f:
-                    image_data = base64.b64encode(f.read()).decode()  # Encode image to base64
+            # if new_report.photo:
+            #     with open(os.path.join(current_app.config['UPLOAD_FOLDER'], str(location.id), new_report.photo), "rb") as f:
+            #         image_data = base64.b64encode(f.read()).decode()  # Encode image to base64
 
             send_notification_emails(location, new_report, image_data)
 
@@ -356,23 +436,40 @@ def report(id):
 
 
 
+# Route to serve images from S3
+@views.route('/uploads/<filename>')
+def uploaded_file(filename):
+    s3 = boto3.client(
+        's3',
+        aws_access_key_id=current_app.config['S3_KEY'],
+        aws_secret_access_key=current_app.config['S3_SECRET']
+    )
+    url = s3.generate_presigned_url(
+        'get_object',
+        Params={
+            'Bucket': current_app.config['S3_BUCKET'],
+            'Key': filename
+        },
+        ExpiresIn=3600
+    )  # URL valid for 1 hour
+    return redirect(url, code=302)
 
-@views.route('/uploads/<int:location_id>/<filename>')  
-def uploaded_file(location_id, filename):
-    # Construct the full path to the uploads directory for the given location
-    uploads_folder = os.path.join(current_app.config['UPLOAD_FOLDER'], str(location_id))
-    print(uploads_folder)
+# @views.route('/uploads/<int:location_id>/<filename>')  
+# def uploaded_file(location_id, filename):
+#     # Construct the full path to the uploads directory for the given location
+#     uploads_folder = os.path.join(current_app.config['UPLOAD_FOLDER'], str(location_id))
+#     print(uploads_folder)
 
-    # Check if the file exists and is allowed
-    if not filename or not os.path.exists(os.path.join(uploads_folder, filename)):
-        abort(404)  # Return 404 Not Found if file doesn't exist
+#     # Check if the file exists and is allowed
+#     if not filename or not os.path.exists(os.path.join(uploads_folder, filename)):
+#         abort(404)  # Return 404 Not Found if file doesn't exist
     
-    # Check if the file extension is allowed (optional, but recommended)
-    allowed_extensions = {'png', 'jpg', 'jpeg', 'gif'}
-    if '.' not in filename or filename.rsplit('.', 1)[1].lower() not in allowed_extensions:
-        abort(403)  # Return 403 Forbidden for invalid file types
+#     # Check if the file extension is allowed (optional, but recommended)
+#     allowed_extensions = {'png', 'jpg', 'jpeg', 'gif'}
+#     if '.' not in filename or filename.rsplit('.', 1)[1].lower() not in allowed_extensions:
+#         abort(403)  # Return 403 Forbidden for invalid file types
 
-    return send_from_directory(uploads_folder, filename) 
+#     return send_from_directory(uploads_folder, filename) 
 
 
 

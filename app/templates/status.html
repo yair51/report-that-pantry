@@ -44,8 +44,22 @@
                                 <span class="badge badge-{{ 'success' if latest_report.pantry_fullness > 66 else ('warning' if latest_report.pantry_fullness > 33 else 'danger') }}">{{ latest_report.pantry_fullness }}% ({{ 'Full' if latest_report.pantry_fullness > 66 else ('Half Full' if latest_report.pantry_fullness > 33 else 'Empty') }})</span><br>{{ location.address }}, {{ location.city }}, {{ location.state }}</p> 
                         </td>
                         <td>{{ latest_report.time.timestamp() | tojson }}</td> 
-                        <td> <button type="button" class="btn btn-info" data-toggle="modal" data-target="#locationModal{{ location.id }}">Details</button></td>
-                        <div class="modal fade" id="locationModal{{ location.id }}" tabindex="-1" role="dialog" aria-labelledby="locationModalLabel{{ location.id }}" aria-hidden="true">
+                        <!-- <td> <button type="button" class="btn btn-info">Details</button></td> -->
+                        <td><a href="/location/{{location.id}}" class="btn btn-info">Details</a></td>
+                        <!-- {% if latest_report.photo %}  
+                                <div class="modal fade" id="locationModal{{ location.id }}" tabindex="-1" role="dialog" aria-labelledby="photoModalLabel{{ latest_report.id }}" aria-hidden="true">
+                                    <div class="modal-dialog modal-dialog-centered" role="document"> 
+                                        <div class="modal-content">
+                                            <div class="modal-body">
+                                                <img src="{{ url_for('views.uploaded_file', location_id=latest_report.location_id, filename=latest_report.photo) }}" class="img-fluid mb-3" alt="Latest photo of the pantry">                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endif %} -->
+                        <!-- <div class="modal fade" id="locationModal{{ location.id }}" tabindex="-1" role="dialog" aria-labelledby="locationModalLabel{{ location.id }}" aria-hidden="true">
                             <div class="modal-dialog" role="document">
                                 <div class="modal-content">
                                     <div class="modal-header">
@@ -81,7 +95,7 @@
                                     </div>
                                 </div>
                             </div>
-                        </div>       
+                        </div>        -->
                 {% endif %}
             {% endfor %}
             </tbody>

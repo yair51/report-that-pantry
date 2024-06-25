@@ -26,26 +26,3 @@
 form {
     margin:10px 60px;
 }
-
-
-.modal {
-  position: absolute; /* Change position to absolute */
-  bottom: 0; /* Position it at the bottom of its container */
-}
-
-.modal-dialog {
-  /* max-width: 100%; Allow modal to take up full width */
-  margin: 1.75rem auto; /* Add top/bottom margin for spacing */
-}
-
-.modal-content {
-  height: 90%; /* Set a max-height for the modal content */
-  overflow-y: auto; /* Enable scrolling if the content is too long */
-}
-
-/* Adjust modal height for smaller screens */
-@media (max-width: 576px) { /* Or your desired breakpoint */
-  .modal-content {
-    height: 80%; /* Adjust height further for smaller screens */
-  }
-}

@@ -71,7 +71,9 @@
                                     <div class="modal-dialog modal-dialog-centered" role="document"> 
                                         <div class="modal-content">
                                             <div class="modal-body">
-                                                <img src="{{ url_for('views.uploaded_file', location_id=report.location_id, filename=report.photo) }}" class="img-fluid" alt="Report Photo">
+                                                <img src="{{ current_app.config['S3_LOCATION'] + report.photo }}" class="img-fluid mb-3" alt="Latest photo of the pantry">
+
+                                                <!-- <img src="{{ url_for('views.uploaded_file', location_id=report.location_id, filename=report.photo) }}" class="img-fluid" alt="Report Photo"> -->
                                             </div>
                                             <div class="modal-footer">
                                                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>

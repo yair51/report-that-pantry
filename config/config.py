@@ -17,7 +17,22 @@ class Config:
     MAIL_USE_SSL = os.environ.get('MAIL_USE_SSL')  == 'True' 
     MAIL_USERNAME = os.getenv("MAIL_USERNAME")
     MAIL_PASSWORD = os.getenv("MAIL_PASSWORD")
-    UPLOAD_FOLDER = os.path.join(os.getcwd(), 'instance', 'uploads')
+    # UPLOAD_FOLDER = os.path.join(os.getcwd(), 'instance', 'uploads')
+    # AWS_ACCESS_KEY_ID = os.getenv("AWS_ACCESS_KEY_ID")
+    # AWS_SECRET_ACCESS_KEY = os.getenv("AWS_SECRET_ACCESS_KEY")
+    # AWS_SESSION_TOKEN = os.getenv("AWS_SESSION_TOKEN")
+
+    # File Uploads (S3)
+    S3_BUCKET = os.environ.get('S3_BUCKET')
+    S3_KEY = os.environ.get('S3_KEY')
+    S3_SECRET = os.environ.get('S3_SECRET')
+    S3_LOCATION = f'http://{S3_BUCKET}.s3.amazonaws.com/'
+    MAX_CONTENT_LENGTH = 16 * 1024 * 1024  # 16MB upload limit (adjust as needed)
+
+    # S3_BUCKET = os.environ.get('S3_BUCKET')
+    # S3_KEY = os.environ.get('S3_KEY')
+    # S3_SECRET = os.environ.get('S3_SECRET')
+    # S3_LOCATION = 'http://{}.s3.amazonaws.com/'.format(S3_BUCKET)
 
 class ProductionConfig(Config):
     FLASK_ENV = 'production'
