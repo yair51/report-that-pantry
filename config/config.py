@@ -27,6 +27,7 @@ class Config:
     S3_KEY = os.environ.get('S3_KEY')
     S3_SECRET = os.environ.get('S3_SECRET')
     S3_LOCATION = f'http://{S3_BUCKET}.s3.amazonaws.com/'
+    # TODO - handle oversized uploads
     MAX_CONTENT_LENGTH = 16 * 1024 * 1024  # 16MB upload limit (adjust as needed)
 
     # S3_BUCKET = os.environ.get('S3_BUCKET')
