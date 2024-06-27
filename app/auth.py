@@ -4,9 +4,12 @@ from sqlalchemy.orm import joinedload
 from app.models import User, Notification, Location, Report
 from werkzeug.security import generate_password_hash, check_password_hash
 from . import db, mail
+from app.helpers import send_email
 from flask_login import login_user, login_required, logout_user, current_user
 from itsdangerous import URLSafeTimedSerializer
 from flask_mail import Message
+from sendgrid import SendGridAPIClient
+from sendgrid.helpers.mail import Mail
 
 # from flask_dance.contrib.google import make_google_blueprint, google
 # from flask_dance.contrib.facebook import make_facebook_blueprint, facebook
@@ -108,7 +111,9 @@ def forgot_password():
             reset_link = url_for('auth.reset_password', token=token, _external=True)
 
             # Pass the token to the send_email function
-            send_email(user.email, "Reset Your Password", token)
+            reset_link = url_for('auth.reset_password', token=token, _external=True)  # Generate the full URL
+            msg = f'<p>To reset your password, please click on the following link:</p><a href="{reset_link}">{reset_link}</a>'
+            send_email([user.email], "Reset Your Password", msg)
 
             flash('An email with instructions to reset your password has been sent.', 'info')
             return redirect(url_for('auth.login'))
@@ -148,17 +153,6 @@ def reset_password(token):
 @login_required
 def profile():
     locations = db.session.query(Location).options(joinedload(Location.notifications)).all()
-
-    # # Query all the locations a user is subscribed to
-    # locations = db.session.query(Location, Notification).outerjoin(
-    #     Notification, and_(
-    #         Location.id == Notification.location_id,
-    #         Notification.user_id == current_user.id
-    #     )
-    # ).all()
-
- 
-
     # Create a list of all locations the current user is subscribed to. 
     subscribed_locations = [notification.location_id for notification in current_user.notifications]
 
@@ -184,7 +178,10 @@ def update_profile():
         user_type = request.form.get('userType')
         
         # Check for email validity (if you want)
-        # Update user's profile data
+        # Check if email is changed and already exists for another user
+        if email != current_user.email and User.query.filter_by(email=email).first():
+            flash('Email address is already in use by another account.', 'error')
+            return redirect(url_for('auth.profile'))  # Redirect back to profile
         current_user.email = email
         current_user.first_name = first_name
         current_user.last_name = last_name
@@ -253,17 +250,42 @@ def update_subscriptions():
 
     return redirect(url_for('auth.profile'))
 
+# # Function that sends emails
+# def send_email(to, subject, html_content):
+#     msg = Message(subject, sender=current_app.config['MAIL_USERNAME'], recipients=[to])
+#     msg.html = html_content
+#     try:
+#         mail.send(msg)
+#     except Exception as e:
+#         print(f"Error sending email: {e}")
+
+# Function to send email
+# def send_email(to, subject, html_content):
+#     message = Mail(
+#         from_email='info.reportthatpantry@gmail.com',  # Replace with your verified sender email
+#         to_emails=to,
+#         subject=subject,
+#         html_content=html_content
+#     )
+#     try:
+#         sg = SendGridAPIClient(os.environ.get('SENDGRID_API_KEY'))
+#         response = sg.send(message)
+#         print(response.status_code)
+#         print(response.body)
+#         print(response.headers)
+#     except Exception as e:
+#         print(e.message)
 
 
 # Function to send emails
-def send_email(to, subject, token):
-    msg = Message(subject, sender='info.reportthatpantry@gmail.com', recipients=[to])
+# def send_email(to, subject, token):
+#     msg = Message(subject, sender='info.reportthatpantry@gmail.com', recipients=[to])
     
-    # Create a clickable reset link with HTML
-    reset_link = url_for('auth.reset_password', token=token, _external=True)  # Generate the full URL
-    msg.html = f'<p>To reset your password, please click on the following link:</p><a href="{reset_link}">{reset_link}</a>'
+#     # Create a clickable reset link with HTML
+#     reset_link = url_for('auth.reset_password', token=token, _external=True)  # Generate the full URL
+#     msg.html = f'<p>To reset your password, please click on the following link:</p><a href="{reset_link}">{reset_link}</a>'
 
-    mail.send(msg)
+#     mail.send(msg)
 
 
 

@@ -16,15 +16,15 @@
                         </div>
                         <div class="form-group">
                             <label for="firstName">First Name</label>
-                            <input type="text" class="form-control" id="firstName" name="firstName" value="{{ user.first_name }}">
+                            <input type="text" class="form-control" id="firstName" name="firstName" value="{{ user.first_name }}" required>
                         </div>
                         <div class="form-group">
                             <label for="lastName">Last Name</label>
-                            <input type="text" class="form-control" id="lastName" name="lastName" value="{{ user.last_name }}">
+                            <input type="text" class="form-control" id="lastName" name="lastName" value="{{ user.last_name }}" required>
                         </div>
                         <div class="form-group">
                             <label for="userType">What best describes you?</label>
-                            <select class="form-control" id="userType" name="userType">
+                            <select class="form-control" id="userType" name="userType" required>
                               <option value="volunteer" {% if user.user_type == "volunteer" %}selected{% endif %}>Pantry Volunteer</option>
                               <option value="owner" {% if user.user_type == "owner" %}selected{% endif %}>Pantry Owner</option>
                               <option value="beneficiary" {% if user.user_type == "beneficiary" %}selected{% endif %}>Pantry Beneficiary</option>

@@ -44,7 +44,7 @@
                             <input type="file" class="form-control-file" id="locationPhoto" name="locationPhoto" accept="image/*">
                             {% if editing and location.photo %}
                                 <p class="mt-2">Current Photo:</p>
-                                <img src="{{ url_for('views.uploaded_file', location_id=location.id, filename=location.photo) }}" class="img-thumbnail" alt="Current Pantry Photo" width="200">
+                                <img src="{{ current_app.config['S3_LOCATION'] + location.photo }}" class="img-fluid mb-3" alt="Pantry Profile Picture">
                             {% endif %}
                         </div>
                         <div class="form-group">

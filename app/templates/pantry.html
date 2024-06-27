@@ -36,7 +36,7 @@
                         Get Directions
                     </a>
                     {% if location.photo %}
-                        <img src="{{ url_for('views.uploaded_file', location_id=location.id, filename=location.photo) }}" class="img-fluid" alt="Pantry Profile Photo">
+                        <img src="{{ current_app.config['S3_LOCATION'] + location.photo }}" class="img-fluid mb-3" alt="Pantry Profile Picture">
                     {% endif %}
                     <h3>Contact Information</h3>
                     {% if location.contact_info %} 

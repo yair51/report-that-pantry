@@ -27,32 +27,6 @@ def create_app():
 
     app.config.from_object(config_class)  # Load the appropriate config class
 
-    # # Load configuration based on environment
-    # env_config = environ.get('APP_SETTINGS') or 'DevelopmentConfig'  # Default to development
-    # if env_config == 'DevelopmentConfig':
-    #     app.config.from_object('instance.config.DevelopmentConfig')
-    # elif env_config == 'StagingConfig':
-    #     app.config.from_object('instance.config.StagingConfig')
-    # elif env_config == 'Config':
-    #     app.config.from_object('instance.config.ProductionConfig')
-    # else:
-    #     raise ValueError(f'Invalid environment: {env_config}')
-    
-
-
-    # app.config['SECRET_KEY'] = 'hjshjhdjah kjshkjdhjs'
-    # app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{DB_NAME}'
-    # mail config: 
-    
-    # app.config['MAIL_SERVER'] = 'smtp.gmail.com'
-    # app.config['MAIL_PORT'] = 465
-    # app.config["MAIL_USE_TLS"]= False
-    # app.config['MAIL_USE_SSL'] = True
-    # app.config['MAIL_USERNAME'] = 'info.reportthatpantry@gmail.com'
-    # app.config['MAIL_PASSWORD'] = 'vrucxrsmpacwcdsk'
-    
-    # email = Mail(app)
-
 
     
     db.init_app(app)
