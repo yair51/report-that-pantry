@@ -387,14 +387,11 @@ def uploaded_file(filename):
 def status():
     # Get every report for every location, ordered by report time
     locations = db.session.query(Location).options(joinedload(Location.reports)).all()
-    # locations = db.session.query(Location, Report).outerjoin(
-    #     Report, and_(Location.id == Report.location_id)
-    # ).order_by(Report.time.desc()).all()  # Apply order_by here
 
-    # locations = db.session.query(Location).options(
-    #     joinedload(Location.reports)
-    # ).all()
-    # print(locations)
+
+    # sort reports in time ascending order
+    for location in locations:
+        location.reports = sorted(location.reports, key=lambda report: report.id, reverse=False)  # Ascending order
 
     for location in locations:
         print(location.reports)
