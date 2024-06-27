@@ -2,7 +2,7 @@ from . import mail
 from flask import current_app, flash
 from flask_mail import Message
 from sendgrid import SendGridAPIClient
-from sendgrid.helpers.mail import Mail, Email
+from sendgrid.helpers.mail import Mail, From, To
 import os
 from werkzeug.utils import secure_filename
 import uuid
@@ -20,20 +20,24 @@ def send_email(to, subject, html_content):
                     msg = Message(subject, sender=current_app.config['MAIL_USERNAME'], recipients=[recipient])
                     msg.html = html_content  # Set the HTML content of the email directly
                     conn.send(msg)
+
     # Use SendGrid for staging/production
     else:
-        message = Mail(
-            from_email=Email(current_app.config['MAIL_USERNAME']),
-            to_emails=to,
-            subject=subject,
-            html_content=html_content
-        )
         try:
             sg = SendGridAPIClient(os.environ.get('SENDGRID_API_KEY'))
-            response = sg.send(message)
-            print(response.status_code)
-            print(response.body)
-            print(response.headers)
+            
+            for recipient in to:
+                message = Mail(
+                    from_email=From(email=current_app.config['MAIL_USERNAME'], name="Report That Pantry"),  # Updated From email
+                    to_emails=To(recipient),  # Send to one recipient at a time
+                    subject=subject,
+                    html_content=html_content
+                )
+                response = sg.send(message)
+                print(response.status_code)
+                print(response.body)
+                print(response.headers)
+
         except Exception as e:
             print(e.message)
 
