@@ -2,7 +2,7 @@ from . import mail
 from flask import current_app, flash
 from flask_mail import Message
 from sendgrid import SendGridAPIClient
-from sendgrid.helpers.mail import Mail
+from sendgrid.helpers.mail import Mail, Email
 import os
 from werkzeug.utils import secure_filename
 import uuid
@@ -23,7 +23,7 @@ def send_email(to, subject, html_content):
     # Use SendGrid for staging/production
     else:
         message = Mail(
-            from_email=current_app.config['MAIL_USERNAME'],
+            from_email=Email(current_app.config['MAIL_USERNAME']),
             to_emails=to,
             subject=subject,
             html_content=html_content
