@@ -22,10 +22,10 @@ def send_email(to, subject, html_content):
     # Use SendGrid for staging/production
     else:
         message = Mail(
-            from_email=current_app.config['MAIL_USERNAME'],
-            to_emails=to,
+            sender=current_app.config['MAIL_USERNAME'],
+            recipients=[to],
             subject=subject,
-            html_content=html_content
+            html=html_content
         )
         try:
             sg = SendGridAPIClient(os.environ.get('SENDGRID_API_KEY'))
