@@ -387,6 +387,17 @@ def uploaded_file(filename):
 def status():
     # Get every report for every location, ordered by report time
     locations = db.session.query(Location).options(joinedload(Location.reports)).all()
+    # locations = db.session.query(Location, Report).outerjoin(
+    #     Report, and_(Location.id == Report.location_id)
+    # ).order_by(Report.time.desc()).all()  # Apply order_by here
+
+    # locations = db.session.query(Location).options(
+    #     joinedload(Location.reports)
+    # ).all()
+    # print(locations)
+
+    for location in locations:
+        print(location.reports)
     # Safely access subscribed_locations only if the user is authenticated
     subscribed_locations = [notification.location_id for notification in current_user.notifications] if current_user.is_authenticated else []
     return render_template("status.html", user=current_user, title="Status", locations=locations, subscribed_locations=subscribed_locations)
