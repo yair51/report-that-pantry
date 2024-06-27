@@ -10,23 +10,12 @@ class Config:
     SECRET_KEY = os.getenv("SECRET_KEY")  # No default; this should always be set externally
     SQLALCHEMY_DATABASE_URI = "postgresql" + os.getenv("DATABASE_URL")[8:]  # Include +psycopg2
     SQLALCHEMY_TRACK_MODIFICATIONS = False
-
      # Email
     MAIL_SERVER = os.environ.get('MAIL_SERVER', 'smtp.sendgrid.net')  # SendGrid as default
     MAIL_PORT = int(os.environ.get('MAIL_PORT', 587))  # SendGrid's default port
     MAIL_USE_TLS = os.environ.get('MAIL_USE_TLS', 'True').lower() == 'true'
     MAIL_USERNAME = os.environ.get('MAIL_USERNAME', 'apikey')  # SendGrid uses 'apikey'
     MAIL_PASSWORD = os.environ.get('SENDGRID_API_KEY')  # SendGrid API key
-
-
-    # MAIL_SERVER = os.environ.get('MAIL_SERVER')
-    # MAIL_PORT = os.environ.get('MAIL_PORT')
-    # MAIL_USE_TLS = os.environ.get('MAIL_USE_TLS')  == 'True'  
-    # MAIL_USE_SSL = os.environ.get('MAIL_USE_SSL')  == 'True' 
-    # MAIL_USERNAME = os.getenv("MAIL_USERNAME")
-    # MAIL_PASSWORD = os.getenv("MAIL_PASSWORD")
-
-
     # File Uploads (S3)
     S3_BUCKET = os.environ.get('S3_BUCKET')
     S3_KEY = os.environ.get('S3_KEY')
@@ -35,17 +24,19 @@ class Config:
     # TODO - handle oversized uploads
     MAX_CONTENT_LENGTH = 16 * 1024 * 1024  # 16MB upload limit (adjust as needed)
 
+
 class ProductionConfig(Config):
     FLASK_ENV = 'production'
     DEBUG = False
+
 
 class StagingConfig(Config):
     FLASK_ENV = 'staging'
     DEBUG = True
 
+
 class DevelopmentConfig(Config):
     FLASK_ENV = 'development'
     DEBUG = True
     MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD')
-    # MAIL_USE_SSL = False
     SQLALCHEMY_DATABASE_URI = os.getenv("DATABASE_URL", "sqlite:///database.db")
