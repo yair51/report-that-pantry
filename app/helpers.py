@@ -1,7 +1,8 @@
 from . import mail
 from flask import current_app, flash
-from flask_mail import Message, Mail
+from flask_mail import Message
 from sendgrid import SendGridAPIClient
+from sendgrid.helpers.mail import Mail
 import os
 from werkzeug.utils import secure_filename
 import uuid
@@ -22,10 +23,10 @@ def send_email(to, subject, html_content):
     # Use SendGrid for staging/production
     else:
         message = Mail(
-            sender=current_app.config['MAIL_USERNAME'],
-            recipients=[to],
+            from_email=current_app.config['MAIL_USERNAME'],
+            to_emails=to,
             subject=subject,
-            html=html_content
+            html_content=html_content
         )
         try:
             sg = SendGridAPIClient(os.environ.get('SENDGRID_API_KEY'))
