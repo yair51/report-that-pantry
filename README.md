@@ -30,22 +30,30 @@ pip install psycopg2
 
 create .env file in root directory with the following environment variables
 ```
-DATABASE_URL = {database_uri_here}
-MAIL_USERNAME = {mail_username_here}
-MAIL_PASSWORD = {mail_password_here}
-MAIL_SERVER = '{mail_server_here}'
-MAIL_PORT = {mail_port_here}
-MAIL_USE_TLS = False
-MAIL_USE_SSL = True
-SECRET_KEY = {secret_key_here}
-UPLOAD_FOLDER = {upload_folder_here}
+S3_KEY = {}
+S3_SECRET = {}
+S3_BUCKET = {}
+DATABASE_URL = {}
+MAIL_USERNAME = {}
+MAIL_PASSWORD = {}
+MAIL_SERVER = {}
+MAIL_PORT = {}
+MAIL_USE_TLS = 'True'
+MAIL_USE_SSL = 'False'
+SECRET_KEY = {}
 ```
 
 ## Running The App
+You can run this app using either bash or python
 
+using bash:
 ```bash
 export FLASK_APP=main.py
 flask run
+```
+using python:
+```python
+python main.py
 ```
 
 ## Viewing The App
