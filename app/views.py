@@ -393,8 +393,8 @@ def status():
     for location in locations:
         location.reports = sorted(location.reports, key=lambda report: report.id, reverse=False)  # Ascending order
 
-    for location in locations:
-        print(location.reports)
+    # for location in locations:
+    #     print(location.reports)
     # Safely access subscribed_locations only if the user is authenticated
     subscribed_locations = [notification.location_id for notification in current_user.notifications] if current_user.is_authenticated else []
     return render_template("status.html", user=current_user, title="Status", locations=locations, subscribed_locations=subscribed_locations)
