@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+
+{% block title %}Report That Pantry - Map{% endblock %}
+
+{% block content %}
+<style>
+    .custom-marker {
+            background-color: #3498db; /* Change this to your desired color */
+            color: white;
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-family: Arial, sans-serif;
+            font-size: 14px;
+        }
+    
+    #pantry-list {  /* Target the ul element within the card body */
+        padding-inline-start: 0px;  /* Remove the left padding */
+    }
+</style>
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <input id="pac-input" class="form-control" type="text" placeholder="Search for pantries...">
+        </div>
+    </div>
+    <div class="row mt-3">  <div class="col-md-4 offset-md-4 text-center"> 
+            <button id="find-near-me" class="btn btn-primary">Pantries Near Me</button>
+    </div>
+</div>
+<div class="container">
+    <div class="row mt-3">
+        <div class="col-12">
+            <ul id="pantry-list"></ul>
+            <div id="map" style="height: 400px;"></div>  
+            <div class="modal fade" id="locationModal" tabindex="-1" role="dialog" aria-labelledby="locationModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="locationModalLabel">Enable Location Sharing</h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <div class="modal-body">
+                            <p>To get the most of this feature, please enable location sharing in your browser settings.</p>
+                        </div>
+                        <div class="modal-footer">
+                            <!-- <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button> -->
+                            <button type="button" class="btn btn-secondary" id="enableLocation" data-dismiss="modal">Close</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<script src="https://maps.googleapis.com/maps/api/js?key={{ api_key }}&libraries=places,marker,geometry&callback=initMap&loading=async" async defer></script>
+<script src="{{ url_for('static', filename='map.js') }}"></script>
+
+{% endblock %}

@@ -1,93 +1,196 @@
 {% extends "base.html" %}
+
+{% block title %} {{ pantry.name }} - Report That Pantry {% endblock %}
+
 {% block content %}
-<style>
-    #subscribeForm {
-        margin: 0px;
-    }
-</style>
 <div class="container mt-5">
     <div class="row">
-        <div class="col-md-4">
-            <div class="card">
+        <div class="col-md-8">
+            <div class="card mb-4">
+                {% if pantry.photo %}
+                <img src="{{ current_app.config['S3_LOCATION'] + pantry.photo }}" 
+                    class="card-img-top" alt="Pantry Photo">
+                {% endif %}
                 <div class="card-body">
-                    <h2 class="card-title">{{ location.name }}</h2>
-                    <h3>Pantry Details</h3>
-                    <p><strong>Address: </strong>{{ location.address }}, {{ location.city }}, {{ location.state }}</p>
-                    {% if user.is_authenticated %}
-                    <form id="subscribeForm" method="POST" action="{{ url_for('views.subscribe_location', location_id=location.id) }}">
-                            <button type="submit" id="subscribeBtn" class="btn btn-{{ 'danger' if location.id in subscribed_locations else 'success' }} btn-block mb-3">
-                                {% if location.id in subscribed_locations %}
+                    <h2 class="card-title">{{ pantry.name }}</h2>
+                    <p class="card-text">{{ pantry.address }} {{ pantry.city }}, {{ pantry.state }}, {{ pantry.zip }}</p>
+                    
+                    <div class="status-section mt-3">
+                        <h3>Current Status</h3>
+                        <div class="progress" style="height: 20px; position: relative;"> 
+                            <div class="progress-bar 
+                                {% if latest_report.pantry_fullness <= 33 %}
+                                    bg-danger
+                                {% elif latest_report.pantry_fullness <= 67 %}
+                                    bg-warning
+                                {% else %}
+                                    bg-success
+                                {% endif %}" 
+                                role="progressbar" 
+                                style="width: {{ latest_report.pantry_fullness }}%;" 
+                                aria-valuenow="{{ latest_report.pantry_fullness }}" 
+                                aria-valuemin="0" 
+                                aria-valuemax="100">
+                                {{ latest_report.pantry_fullness }}% Full
+                            </div>
+                        </div>
+                        <p class="report-time" data-utc-time="{{ latest_report.time.isoformat() }}">Last Updated: {{ latest_report.time.strftime('%Y-%m-%d %H:%M') if latest_report.time else 'N/A' }}</p> 
+                        <form action="/location/subscribe/{{pantry.id}}" class="d-flex" method="POST" style="margin: 0px;"> 
+                            <a href="{{ url_for('views.report', id=pantry.id) }}" class="btn btn-primary mr-2">Report Status</a> 
+                            {% if user.is_authenticated %}
+                            <button id="subscribe-button" class="btn btn-{{ 'danger' if pantry.id in subscribed_locations else 'success' }}"> 
+                                {% if pantry.id in subscribed_locations %}
                                     Unsubscribe
                                 {% else %}
                                     Subscribe
                                 {% endif %}
                             </button>
+                        {% else %}
+                        <a href="/login" class="btn btn-success">Log In to Subscribe</a>
+                        {% endif %}
                         </form>
-                    {% else %}
-                        <a href="/login" class="btn btn-success btn-block mb-3">Log In to Subscribe</a>
-                    {% endif %}
-        
-                    <a href="/report/{{ location.id }}" class="btn btn-info btn-block mb-3">Report Status</a>
-                    {% if user.id == location.user_id %}
-                        <a href="/location/edit/{{ location.id }}" class="btn btn-warning btn-block mb-3">Edit Location</a>
-                        <a href="{{url_for('views.poster', isNew1=1, id=location.id) }}" class="btn btn-dark btn-block mb-3">Print Poster</a>
-                    {% endif %}
-                    <a href="https://www.google.com/maps/search/?api=1&query={{ location.address|urlencode }},{{ location.city|urlencode }},{{ location.state|urlencode }}" class="btn btn-secondary btn-block mb-3" target="_blank">
-                        Get Directions
-                    </a>
-                    {% if location.photo %}
-                        <img src="{{ current_app.config['S3_LOCATION'] + location.photo }}" class="img-fluid mb-3" alt="Pantry Profile Picture">
-                    {% endif %}
-                    <h3>Contact Information</h3>
-                    {% if location.contact_info %} 
-                        <p>{{ location.contact_info }}</p>
-                    {% else %}
-                        <p>No contact information available.</p>
-                    {% endif %}
+
+                    </div>
+
+                    <div class="details-section mt-4">
+                        <h3>Details</h3>
+                        {% if pantry.description %}
+                            <p>Description: {{ pantry.description }}</p>
+                        {% endif %}
+                        {% if pantry.contact_info %}
+                            <p>Contact Info: {{ pantry.contact_info }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="reporting-history mt-4">
+                        <h3>Reporting History</h3>
+                        {% if pantry.reports|length > 0 %}
+                            <ul class="list-group">
+                                {% for report in pantry.reports[:10] %}
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        <span class="report-time" data-utc-time="{{ report.time.isoformat() }}">
+                                            {{ report.time.strftime('%Y-%m-%d %H:%M') }}
+                                        </span>
+                                        {% if report.photo %} 
+                                            <div class="col-md-3 mb-3"> 
+                                                <a href="{{ current_app.config['S3_LOCATION'] + report.photo }}" data-toggle="modal" data-target="#photoModal">
+                                                    <img src="{{ current_app.config['S3_LOCATION'] + report.photo }}" class="img-thumbnail" alt="Report Photo">
+                                                </a>
+                                            </div>
+                                        {% endif %}
+                                        <span>
+                                            {{ report.status }}
+                                            {% if report.pantry_fullness %}
+                                                <span class="badge badge-pill 
+                                                    {% if report.pantry_fullness <= 33 %}
+                                                        badge-danger
+                                                    {% elif report.pantry_fullness <= 67 %}
+                                                        badge-warning
+                                                    {% else %}
+                                                        badge-success
+                                                    {% endif %}">
+                                                    {{ report.pantry_fullness }}% full
+                                                </span>
+                                            {% endif %}
+                                        </span>
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        {% else %}
+                            <p>No reports available.</p>
+                        {% endif %}
+                    </div>
+
                 </div>
             </div>
         </div>
-        <div class="col-md-8">
-            <div class="card">
-                <div class="card-body">
-                    <h3>Report History</h3>
-                    <ul class="list-group">
-                        {% for report in location.reports | reverse %}
-                            <li class="list-group-item">
-                                <span class="badge badge-{{ 'success' if report.pantry_fullness > 66 else ('warning' if report.pantry_fullness > 33 else 'danger') }}">
-                                    {{ report.pantry_fullness }}% ({{ 'Full' if report.pantry_fullness > 66 else ('Half Full' if report.pantry_fullness > 33 else 'Empty') }})
-                                </span>     <span id="time{{report.id}}">{{ report.time.timestamp() | tojson }}</span>
-                                {% if report.photo %}
-                                <button type="button" class="btn btn-info btn-sm" data-toggle="modal" data-target="#photoModal{{ report.id }}">
-                                    View Photo
-                                </button>
-                                {% endif %}
-                                {% if report.description %}
-                                    <br><small>{{ report.description }}</small>
-                                {% endif %}
-                            </li>
-                            {% if report.photo %}  
-                                <div class="modal fade" id="photoModal{{ report.id }}" tabindex="-1" role="dialog" aria-labelledby="photoModalLabel{{ report.id }}" aria-hidden="true">
-                                    <div class="modal-dialog modal-dialog-centered" role="document"> 
-                                        <div class="modal-content">
-                                            <div class="modal-body">
-                                                <img src="{{ current_app.config['S3_LOCATION'] + report.photo }}" class="img-fluid mb-3" alt="Latest photo of the pantry">
 
-                                                <!-- <img src="{{ url_for('views.uploaded_file', location_id=report.location_id, filename=report.photo) }}" class="img-fluid" alt="Report Photo"> -->
-                                            </div>
-                                            <div class="modal-footer">
-                                                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            {% endif %}
+        <div class="col-md-4">
+            <!-- <div class="card">
+                <div class="card-header">
+                    <h3>Community Leaderboard</h3>
+                </div>
+                <div class="card-body">
+                    <ul class="list-group" id="leaderboard">
+                        {% for user in top_reporters %}
+                            <li class="list-group-item">{{ user.username }} - {{ user.report_count }} reports</li>
                         {% endfor %}
                     </ul>
+                </div>
+            </div> -->
+
+            <div class="card">
+                <div class="card-header">
+                    <h3>Actions</h3>
+                </div>
+                <div class="card-body">
+                    <a href="https://www.google.com/maps/search/?api=1&query={{ pantry.latitude }},{{ pantry.longitude }}&zoom=16" target="_blank" class="btn btn-secondary btn-block mb-2">View on Google Maps</a>
+                    {% if user.is_authenticated and user.id == pantry.user_id %}
+                        <a href="{{ url_for('views.edit_location', location_id=pantry.id) }}" class="btn btn-info btn-block mb-2">Edit Location</a>
+                        <a href="{{ url_for('views.poster', id=pantry.id, isNew1=1) }}" class="btn btn-success btn-block">Get QR Code</a> 
+                    {% endif %}
                 </div>
             </div>
         </div>
     </div>
+    <div class="modal fade" id="photoModal" tabindex="-1" role="dialog" aria-labelledby="photoModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="photoModalLabel">Report Photo</h5>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+            </div>
+            <div class="modal-body mx-auto">
+              <img id="modal-image"
+       src="" class="img-fluid" alt="Report Photo">
+            </div>
+          </div>
+        </div>
+    </div>
 </div>
 
+  {% endblock %}
+
+
+  {% block script %}
+<script>
+$(document).ready(function() {
+    $('#photoModal').on('show.bs.modal', function (event) {
+        var button = $(event.relatedTarget); 
+        console.log("button: ", button);
+        var imageUrl = button.attr('href'); 
+        var modal = $(this);
+        console.log("image URL: ", imageUrl);
+        modal.find('.modal-body #modal-image').attr('src', imageUrl);
+    })
+});
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const reportTimes = document.querySelectorAll('.report-time');
+        reportTimes.forEach(function(reportTime) {
+            const utcTime = reportTime.getAttribute('data-utc-time');
+            const localTime = new Date(utcTime);
+            const now = new Date();
+            const diffInMinutes = Math.floor((now - localTime) / 60000); // Difference in minutes
+            let timeAgo;
+            if (diffInMinutes < 60) {
+                timeAgo = `${diffInMinutes} minutes ago`;
+            } else {
+                const diffInHours = Math.floor(diffInMinutes / 60); // Difference in hours
+                if (diffInHours < 24) {
+                    timeAgo = `${diffInHours} hours ago`;
+                } else {
+                    timeAgo = localTime.toLocaleString(); // Fallback to local time string
+                }
+            }
+
+            reportTime.textContent = timeAgo;
+        });
+    });
+
+
+
+</script>
 {% endblock %}

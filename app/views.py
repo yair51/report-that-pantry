@@ -141,12 +141,15 @@ def location(location_id):
             subscribed_locations = [notification.location_id for notification in current_user.notifications]
             print(subscribed_locations)
 
-    # Get the latest report
-    latest_report = location.reports[-1] if location.reports else None  # Handle the case where there are no reports
-
     # Check if user can edit this location
     can_edit = current_user.is_authenticated and location.user_id == current_user.id
-    return render_template("pantry.html", user=current_user, location=location, latest_report=latest_report, subscribed_locations=subscribed_locations, can_edit=can_edit, current_app=current_app, title="Pantry Details")
+    print("pantry reports: ", location.reports)
+    print("pantry reports type: ", type(location.reports))
+    # order the location.reports by time
+    location.reports = sorted(location.reports, key=lambda report: report.id, reverse=True)  # Descending order
+    # Get most recent report
+    latest_report = location.reports[0] if location.reports else None
+    return render_template("pantry.html", user=current_user, pantry=location, latest_report=latest_report, subscribed_locations=subscribed_locations, can_edit=can_edit, current_app=current_app, title="Pantry Details")
 
 
 # # Determines if file submitted is allowed
@@ -173,18 +176,21 @@ def add_location():
         contact_info = request.form.get('contactInfo')
         photo = request.files.get('locationPhoto')  # Get the uploaded file
 
+        latitude = request.form.get('latitude')
+        longitude = request.form.get('longitude')
+
 
         # checks if the location exists
         location = Location.query.filter_by(address=address).first()
         if location:
             flash('Address already exists.', category='error')
             return render_template()
-    
-        print(zip.isnumeric())
-        if not zip.isnumeric():
-            flash('Zip code must contain only digits.', category='error')
-            return redirect(url_for("views.add_location"))
-            # return render_template("locations2.html", user=current_user, location=location, editing=True, title="Edit Location", states=us_states)
+        # print(zip.isnumeric())
+        # Validate and convert zip code (or set to None if invalid/empty)
+        if zip.isdigit():
+            zip = int(zip)
+        else:
+            zip = None  # Set zip to None if invalid or empty
         # Add location to database
         new_location = Location(
             address=address, 
@@ -194,7 +200,9 @@ def add_location():
             zip=zip,
             user_id=current_user.id,
             description=description,
-            contact_info=contact_info
+            contact_info=contact_info,
+            latitude=latitude,
+            longitude=longitude
         )
         db.session.add(new_location)
         db.session.commit()
@@ -229,7 +237,7 @@ def add_location():
         # Redirect user to poster page
         return redirect(url_for("views.poster", id=new_location.id, isNew1=1))
 
-    return render_template("location.html", user=current_user, editing=False, title="Add Location", states=us_states)
+    return render_template("location.html", api_key=os.environ.get('GOOGLE_MAPS_API_KEY'), user=current_user, editing=False, title="Add Location", states=us_states)
 
 
 # Edit Location
@@ -242,7 +250,7 @@ def edit_location(location_id):
     # Check if the user owns this location
     if location.user_id != current_user.id:
         flash("You do not have permission to edit this location.", category='error')
-        return redirect(url_for('views.status'))
+        return redirect(url_for('views.map'))
 
     if request.method == 'POST':
         # Get form data
@@ -254,9 +262,17 @@ def edit_location(location_id):
         description = request.form.get('description')
         photo = request.files.get('locationPhoto')
         contact_info = request.form.get('contactInfo')
+        latitude = request.form.get('latitude')
+        longitude = request.form.get('longitude')
+
+        # Validate and convert zip code (or set to None if invalid/empty)
+        if zip_code.isdigit():
+            zip_code = int(zip_code)
+        else:
+            zip_code = None
 
         # Basic input validation (add more as needed)
-        if not all([name, address, city, state, zip_code]):
+        if not all([name, latitude, longitude]):
             flash('All fields are required.', category='error')
         else:
             # Update location details
@@ -267,6 +283,9 @@ def edit_location(location_id):
             location.zip = zip_code
             location.description = description
             location.contact_info = contact_info
+            location.latitude = latitude
+            location.longitude = longitude
+            
 
             # Handle photo update (if a new photo is uploaded)
             if photo and allowed_file(photo.filename):
@@ -283,7 +302,7 @@ def edit_location(location_id):
             flash('Location updated successfully!', category='success')
             return redirect(url_for('views.location', location_id=location.id))
 
-    return render_template("location.html", current_app=current_app, user=current_user, location=location, editing=True, title="Edit Location", states=us_states)
+    return render_template("location.html", api_key=os.environ.get('GOOGLE_MAPS_API_KEY'), current_app=current_app, user=current_user, location=location, editing=True, title="Edit Location", states=us_states)
 
 
 @views.route('/delete-location', methods=['POST'])
@@ -309,7 +328,7 @@ def report(id):
     location = Location.query.get(id)
     if not location:
         flash("Location does not exist.", category='error')
-        return redirect(url_for('views.status'))
+        return redirect(url_for('views.map'))
 
     if request.method == 'POST':
         # Get fullness level from the form
@@ -471,6 +490,7 @@ def subscribe():
 @views.route('/location/subscribe/<int:location_id>', methods=['POST'])
 @login_required
 def subscribe_location(location_id):
+    print("page accessed")
     # Check if location exists
     location = Location.query.get(location_id)
     print(location)
@@ -478,7 +498,7 @@ def subscribe_location(location_id):
         location_id = int(location_id)
         # Check if the user is already subscribed and toggle the subscription
         existing_subscription = Notification.query.filter_by(user_id=current_user.id, location_id=location_id).first()
-        
+        print("existing_subscription", existing_subscription)
         if existing_subscription:
             # Unsubscribe
             db.session.delete(existing_subscription)
@@ -495,3 +515,98 @@ def subscribe_location(location_id):
         return redirect(url_for('views.location', location_id=location_id))
 
     return redirect(url_for('views.location', location_id=location_id))  # Redirect back to the location page
+
+
+from geopy.geocoders import Nominatim
+
+geolocator = Nominatim(user_agent="report_that_pantry") 
+
+# Route to get pantry data for the map
+@views.route('/get_pantry_data')
+def get_pantry_data():
+    locations = Location.query.all()
+    pantry_data = []
+    for location in locations:
+        # Geocode the address if coordinates are missing (you might have already done this)
+        if not location.latitude or not location.longitude:
+            address = f"{location.address}, {location.city}, {location.state} {location.zip}"
+            try:
+                geocode_result = geolocator.geocode(address)
+                print("geocode_result", geocode_result)
+                if geocode_result:
+                    location.latitude = geocode_result.latitude
+                    location.longitude = geocode_result.longitude
+                    db.session.commit() 
+            except Exception as e:
+                print(f"Error geocoding address {address}: {e}")
+                continue 
+            
+        # Get the most recent status update for this location
+        latest_report = Report.query.filter_by(location_id=location.id)\
+                                    .order_by(desc(Report.time)).first()
+        
+        # Determine marker color based on fullness
+        fullness = latest_report.pantry_fullness if latest_report else None
+        marker_color = 'gray'  # Default color if no report exists
+        if fullness is not None:
+            if fullness >= 75:
+                marker_color = 'green'
+            elif fullness >= 25:
+                marker_color = 'yellow'
+            else:
+                marker_color = 'red'
+
+
+        pantry_data.append({
+            'id': location.id,
+            'name': location.name,
+            'latitude': location.latitude,
+            'longitude': location.longitude,
+            'address': location.address,
+            'description': location.description, 
+            'contact_info': location.contact_info, 
+            'fullness': fullness,
+            'marker_color': marker_color,
+            'last_updated': latest_report.time.isoformat() if latest_report else None,
+            # ... other relevant data
+        })
+
+    return jsonify(pantry_data)
+
+
+@views.route('/map')
+def map():
+    locations = Location.query.all()
+    pantry_data = []
+
+    for location in locations:
+        # Geocode if coordinates are missing
+        if not location.latitude or not location.longitude:
+            address = f"{location.address}, {location.city}, {location.state} {location.zip}"
+            try:
+                geocode_result = geolocator.geocode(address)
+                if geocode_result:
+                    location.latitude = geocode_result.latitude
+                    location.longitude = geocode_result.longitude
+                    db.session.commit()
+            except Exception as e:
+                print(f"Error geocoding address {address}: {e}")
+                continue
+
+        pantry_data.append({
+            'id': location.id,
+            'name': location.name,
+            'latitude': location.latitude,
+            'longitude': location.longitude,
+            'address': location.address,
+            'description': location.description, 
+            'contact_info': location.contact_info, 
+            # ... other relevant data
+        })
+
+    return render_template('map.html', 
+                           pantries=pantry_data,
+                           map_center=[36.1627, -86.7816],  # Adjust as needed
+                           zoom_start=10,
+                           api_key=os.environ.get('GOOGLE_MAPS_API_KEY'),
+                           title='Status', user=current_user)

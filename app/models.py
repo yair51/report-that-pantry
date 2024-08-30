@@ -20,17 +20,21 @@ class User(db.Model, UserMixin):
 
 class Location(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(150))
+    name = db.Column(db.String(150), nullable=False)
     address = db.Column(db.String(150), unique=True)
-    city = db.Column(db.String(150))
-    state = db.Column(db.String(50))
-    zip = db.Column(db.Integer)
+    city = db.Column(db.String(150), nullable=True)
+    state = db.Column(db.String(50), nullable=True)
+    zip = db.Column(db.Integer, nullable=True)
     photo = db.Column(db.String(255), nullable=True)
     description = db.Column(db.String(250), nullable=True)
-    contact_info = db.Column(db.String(250))
+    contact_info = db.Column(db.String(250), nullable=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     reports = db.relationship('Report', backref='location')
     notifications = db.relationship('Notification', backref='location')
+
+     # New fields for latitude and longitude
+    latitude = db.Column(db.Float, nullable=True)  # Using Float for decimal precision
+    longitude = db.Column(db.Float, nullable=True)
 
 
     def to_dict(self):

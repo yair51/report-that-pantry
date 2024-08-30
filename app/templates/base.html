@@ -11,9 +11,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Josefin+Sans:wght@348&family=Montserrat:wght@500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
-    <link rel="stylesheet" href="https://unpkg.com/bootstrap-table@1.18.3/dist/bootstrap-table.min.css">
-    <script src="https://unpkg.com/bootstrap-table@1.18.3/dist/bootstrap-table.min.js"></script>
-    <script src="https://unpkg.com/bootstrap-table@1.18.3/dist/extensions/filter-control/bootstrap-table-filter-control.min.js"></script>    
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-DQN0CT53NR"></script>
     <script>
         window.dataLayer = window.dataLayer || [];
@@ -37,7 +34,7 @@
               <a class="nav-link" href="/">Home</a>
             </li>
             <li class="nav-item {% if title == 'Status' %}active{% endif %}">
-              <a class="nav-link" href="/status">Status</a>
+              <a class="nav-link" href="/map">Status</a>
             </li>
             <!-- <li class="nav-item {% if title == 'Contact Us' %}active{% endif %}">
               <a class="nav-link" href="/contactus">Contact Us</a>
@@ -96,7 +93,7 @@
                   <h3>Quick Links</h3>
                   <ul class="list-unstyled">
                       <li><a href="/">Home</a></li>
-                      <li><a href="/status">Status</a></li>
+                      <li><a href="/map">Status</a></li>
                       {% if user.is_authenticated %}
 
                       <li><a href="/profile">Profile</a></li>

@@ -57,7 +57,7 @@
                   <a class="dropdown-item" href="#">Something else here</a>
                 </div> -->
               </li>
-              <a class="nav-item nav-link {% if title == 'Status' %}active{% endif %}" style="font-family:Calibri, sans-serif, arial, 'Trebuchet MS'; font-weight: lighter;" id="status" href="/status">Status</a>
+              <a class="nav-item nav-link {% if title == 'Status' %}active{% endif %}" style="font-family:Calibri, sans-serif, arial, 'Trebuchet MS'; font-weight: lighter;" id="status" href="/map">Status</a>
               <a class="nav-item nav-link {% if title == 'Team' %}active{% endif %}" style="font-family:Calibri, sans-serif, arial, 'Trebuchet MS'; font-weight: lighter;" id="team" href="/team">Team</a>
         
               <!-- <a class="nav-item nav-link {% if title == 'About Us' %}active{% endif %}" id="locations" href="/about">About Us</a> -->
@@ -101,7 +101,7 @@
         <div class="collapse navbar-collapse" id="collapsibleNavbar">
           <ul class="navbar-nav">
             <a class="nav-item nav-link {% if title == 'Home' %}active{% endif %}" style="font-family:Calibri, sans-serif, arial, 'Trebuchet MS'; font-weight: lighter;" id="home" href="/">Home</a>
-            <a class="nav-item nav-link {% if title == 'Status' %}active{% endif %}" style="font-family:Calibri, sans-serif, arial, 'Trebuchet MS'; font-weight: lighter;" id="status" href="/status">Status</a>
+            <a class="nav-item nav-link {% if title == 'Status' %}active{% endif %}" style="font-family:Calibri, sans-serif, arial, 'Trebuchet MS'; font-weight: lighter;" id="status" href="/map">Status</a>
             <a class="nav-item nav-link {% if title == 'Team' %}active{% endif %}" style="font-family:Calibri, sans-serif, arial, 'Trebuchet MS'; font-weight: lighter;" id="team" href="/team">Team</a>
       
             {% if user.is_authenticated %}
@@ -173,7 +173,7 @@
     </div>
     {% endif %}
     {% if (title == "Home") %}
-    <a href="/status" class="sticky">Check The Status of Pantries</a>
+    <a href="/map" class="sticky">Check The Status of Pantries</a>
     {% endif %}
   </div>
     <script src="https://cdn.jsdelivr.net/npm/jquery/dist/jquery.min.js"></script>

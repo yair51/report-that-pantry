@@ -25,6 +25,13 @@ def create_app():
         'staging': StagingConfig,
     }.get(os.environ.get('FLASK_ENV'), DevelopmentConfig)  # Default to DevelopmentConfig
 
+    import ssl
+
+    import certifi
+
+    os.environ['SSL_CERT_FILE'] = certifi.where()
+    ssl._create_default_https_context = ssl._create_unverified_context
+
     app.config.from_object(config_class)  # Load the appropriate config class
 
 

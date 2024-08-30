@@ -2,7 +2,8 @@
 {% block content %}
 
 <div class="container mt-5">
-    <div class="row justify-content-center"> <div class="col-lg-8">
+    <div class="row justify-content-center"> 
+        <div class="col-lg-8">
             <div class="card">
                 <div class="card-header">
                     <h2>{% if editing %}Edit{% else %}Add{% endif %} Location</h2>
@@ -12,33 +13,19 @@
                         <div class="row">  
                             <div class="form-group col-lg-6"> 
                                 <label for="locationName">Pantry Name:</label>
-                                <input type="text" class="form-control" id="locationName" name="name" value="{{ location.name if editing else '' }}" required>
+                                <input type="text" class="form-control" id="locationName" name="name" value="{{ location.name if editing else '' }}" placeholder="Enter pantry name" required>
                             </div>
                             <div class="form-group col-lg-6"> 
-                                <label for="address">Street Address:</label>
-                                <input type="text" class="form-control" id="address" name="address" value="{{ location.address if editing else '' }}" required>
+                                <label for="autocomplete">Address:</label> 
+                                <input type="text" class="form-control" id="autocomplete" placeholder="Enter address" {% if editing %}value="{{ location.address }} {{ location.city }}, {{ location.state }} {{ location.zip_code }}"{%endif%} required>
+                                <input type="hidden" id="address" name="address">
+                                <input type="hidden" id="city" name="city">
+                                <input type="hidden" id="state" name="state">
+                                <input type="hidden" id="zipCode" name="zipCode">
+                                <input type="hidden" id="latitude" name="latitude">
+                                <input type="hidden" id="longitude" name="longitude">
                             </div>
                         </div> 
-                        <div class="row">
-                            <div class="form-group col-lg-4">
-                                <label for="city">City:</label>
-                                <input type="text" class="form-control" id="city" name="city" value="{{ location.city if editing else '' }}" required>
-                            </div>
-                            <div class="form-group col-lg-4">
-                                <label for="state">State:</label>
-                                <select class="form-control" id="state" name="state" required>
-                                    <option value="" disabled {% if not editing or not location.state %}selected{% endif %}>Select State</option>
-                                    {% for state_abbr, state_name in states.items() %} 
-                                        <option value="{{ state_abbr }}" {% if editing and location.state == state_abbr %}selected{% endif %}>{{ state_name }}</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                                <div class="form-group col-lg-4">
-                                    <label for="zipCode">Zip Code:</label>
-                                    <input type="text" class="form-control" id="zipCode" name="zipCode" value="{{ location.zip if editing else '' }}" required>
-                                </div>
-                            </div>
-
                         <div class="form-group">
                             <label for="locationPhoto">Photo (Optional):</label>
                             <input type="file" class="form-control-file" id="locationPhoto" name="locationPhoto" accept="image/*">
@@ -49,14 +36,13 @@
                         </div>
                         <div class="form-group">
                             <label for="description">Description (Optional):</label>
-                            <textarea class="form-control" id="description" name="description">{{ location.description if editing else '' }}</textarea>
+                            <textarea class="form-control" id="description" name="description" placeholder="Enter description">{{ location.description if editing else '' }}</textarea>
                         </div>
 
                         <div class="form-group">
                             <label for="contactInfo">Contact Info (Optional):</label>
-                            <input type="text" class="form-control" id="contactInfo" name="contactInfo" value="{{ location.contact_info if editing else '' }}">
+                            <input type="text" class="form-control" id="contactInfo" name="contactInfo" value="{{ location.contact_info if editing else '' }}" placeholder="Enter contact information">
                         </div>
-
                         <div id="mapContainer" style="display: none;">
                             </div>
 
@@ -66,5 +52,118 @@
             </div>
         </div>
     </div>
+    <div class="modal fade" id="invalidAddressModal" tabindex="-1" role="dialog" aria-labelledby="invalidAddressModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="invalidAddressModalLabel">Invalid Address</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    Please enter a valid address.
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
+
+<script src="https://maps.googleapis.com/maps/api/js?key={{ api_key }}&libraries=places&callback=initAutocomplete&loading=async&v=weekly" defer></script>
+
+<script>
+function initAutocomplete() {
+    const input = document.getElementById("autocomplete");
+    const options = {
+        // You can add additional options here to customize the Autocomplete behavior
+        // For example, you can restrict the search to specific countries or types of places
+        // Refer to the Places API documentation for available options
+    };
+    // Create the Autocomplete object
+    const autocomplete = new google.maps.places.Autocomplete(input, options);
+
+    // When the user selects an address from the dropdown, populate the form fields
+    autocomplete.addListener("place_changed", () => {
+        const place = autocomplete.getPlace();
+
+        if (!place.geometry || !place.geometry.location) {
+            // Handle the case where the place doesn't have a geometry
+            console.log("No details available for input: '" + place.name + "'");
+            return;
+        }
+
+        // Extract relevant address components
+        const addressComponents = place.address_components;
+        let streetNumber = '';
+        let route = '';
+        let city = '';
+        let state = '';
+        let zipCode = '';
+
+        for (const component of addressComponents) {
+            const componentType = component.types[0];
+
+            switch (componentType) {
+                case 'street_number':
+                    streetNumber = component.long_name;
+                    break;
+                case 'route':
+                    route = component.long_name;
+                    break;
+                case 'locality':
+                    city = component.long_name;
+                    break;
+                case 'administrative_area_level_1':
+                    state = component.short_name;
+                    break;
+                case 'postal_code':
+                    zipCode = component.long_name;
+                    break;
+            }
+        }
+
+
+        // Populate other form fields with extracted data
+        document.getElementById('address').value = streetNumber + ' ' + route; 
+        document.getElementById('city').value = city;
+        document.getElementById('state').value = state;
+        document.getElementById('zipCode').value = zipCode;
+
+        // Also store the latitude and longitude in hidden fields
+        document.getElementById('latitude').value = place.geometry.location.lat();
+        document.getElementById('longitude').value = place.geometry.location.lng(); 
+
+    });
+}
+const form = document.querySelector('form'); // Get the form element
+
+form.addEventListener('submit', async (event) => {
+    event.preventDefault(); // Prevent default form submission
+  
+
+    const address = document.getElementById('address').value;
+    const city = document.getElementById('city').value;
+    const state = document.getElementById('state').value; 
+    const zipCode = document.getElementById('zipCode').value;
+
+    const fullAddress = `${address}, ${city}, ${state} ${zipCode}`;
+    console.log(address, city, state, zipCode);
+    console.log("Validating address: " + fullAddress);
+    const geocoder = new google.maps.Geocoder();
+    geocoder.geocode({ address: fullAddress }, (results, status) => {
+        console.log("Geocoding status: " + status);
+        if (status === 'OK') {
+            // Address is valid, proceed with form submission
+            form.submit(); 
+        } else {
+            // Address is invalid, display error message in a modal
+            $('#invalidAddressModal').modal('show');
+        }
+    });
+});
+</script>
+
 {% endblock %}
