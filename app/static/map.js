@@ -260,7 +260,7 @@ function sortAndDisplayPantries() {
             const progressBar = document.createElement('div');
             progressBar.classList.add('progress-bar');
             progressBar.role = 'progressbar';
-            progressBar.style.width = `${pantry.fullness || 0}%`; // Handle 'Unknown' fullness
+            progressBar.style.width = `${pantry.fullness < 10 ? '10' : pantry.fullness}%`; // Handle 'Unknown' fullness
             progressBar.style.backgroundColor = pantry.marker_color;
             progressBar.setAttribute('aria-valuenow', pantry.fullness || 0);
             progressBar.setAttribute('aria-valuemin', 0);
