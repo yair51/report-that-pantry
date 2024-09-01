@@ -27,7 +27,7 @@
                                     bg-success
                                 {% endif %}" 
                                 role="progressbar" 
-                                style="width: {{ latest_report.pantry_fullness }}%;" 
+                                style="width: {% if latest_report.pantry_fullness < 10 %}10{% else %}{{ latest_report.pantry_fullness }}{% endif %}%;"
                                 aria-valuenow="{{ latest_report.pantry_fullness }}" 
                                 aria-valuemin="0" 
                                 aria-valuemax="100">
@@ -80,7 +80,6 @@
                                         {% endif %}
                                         <span>
                                             {{ report.status }}
-                                            {% if report.pantry_fullness %}
                                                 <span class="badge badge-pill 
                                                     {% if report.pantry_fullness <= 33 %}
                                                         badge-danger
@@ -91,7 +90,6 @@
                                                     {% endif %}">
                                                     {{ report.pantry_fullness }}% full
                                                 </span>
-                                            {% endif %}
                                         </span>
                                     </li>
                                 {% endfor %}

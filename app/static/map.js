@@ -197,18 +197,19 @@ function createPantryMarker(pantry, AdvancedMarkerElement, PinElement) {
 
 // Create an info window for a pantry
 function createInfoWindow(pantry) {
+    console.log("pantry fullness", pantry.fullness);
     return new google.maps.InfoWindow({
         content: `
             <h3>${pantry.name}</h3>
             <p>${pantry.address}</p>
             <div class="progress" style="height: 20px; position: relative;"> 
                 <div class="progress-bar" role="progressbar" 
-                     style="background-color: ${pantry.marker_color}; width: ${pantry.fullness}%;" 
+                     style="background-color: ${pantry.marker_color}; width: ${pantry.fullness < 10 ? '10' : pantry.fullness}%;" 
                      aria-valuenow="${pantry.fullness}" aria-valuemin="0" aria-valuemax="100">
                     <span class="fullness-overlay">${pantry.fullness}%</span> 
                 </div>
             </div>
-            <p>Last Reported Status: ${pantry.fullness || 'Unknown'}% Full</p>
+            <p>Last Reported Status: ${pantry.fullness === 0 ? 0 : pantry.fullness}% Full</p>
             <p>Last Updated: ${pantry.last_updated ? new Date(pantry.last_updated).toLocaleString() : 'N/A'}</p>
             <a href="/location/${pantry.id}">View Details & Report Status</a>
         `
