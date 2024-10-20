@@ -7,7 +7,7 @@ const MAX_DISTANCE_MILES = 10;
 async function initMap() {
     const { AdvancedMarkerElement, PinElement } = await google.maps.importLibrary("marker");
     const { Autocomplete } = await google.maps.importLibrary("places");
-    const defaultMapCenter = { lat: 36.1627, lng: -86.7816 };
+    const defaultMapCenter = { lat: 44.0521, lng: -123.0868 };
     
     map = new google.maps.Map(document.getElementById("map"), {
         zoom: 10,

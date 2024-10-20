@@ -606,7 +606,7 @@ def map():
 
     return render_template('map.html', 
                            pantries=pantry_data,
-                           map_center=[36.1627, -86.7816],  # Adjust as needed
+                           map_center=[44.0521, 123.0868],  # Adjust as needed
                            zoom_start=10,
                            api_key=os.environ.get('GOOGLE_MAPS_API_KEY'),
                            title='Status', user=current_user)
