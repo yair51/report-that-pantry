@@ -1,0 +1,237 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-8 mx-auto">
+            <div class="card">
+                <div class="card-header">
+                    <h2><i class="fas fa-robot"></i> Google Vision API Demo</h2>
+                    <p class="mb-0 text-muted">Upload a pantry image to see what AI can detect and analyze</p>
+                </div>
+                <div class="card-body">
+                    <form method="POST" enctype="multipart/form-data">
+                        <div class="form-group">
+                            <label for="demoPhoto">Upload Pantry Image:</label>
+                            <input type="file" class="form-control-file" id="demoPhoto" name="demoPhoto" accept="image/*" required>
+                            <small class="form-text text-muted">
+                                Supported formats: PNG, JPG, JPEG, GIF
+                            </small>
+                        </div>
+                        
+                        <div id="imagePreview" class="mt-3" style="display: none;">
+                            <h5>Image Preview:</h5>
+                            <img id="previewImg" src="" alt="Image Preview" class="img-fluid rounded" style="max-height: 300px;">
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary mt-3" id="analyzeBtn">
+                            <i class="fas fa-search"></i> Analyze Image
+                        </button>
+                    </form>
+                    
+                    <!-- Loading indicator -->
+                    <div id="loadingIndicator" class="text-center mt-4" style="display: none;">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="sr-only">Loading...</span>
+                        </div>
+                        <h5 class="mt-3"><i class="fas fa-robot"></i> AI is analyzing your image...</h5>
+                        <p class="text-muted">
+                            Our AI is examining your image to detect food items, read text labels, estimate fullness, and calculate organization scores. 
+                            <br><strong>This usually takes 5-15 seconds.</strong>
+                        </p>
+                        <div class="progress" style="width: 250px; margin: 0 auto;">
+                            <div class="progress-bar progress-bar-striped progress-bar-animated bg-info" role="progressbar" style="width: 100%"></div>
+                        </div>
+                        <small class="text-muted mt-2 d-block">🔍 Detecting objects and labels... 📝 Reading text... 🥫 Identifying food items...</small>
+                    </div>
+                </div>
+            </div>
+
+            {% if error_message %}
+            <div class="alert alert-danger mt-4">
+                <i class="fas fa-exclamation-triangle"></i> {{ error_message }}
+            </div>
+            {% endif %}
+
+            {% if analysis_results %}
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h3><i class="fas fa-chart-line"></i> Analysis Results</h3>
+                </div>
+                <div class="card-body">
+                    
+                    <!-- Summary Section -->
+                    <div class="row mb-4">
+                        <div class="col-md-4">
+                            <div class="card bg-primary text-white">
+                                <div class="card-body text-center">
+                                    <h4>{{ analysis_results.get('fullness_estimate', 'N/A') }}%</h4>
+                                    <p class="mb-0">Estimated Fullness</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card bg-success text-white">
+                                <div class="card-body text-center">
+                                    <h4>{{ analysis_results.get('food_items', [])|length }}</h4>
+                                    <p class="mb-0">Food Items Detected</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card bg-info text-white">
+                                <div class="card-body text-center">
+                                    <h4>{{ "%.0f"|format(analysis_results.get('organization_score', 0)) }}/100</h4>
+                                    <p class="mb-0">Organization Score</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Food Items Section -->
+                    {% if analysis_results.get('food_items') %}
+                    <div class="mb-4">
+                        <h5><i class="fas fa-apple-alt"></i> Detected Food Items</h5>
+                        <div class="row">
+                            {% for item in analysis_results['food_items'] %}
+                            <div class="col-md-6 mb-2">
+                                <div class="card">
+                                    <div class="card-body p-2">
+                                        <h6 class="card-title mb-1">{{ item.description }}</h6>
+                                        <div class="progress" style="height: 15px;">
+                                            <div class="progress-bar" style="width: {{ (item.confidence * 100)|round|int }}%">
+                                                {{ "%.1f"|format(item.confidence * 100) }}%
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- All Labels Section -->
+                    {% if analysis_results.get('labels') %}
+                    <div class="mb-4">
+                        <h5><i class="fas fa-tags"></i> All Detected Labels</h5>
+                        <div class="d-flex flex-wrap">
+                            {% for label in analysis_results['labels'][:15] %}
+                                <span class="badge badge-secondary m-1" title="Confidence: {{ '%.1f'|format(label.confidence * 100) }}%">
+                                    {{ label.description }}
+                                </span>
+                            {% endfor %}
+                            {% if analysis_results['labels']|length > 15 %}
+                                <span class="badge badge-light m-1">+{{ analysis_results['labels']|length - 15 }} more</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Objects Section -->
+                    {% if analysis_results.get('objects') %}
+                    <div class="mb-4">
+                        <h5><i class="fas fa-cube"></i> Detected Objects</h5>
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Object</th>
+                                        <th>Confidence</th>
+                                        <th>Bounding Box</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for obj in analysis_results['objects'][:10] %}
+                                    <tr>
+                                        <td>{{ obj.name }}</td>
+                                        <td>{{ "%.1f"|format(obj.confidence * 100) }}%</td>
+                                        <td>
+                                            <small class="text-muted">
+                                                {{ obj.bounding_box.vertices|length }} vertices
+                                            </small>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Text Detection Section -->
+                    {% if analysis_results.get('text') %}
+                    <div class="mb-4">
+                        <h5><i class="fas fa-font"></i> Detected Text</h5>
+                        <div class="card">
+                            <div class="card-body">
+                                {% for text_line in analysis_results['text'][:10] %}
+                                    <p class="mb-1">{{ text_line }}</p>
+                                {% endfor %}
+                                {% if analysis_results['text']|length > 10 %}
+                                    <p class="text-muted"><em>... and {{ analysis_results['text']|length - 10 }} more lines</em></p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Raw JSON (for debugging) -->
+                    <div class="mt-4">
+                        <button class="btn btn-sm btn-outline-secondary" type="button" data-toggle="collapse" data-target="#rawJson" aria-expanded="false" aria-controls="rawJson">
+                            <i class="fas fa-code"></i> Show Raw JSON
+                        </button>
+                        <div class="collapse mt-2" id="rawJson">
+                            <div class="card">
+                                <div class="card-body">
+                                    <pre class="mb-0"><code>{{ analysis_results | tojson(indent=2) }}</code></pre>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+// Image preview functionality
+document.getElementById("demoPhoto").addEventListener("change", function(event) {
+    const file = event.target.files[0];
+    const preview = document.getElementById("imagePreview");
+    const previewImg = document.getElementById("previewImg");
+    
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            previewImg.src = e.target.result;
+            preview.style.display = "block";
+        };
+        reader.readAsDataURL(file);
+    } else {
+        preview.style.display = "none";
+    }
+});
+
+// Loading indicator functionality
+document.querySelector('form').addEventListener('submit', function(event) {
+    const fileInput = document.getElementById("demoPhoto");
+    const analyzeBtn = document.getElementById("analyzeBtn");
+    const loadingIndicator = document.getElementById("loadingIndicator");
+    
+    // Check if a file is selected
+    if (fileInput.files.length > 0) {
+        // Show loading indicator
+        loadingIndicator.style.display = "block";
+        analyzeBtn.disabled = true;
+        analyzeBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Analyzing...';
+        
+        // Scroll to loading indicator
+        loadingIndicator.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+});
+</script>
+
+{% endblock %}

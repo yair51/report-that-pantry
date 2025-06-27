@@ -55,6 +55,12 @@
                          <!-- <span class="badge badge-primary">5 points</span> -->
                         </label>
                     <input type="file" class="form-control-file" id="pantryPhoto" name="pantryPhoto" accept="image/*">
+                    <small class="form-text text-muted">
+                        <i class="fas fa-robot"></i> AI analysis will be performed automatically when you upload a photo to help detect food items and estimate fullness.
+                    </small>
+                    <div id="imagePreview" class="mt-2" style="display: none;">
+                        <img id="previewImg" src="" alt="Image Preview" class="img-thumbnail" style="max-width: 200px;">
+                    </div>
                 </div>
 
                 <div class="form-group">
@@ -68,6 +74,21 @@
 
                 <button type="submit" class="btn btn-primary" id="submitReport">Submit Report</button>
             </form>
+            
+            <!-- Loading indicator -->
+            <div id="loadingIndicator" class="text-center mt-4" style="display: none;">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="sr-only">Loading...</span>
+                </div>
+                <h5 class="mt-3"><i class="fas fa-upload"></i> Processing your report...</h5>
+                <p class="text-muted">
+                    <span id="loadingMessage">Submitting your pantry report to the database...</span>
+                </p>
+                <div class="progress" style="width: 280px; margin: 0 auto;">
+                    <div class="progress-bar progress-bar-striped progress-bar-animated bg-success" role="progressbar" style="width: 100%"></div>
+                </div>
+                <small class="text-muted mt-2 d-block" id="loadingDetails">📊 Saving report data...</small>
+            </div>
 
         </div>
     </div>
@@ -161,9 +182,7 @@
                 rangeInput.classList.add("bg-success");
                 rangeValue.textContent += " (Full)";
             }
-        }
-
-        document.getElementById("submitReport").addEventListener("click", () => {
+        }        document.getElementById("submitReport").addEventListener("click", (event) => {
             const rangeInput = document.getElementById("pantryFullness");
 
             if (!rangeTouched) {
@@ -171,7 +190,50 @@
                 event.preventDefault(); // Prevent the default form submission behavior
                 return; // Prevent form submission
             }
+        });
 
+        // Form submission loading indicator
+        document.getElementById("reportForm").addEventListener("submit", function(event) {
+            const submitBtn = document.getElementById("submitReport");
+            const loadingIndicator = document.getElementById("loadingIndicator");
+            const loadingMessage = document.getElementById("loadingMessage");
+            const loadingDetails = document.getElementById("loadingDetails");
+            const photoInput = document.getElementById("pantryPhoto");
+            
+            // Show loading indicator
+            loadingIndicator.style.display = "block";
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+            
+            // Update message based on whether photo was uploaded
+            if (photoInput.files.length > 0) {
+                loadingMessage.textContent = "Analyzing your photo with AI and submitting report...";
+                loadingDetails.textContent = "🤖 Running AI analysis... 📊 Saving to database... This may take 10-20 seconds.";
+            } else {
+                loadingMessage.textContent = "Submitting your pantry report to the database...";
+                loadingDetails.textContent = "📊 Saving report data... 📍 Updating pantry status...";
+            }
+            
+            // Scroll to loading indicator
+            loadingIndicator.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        });
+
+        // Image preview functionality
+        document.getElementById("pantryPhoto").addEventListener("change", function(event) {
+            const file = event.target.files[0];
+            const preview = document.getElementById("imagePreview");
+            const previewImg = document.getElementById("previewImg");
+            
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    previewImg.src = e.target.result;
+                    preview.style.display = "block";
+                };
+                reader.readAsDataURL(file);
+            } else {
+                preview.style.display = "none";
+            }
         });
     </script>
 

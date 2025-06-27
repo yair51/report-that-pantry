@@ -20,6 +20,7 @@ google-api-core==2.19.1
 google-api-python-client==2.142.0
 google-auth==2.34.0
 google-auth-httplib2==0.2.0
+google-cloud-vision==3.4.5
 google-generativeai==0.7.2
 googleapis-common-protos==1.63.2
 greenlet==3.0.0

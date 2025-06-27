@@ -52,6 +52,223 @@
 
                     </div>
 
+                    <!-- Analytics Section -->
+                    {% if analytics %}
+                    <div class="analytics-section mt-4">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h3><i class="fas fa-chart-line"></i> Analytics & Trends</h3>
+                            {% if can_edit %}
+                                <a href="/api/analytics/{{ pantry.id }}" target="_blank" class="btn btn-sm btn-outline-secondary">
+                                    <i class="fas fa-download"></i> Export Data
+                                </a>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Quick Stats Cards -->
+                        <div class="row mb-4">
+                            <div class="col-md-3 col-sm-6 mb-2">
+                                <div class="card bg-primary text-white">
+                                    <div class="card-body text-center p-3">
+                                        <h5 class="card-title mb-1">{{ analytics.total_reports }}</h5>
+                                        <p class="card-text small mb-0">Total Reports</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3 col-sm-6 mb-2">
+                                <div class="card bg-info text-white">
+                                    <div class="card-body text-center p-3">
+                                        <h5 class="card-title mb-1">{{ analytics.fullness_stats.average }}%</h5>
+                                        <p class="card-text small mb-0">Average Fullness</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3 col-sm-6 mb-2">
+                                <div class="card 
+                                    {% if analytics.trends.direction == 'improving' %}
+                                        bg-success
+                                    {% elif analytics.trends.direction == 'declining' %}
+                                        bg-warning
+                                    {% else %}
+                                        bg-secondary
+                                    {% endif %} text-white">
+                                    <div class="card-body text-center p-3">
+                                        <h5 class="card-title mb-1">
+                                            {% if analytics.trends.direction == 'improving' %}
+                                                <i class="fas fa-arrow-up"></i>
+                                            {% elif analytics.trends.direction == 'declining' %}
+                                                <i class="fas fa-arrow-down"></i>
+                                            {% else %}
+                                                <i class="fas fa-minus"></i>
+                                            {% endif %}
+                                        </h5>
+                                        <p class="card-text small mb-0">{{ analytics.trends.direction|title }} Trend</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3 col-sm-6 mb-2">
+                                <div class="card bg-danger text-white">
+                                    <div class="card-body text-center p-3">
+                                        <h5 class="card-title mb-1">{{ analytics.patterns.empty_percentage }}%</h5>
+                                        <p class="card-text small mb-0">Empty Reports</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Fullness Trend Chart -->
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h5 class="mb-0"><i class="fas fa-chart-area"></i> Fullness Over Time</h5>
+                            </div>
+                            <div class="card-body">
+                                <canvas id="fullnessChart" width="400" height="200"></canvas>
+                            </div>
+                        </div>
+
+                        <!-- Usage Patterns -->
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h6 class="mb-0"><i class="fas fa-calendar-week"></i> Activity Patterns</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <p class="mb-2"><strong>Most Active Day:</strong> {{ analytics.patterns.most_active_day or 'N/A' }}</p>
+                                        <p class="mb-2"><strong>Least Active Day:</strong> {{ analytics.patterns.least_active_day or 'N/A' }}</p>
+                                        <p class="mb-0"><strong>Critical Periods:</strong> {{ analytics.patterns.critical_periods }} reports ≤10% full</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h6 class="mb-0"><i class="fas fa-chart-pie"></i> Fullness Distribution</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <canvas id="distributionChart" width="300" height="200"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- AI Insights -->
+                        {% if analytics.ai_insights and analytics.ai_insights.total_ai_reports > 0 %}
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h6 class="mb-0"><i class="fas fa-robot"></i> AI Analysis Insights</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <p class="mb-2"><strong>AI Reports:</strong> {{ analytics.ai_insights.total_ai_reports }} of {{ analytics.total_reports }} ({{ analytics.ai_insights.ai_coverage_percentage }}%)</p>
+                                        {% if analytics.ai_insights.average_ai_fullness %}
+                                            <p class="mb-2"><strong>Average AI Fullness:</strong> {{ analytics.ai_insights.average_ai_fullness }}%</p>
+                                        {% endif %}
+                                        {% if analytics.ai_insights.average_organization %}
+                                            <p class="mb-0"><strong>Average Organization Score:</strong> {{ analytics.ai_insights.average_organization }}/100</p>
+                                        {% endif %}
+                                    </div>
+                                    <div class="col-md-6">
+                                        {% if analytics.ai_insights.most_common_items %}
+                                            <p class="mb-2"><strong>Most Common Items:</strong></p>
+                                            <ul class="mb-0 small">
+                                                {% for item, count in analytics.ai_insights.most_common_items %}
+                                                    <li>{{ item }} ({{ count }} times)</li>
+                                                {% endfor %}
+                                            </ul>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <!-- Insights and Recommendations -->
+                        {% if analytics.insights %}
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h6 class="mb-0"><i class="fas fa-lightbulb"></i> Insights & Recommendations</h6>
+                            </div>
+                            <div class="card-body">
+                                <!-- Alerts -->
+                                {% if analytics.insights.alerts %}
+                                    {% for alert in analytics.insights.alerts %}
+                                        <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                                            <i class="fas fa-exclamation-triangle"></i> {{ alert }}
+                                            <button type="button" class="close" data-dismiss="alert">
+                                                <span aria-hidden="true">&times;</span>
+                                            </button>
+                                        </div>
+                                    {% endfor %}
+                                {% endif %}
+                                
+                                <!-- Summary -->
+                                {% if analytics.insights.summary %}
+                                    <div class="mb-3">
+                                        <h6><i class="fas fa-info-circle text-info"></i> Summary:</h6>
+                                        <ul class="mb-0">
+                                            {% for item in analytics.insights.summary %}
+                                                <li>{{ item }}</li>
+                                            {% endfor %}
+                                        </ul>
+                                    </div>
+                                {% endif %}
+                                
+                                <!-- Recommendations -->
+                                {% if analytics.insights.recommendations %}
+                                    <div>
+                                        <h6><i class="fas fa-thumbs-up text-success"></i> Recommendations:</h6>
+                                        <ul class="mb-0">
+                                            {% for rec in analytics.insights.recommendations %}
+                                                <li>{{ rec }}</li>
+                                            {% endfor %}
+                                        </ul>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <!-- Detailed Stats -->
+                        <div class="card">
+                            <div class="card-header">
+                                <h6 class="mb-0"><i class="fas fa-info-circle"></i> Detailed Statistics</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <p class="mb-1"><strong>Data Range:</strong> {{ analytics.date_range.start.strftime('%Y-%m-%d') }} to {{ analytics.date_range.end.strftime('%Y-%m-%d') }}</p>
+                                        <p class="mb-1"><strong>Tracking Period:</strong> {{ analytics.date_range.days }} days</p>
+                                        <p class="mb-1"><strong>Minimum Fullness:</strong> {{ analytics.fullness_stats.minimum }}%</p>
+                                        <p class="mb-0"><strong>Maximum Fullness:</strong> {{ analytics.fullness_stats.maximum }}%</p>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <p class="mb-1"><strong>Recent Trend:</strong> {{ analytics.trends.recent_average }}% average (last 5 reports)</p>
+                                        <p class="mb-1"><strong>Change from Previous:</strong> 
+                                            {% if analytics.trends.change_from_previous > 0 %}
+                                                <span class="text-success">+{{ analytics.trends.change_from_previous }}%</span>
+                                            {% elif analytics.trends.change_from_previous < 0 %}
+                                                <span class="text-danger">{{ analytics.trends.change_from_previous }}%</span>
+                                            {% else %}
+                                                <span class="text-muted">No change</span>
+                                            {% endif %}
+                                        </p>
+                                        <p class="mb-0"><strong>Reports per Week:</strong> {{ "%.1f"|format(analytics.total_reports / (analytics.date_range.days / 7)) }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="analytics-section mt-4">
+                        <h3><i class="fas fa-chart-line text-muted"></i> Analytics & Trends</h3>
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle"></i> 
+                            Analytics will be available after at least 2 reports have been submitted for this pantry.
+                        </div>
+                    </div>
+                    {% endif %}
+
                     <div class="details-section mt-4">
                         <h3>Details</h3>
                         {% if pantry.description %}
@@ -67,30 +284,80 @@
                         {% if pantry.reports|length > 0 %}
                             <ul class="list-group">
                                 {% for report in pantry.reports[:10] %}
-                                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                                        <span class="report-time" data-utc-time="{{ report.time.isoformat() }}">
-                                            {{ report.time.strftime('%Y-%m-%d %H:%M') }}
-                                        </span>
-                                        {% if report.photo %} 
-                                            <div class="col-md-3 mb-3"> 
-                                                <a href="{{ current_app.config['S3_LOCATION'] + report.photo }}" data-toggle="modal" data-target="#photoModal">
-                                                    <img src="{{ current_app.config['S3_LOCATION'] + report.photo }}" class="img-thumbnail" alt="Report Photo">
-                                                </a>
-                                            </div>
-                                        {% endif %}
-                                        <span>
-                                            {{ report.status }}
-                                                <span class="badge badge-pill 
-                                                    {% if report.pantry_fullness <= 33 %}
-                                                        badge-danger
-                                                    {% elif report.pantry_fullness <= 67 %}
-                                                        badge-warning
-                                                    {% else %}
-                                                        badge-success
-                                                    {% endif %}">
-                                                    {{ report.pantry_fullness }}% full
+                                    <li class="list-group-item">
+                                        <div class="d-flex justify-content-between align-items-start">
+                                            <div class="flex-grow-1">
+                                                <span class="report-time fw-bold" data-utc-time="{{ report.time.isoformat() }}">
+                                                    {{ report.time.strftime('%Y-%m-%d %H:%M') }}
                                                 </span>
-                                        </span>
+                                                <span class="ms-2">
+                                                    {{ report.get_status() }}
+                                                    <span class="badge 
+                                                        {% if report.pantry_fullness <= 33 %}
+                                                            bg-danger
+                                                        {% elif report.pantry_fullness <= 67 %}
+                                                            bg-warning
+                                                        {% else %}
+                                                            bg-success
+                                                        {% endif %}">
+                                                        {{ report.pantry_fullness }}% full
+                                                    </span>
+                                                </span>
+                                                
+                                                {% if report.description %}
+                                                    <p class="mt-2 mb-1 text-muted small">{{ report.description }}</p>
+                                                {% endif %}
+                                                
+                                                <!-- Vision API Analysis Results -->
+                                                {% set vision_analysis = report.get_vision_analysis() %}
+                                                {% if vision_analysis and vision_analysis.get('food_items') %}
+                                                    <div class="mt-2">
+                                                        <small class="text-info">
+                                                            <i class="fas fa-robot"></i> AI Analysis:
+                                                        </small>
+                                                        <div class="mt-1">
+                                                            <small>
+                                                                <strong>Detected items:</strong> 
+                                                                {% for item in report.get_detected_food_items()[:5] %}
+                                                                    <span class="badge bg-light text-dark me-1">{{ item }}</span>
+                                                                {% endfor %}
+                                                                {% if report.get_detected_food_items()|length > 5 %}
+                                                                    <span class="text-muted">+{{ report.get_detected_food_items()|length - 5 }} more</span>
+                                                                {% endif %}
+                                                            </small>
+                                                        </div>
+                                                        {% set ai_fullness = report.get_ai_fullness_estimate() %}
+                                                        {% if ai_fullness is not none %}
+                                                            <div class="mt-1">
+                                                                <small>
+                                                                    <strong>AI fullness estimate:</strong> {{ ai_fullness }}%
+                                                                    {% set fullness_diff = (report.pantry_fullness - ai_fullness)|abs %}
+                                                                    {% if fullness_diff > 20 %}
+                                                                        <span class="text-warning">(differs from user report by {{ fullness_diff }}%)</span>
+                                                                    {% endif %}
+                                                                </small>
+                                                            </div>
+                                                        {% endif %}
+                                                        {% set org_score = report.get_organization_score() %}
+                                                        {% if org_score is not none and org_score > 0 %}
+                                                            <div class="mt-1">
+                                                                <small>
+                                                                    <strong>Organization score:</strong> {{ "%.0f"|format(org_score) }}/100
+                                                                </small>
+                                                            </div>
+                                                        {% endif %}
+                                                    </div>
+                                                {% endif %}
+                                            </div>
+                                            
+                                            {% if report.photo %} 
+                                                <div class="ms-3"> 
+                                                    <a href="{{ current_app.config['S3_LOCATION'] + report.photo }}" data-toggle="modal" data-target="#photoModal">
+                                                        <img src="{{ current_app.config['S3_LOCATION'] + report.photo }}" class="img-thumbnail" style="width: 80px; height: 60px; object-fit: cover;" alt="Report Photo">
+                                                    </a>
+                                                </div>
+                                            {% endif %}
+                                        </div>
                                     </li>
                                 {% endfor %}
                             </ul>
@@ -153,6 +420,9 @@
 
 
   {% block script %}
+<!-- Chart.js for analytics charts -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 <script>
 $(document).ready(function() {
     $('#photoModal').on('show.bs.modal', function (event) {
@@ -188,6 +458,105 @@ $(document).ready(function() {
         });
     });
 
+    // Analytics Charts
+    {% if analytics %}
+    // Fullness Trend Chart
+    const fullnessCtx = document.getElementById('fullnessChart').getContext('2d');
+    const fullnessChart = new Chart(fullnessCtx, {
+        type: 'line',
+        data: {
+            labels: {{ analytics.chart_data.dates | tojson }},
+            datasets: [{
+                label: 'User Reported Fullness',
+                data: {{ analytics.chart_data.fullness_values | tojson }},
+                borderColor: '#007bff',
+                backgroundColor: 'rgba(0, 123, 255, 0.1)',
+                borderWidth: 2,
+                fill: true,
+                tension: 0.3
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 100,
+                    ticks: {
+                        callback: function(value) {
+                            return value + '%';
+                        }
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'top'
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return context.dataset.label + ': ' + context.parsed.y + '%';
+                        }
+                    }
+                }
+            }
+        }
+    });
+
+    // Fullness Distribution Pie Chart
+    const distributionCtx = document.getElementById('distributionChart').getContext('2d');
+    const distributionChart = new Chart(distributionCtx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Empty (≤10%)', 'Low (11-33%)', 'Medium (34-66%)', 'High (67-90%)', 'Full (>90%)'],
+            datasets: [{
+                data: [
+                    {{ analytics.chart_data.fullness_distribution.empty }},
+                    {{ analytics.chart_data.fullness_distribution.low }},
+                    {{ analytics.chart_data.fullness_distribution.medium }},
+                    {{ analytics.chart_data.fullness_distribution.high }},
+                    {{ analytics.chart_data.fullness_distribution.full }}
+                ],
+                backgroundColor: [
+                    '#dc3545',  // Red for empty
+                    '#fd7e14',  // Orange for low
+                    '#ffc107',  // Yellow for medium
+                    '#28a745',  // Green for high
+                    '#007bff'   // Blue for full
+                ],
+                borderWidth: 2,
+                borderColor: '#fff'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        padding: 15,
+                        font: {
+                            size: 11
+                        }
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                            const percentage = ((context.parsed / total) * 100).toFixed(1);
+                            return context.label + ': ' + context.parsed + ' reports (' + percentage + '%)';
+                        }
+                    }
+                }
+            }
+        }
+    });
+    {% endif %}
 
 
 </script>

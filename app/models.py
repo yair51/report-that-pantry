@@ -51,6 +51,7 @@ class Report(db.Model):
     time = db.Column(db.DateTime(timezone=True), default=datetime.now(timezone.utc))
     photo = db.Column(db.String(150), nullable=True)
     description = db.Column(db.String(250), nullable=True)
+    vision_analysis = db.Column(db.Text, nullable=True)  # Store Vision API results as JSON
     # points = db.Column(db.Integer)
     location_id = db.Column(db.Integer, db.ForeignKey('location.id'))
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
@@ -73,6 +74,37 @@ class Report(db.Model):
             return "Half Full"
         else:
             return "Empty"
+
+    # Get parsed Vision API analysis results
+    def get_vision_analysis(self):
+        if self.vision_analysis:
+            try:
+                import json
+                return json.loads(self.vision_analysis)
+            except (json.JSONDecodeError, TypeError):
+                return None
+        return None
+
+    # Get AI-detected food items as a list
+    def get_detected_food_items(self):
+        analysis = self.get_vision_analysis()
+        if analysis and "food_items" in analysis:
+            return [item["description"] for item in analysis["food_items"]]
+        return []
+
+    # Get AI-suggested fullness
+    def get_ai_fullness_estimate(self):
+        analysis = self.get_vision_analysis()
+        if analysis:
+            return analysis.get("fullness_estimate")
+        return None
+
+    # Get organization score
+    def get_organization_score(self):
+        analysis = self.get_vision_analysis()
+        if analysis:
+            return analysis.get("organization_score")
+        return None
 
 
 

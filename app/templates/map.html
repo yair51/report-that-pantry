@@ -2,62 +2,807 @@
 
 {% block title %}Report That Pantry - Map{% endblock %}
 
-{% block content %}
+{% block style %}
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 <style>
+    :root {
+        --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        --success-gradient: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+        --warning-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        --info-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        --dark-gradient: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+        --card-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        --card-hover-shadow: 0 15px 40px rgba(0,0,0,0.15);
+    }
+
+    body {
+        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        overflow-x: hidden;
+    }
+
+    .container-fluid {
+        max-width: 100vw;
+        padding-left: 15px;
+        padding-right: 15px;
+    }
+
+    /* Override content-area margin for map page */
+    .content-area {
+        margin-top: 0 !important;
+    }
+
+    /* Hero Section */
+    .map-hero {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+        color: white;
+        padding: 60px 0 30px 0;
+        margin-bottom: 0;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 15px 40px rgba(0,0,0,0.2);
+    }
+
+    .map-hero::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: 
+            radial-gradient(circle at 20% 20%, rgba(255,255,255,0.1) 0%, transparent 50%),
+            radial-gradient(circle at 80% 80%, rgba(255,255,255,0.08) 0%, transparent 50%);
+        animation: float 15s ease-in-out infinite;
+        pointer-events: none;
+    }
+
+    @keyframes float {
+        0%, 100% { transform: translate(0%, 0%) rotate(0deg); }
+        50% { transform: translate(1%, -1%) rotate(1deg); }
+    }
+
+    .hero-content {
+        position: relative;
+        z-index: 2;
+        text-align: center;
+    }
+
+    .hero-title {
+        font-size: 2.5rem;
+        font-weight: 900;
+        margin-bottom: 15px;
+        text-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    }
+
+    .hero-subtitle {
+        font-size: 1.1rem;
+        opacity: 0.9;
+        margin-bottom: 20px;
+        text-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    }
+
+    /* Main Layout */
+    .map-container {
+        height: 70vh;
+        min-height: 500px;
+        max-height: 800px;
+        margin: 0;
+        padding: 0;
+    }
+
+    .sidebar {
+        background: white;
+        border-radius: 20px 0 0 20px;
+        box-shadow: var(--card-shadow);
+        padding: 30px;
+        height: 100%;
+        overflow-y: auto;
+        border-right: 1px solid #e9ecef;
+    }
+
+    .map-wrapper {
+        height: 100%;
+        border-radius: 0 20px 20px 0;
+        overflow: hidden;
+        box-shadow: var(--card-shadow);
+        position: relative;
+    }
+
+    #map {
+        height: 100%;
+        width: 100%;
+        border-radius: 0 20px 20px 0;
+    }
+
+    /* Search Section */
+    .search-section {
+        margin-bottom: 30px;
+    }
+
+    .search-container {
+        position: relative;
+        margin-bottom: 20px;
+    }
+
+    .search-input {
+        width: 100%;
+        padding: 18px 55px 18px 20px;
+        border: 2px solid #e9ecef;
+        border-radius: 15px;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        background: white;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    }
+
+    .search-input:focus {
+        outline: none;
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        transform: translateY(-1px);
+    }
+
+    .search-icon {
+        position: absolute;
+        right: 18px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #6c757d;
+        font-size: 1.1rem;
+    }
+
+    .location-btn {
+        width: 100%;
+        padding: 15px;
+        background: var(--primary-gradient);
+        color: white;
+        border: none;
+        border-radius: 12px;
+        font-weight: 600;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+    }
+
+    .location-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        color: white;
+    }
+
+    .location-btn i {
+        margin-right: 8px;
+    }
+
+    /* Filters Section */
+    .filters-section {
+        margin-bottom: 30px;
+        padding: 25px;
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        border-radius: 15px;
+        border: 1px solid #dee2e6;
+    }
+
+    .filters-title {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #2c3e50;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+    }
+
+    .filters-title i {
+        margin-right: 10px;
+        color: #667eea;
+    }
+
+    .filter-group {
+        margin-bottom: 20px;
+    }
+
+    .filter-label {
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: #495057;
+        margin-bottom: 8px;
+        display: block;
+    }
+
+    .status-filters {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .status-filter {
+        padding: 8px 16px;
+        border: 2px solid #dee2e6;
+        border-radius: 25px;
+        background: white;
+        color: #495057;
+        font-size: 0.85rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        flex: 1;
+        text-align: center;
+        min-width: 80px;
+    }
+
+    .status-filter:hover {
+        border-color: #667eea;
+        color: #667eea;
+    }
+
+    .status-filter.active {
+        background: var(--primary-gradient);
+        border-color: #667eea;
+        color: white;
+    }
+
+    .status-filter.full.active {
+        background: var(--success-gradient);
+        border-color: #28a745;
+    }
+
+    .status-filter.low.active {
+        background: var(--warning-gradient);
+        border-color: #ffc107;
+    }
+
+    .status-filter.empty.active {
+        background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+        border-color: #dc3545;
+    }
+
+    .distance-slider {
+        width: 100%;
+        margin: 10px 0;
+    }
+
+    .distance-value {
+        text-align: center;
+        font-weight: 600;
+        color: #667eea;
+        margin-top: 5px;
+    }
+
+    /* Results Section */
+    .results-section {
+        flex: 1;
+        min-height: 0;
+    }
+
+    .results-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        padding-bottom: 15px;
+        border-bottom: 2px solid #e9ecef;
+    }
+
+    .results-count {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #2c3e50;
+    }
+
+    .sort-dropdown {
+        padding: 8px 15px;
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        background: white;
+        font-size: 0.9rem;
+        color: #495057;
+    }
+
+    .pantry-list {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+        padding: 0;
+        margin: 0;
+        list-style: none;
+    }
+
+    .pantry-card {
+        background: white;
+        border-radius: 15px;
+        padding: 20px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+        transition: all 0.3s ease;
+        border: 1px solid #f1f3f4;
+        cursor: pointer;
+    }
+
+    .pantry-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 25px rgba(0,0,0,0.12);
+        border-color: #667eea;
+    }
+
+    .pantry-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 15px;
+    }
+
+    .pantry-name {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #2c3e50;
+        margin: 0;
+        line-height: 1.3;
+    }
+
+    .pantry-status {
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .status-full {
+        background: rgba(40, 167, 69, 0.1);
+        color: #28a745;
+        border: 1px solid rgba(40, 167, 69, 0.3);
+    }
+
+    .status-low {
+        background: rgba(255, 193, 7, 0.1);
+        color: #ffc107;
+        border: 1px solid rgba(255, 193, 7, 0.3);
+    }
+
+    .status-empty {
+        background: rgba(220, 53, 69, 0.1);
+        color: #dc3545;
+        border: 1px solid rgba(220, 53, 69, 0.3);
+    }
+
+    .status-unknown {
+        background: rgba(108, 117, 125, 0.1);
+        color: #6c757d;
+        border: 1px solid rgba(108, 117, 125, 0.3);
+    }
+
+    .pantry-address {
+        color: #6c757d;
+        font-size: 0.9rem;
+        margin-bottom: 10px;
+        display: flex;
+        align-items: center;
+    }
+
+    .pantry-address i {
+        margin-right: 8px;
+        color: #667eea;
+    }
+
+    .pantry-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 0.85rem;
+        color: #6c757d;
+    }
+
+    .pantry-distance {
+        font-weight: 600;
+        color: #495057;
+    }
+
+    .pantry-updated {
+        display: flex;
+        align-items: center;
+    }
+
+    .pantry-updated i {
+        margin-right: 5px;
+    }
+
+    /* Loading States */
+    .loading {
+        text-align: center;
+        padding: 40px;
+        color: #6c757d;
+    }
+
+    .loading i {
+        font-size: 2rem;
+        margin-bottom: 15px;
+        color: #667eea;
+        animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    /* Custom marker styles */
     .custom-marker {
-            background-color: #3498db; /* Change this to your desired color */
-            color: white;
-            padding: 8px 12px;
-            border-radius: 4px;
-            font-family: Arial, sans-serif;
-            font-size: 14px;
+        background-color: #667eea;
+        color: white;
+        padding: 8px 12px;
+        border-radius: 8px;
+        font-family: 'Inter', sans-serif;
+        font-size: 12px;
+        font-weight: 600;
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+    }
+
+    /* Mobile Responsiveness */
+    @media (max-width: 768px) {
+        .map-hero {
+            padding: 40px 0 20px 0;
         }
-    
-    #pantry-list {  /* Target the ul element within the card body */
-        padding-inline-start: 0px;  /* Remove the left padding */
+
+        .hero-title {
+            font-size: 2rem;
+        }
+
+        .hero-subtitle {
+            font-size: 1rem;
+        }
+
+        .map-container {
+            height: 80vh;
+            min-height: 600px;
+            max-height: none;
+            flex-direction: column;
+        }
+
+        .sidebar {
+            border-radius: 20px 20px 0 0;
+            height: 40vh;
+            min-height: 300px;
+            border-right: none;
+            border-bottom: 1px solid #e9ecef;
+            padding: 20px;
+        }
+
+        .map-wrapper {
+            border-radius: 0 0 20px 20px;
+            height: 40vh;
+            min-height: 300px;
+        }
+
+        #map {
+            border-radius: 0 0 20px 20px;
+        }
+
+        .status-filters {
+            flex-direction: column;
+        }
+
+        .status-filter {
+            flex: none;
+        }
+
+        .filters-section {
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+
+        .search-section {
+            margin-bottom: 20px;
+        }
+    }
+
+    @media (max-width: 576px) {
+        .hero-title {
+            font-size: 1.8rem;
+        }
+        
+        .map-container {
+            height: 75vh;
+            min-height: 500px;
+        }
+        
+        .sidebar {
+            height: 35vh;
+            min-height: 250px;
+            padding: 15px;
+        }
+        
+        .map-wrapper {
+            height: 40vh;
+            min-height: 250px;
+        }
+    }
+
+    /* Empty State */
+    .empty-state {
+        text-align: center;
+        padding: 40px 20px;
+        color: #6c757d;
+    }
+
+    .empty-state i {
+        font-size: 3rem;
+        margin-bottom: 20px;
+        opacity: 0.3;
+    }
+
+    .empty-state h4 {
+        margin-bottom: 10px;
+        color: #495057;
+    }
+
+    /* Map Loading State */
+    .map-loading {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: white;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+    }
+
+    .map-loading i {
+        font-size: 3rem;
+        color: #667eea;
+        margin-bottom: 20px;
+        animation: spin 1s linear infinite;
+    }
+
+    /* Custom Google Maps Controls */
+    .gm-style .gm-style-iw-c {
+        border-radius: 15px !important;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.15) !important;
+        border: none !important;
+    }
+
+    .gm-style .gm-style-iw-t::after {
+        background: white !important;
+        border-radius: 3px !important;
+    }
+
+    /* Enhanced range slider styling */
+    .distance-slider {
+        -webkit-appearance: none;
+        appearance: none;
+        height: 8px;
+        border-radius: 8px;
+        background: linear-gradient(to right, #667eea 0%, #e9ecef 0%);
+        outline: none;
+        transition: background 0.3s ease;
+    }
+
+    .distance-slider::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        background: #667eea;
+        cursor: pointer;
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        transition: all 0.3s ease;
+    }
+
+    .distance-slider::-webkit-slider-thumb:hover {
+        transform: scale(1.1);
+        box-shadow: 0 6px 18px rgba(102, 126, 234, 0.4);
+    }
+
+    .distance-slider::-moz-range-thumb {
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        background: #667eea;
+        cursor: pointer;
+        border: none;
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+    }
+
+    /* Scrollbar styling for sidebar */
+    .sidebar::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    .sidebar::-webkit-scrollbar-track {
+        background: #f1f3f4;
+        border-radius: 10px;
+    }
+
+    .sidebar::-webkit-scrollbar-thumb {
+        background: #667eea;
+        border-radius: 10px;
+    }
+
+    .sidebar::-webkit-scrollbar-thumb:hover {
+        background: #5a6fd8;
     }
 </style>
-<div class="container mt-4">
-    <div class="row">
-        <div class="col-md-8 offset-md-2">
-            <input id="pac-input" class="form-control" type="text" placeholder="Search for pantries...">
+{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<div class="map-hero">
+    <div class="container">
+        <div class="hero-content">
+            <h1 class="hero-title">
+                <i class="fas fa-map-marked-alt"></i>
+                Find Little Free Pantries
+            </h1>
+            <p class="hero-subtitle">Discover community food resources near you</p>
         </div>
     </div>
-    <div class="row mt-3">  <div class="col-md-4 offset-md-4 text-center"> 
-            <button id="find-near-me" class="btn btn-primary">Pantries Near Me</button>
-    </div>
 </div>
-<div class="container">
-    <div class="row mt-3">
-        <div class="col-12">
-            <ul id="pantry-list"></ul>
-            <div id="map" style="height: 400px;"></div>  
-            <div class="modal fade" id="locationModal" tabindex="-1" role="dialog" aria-labelledby="locationModalLabel" aria-hidden="true">
-                <div class="modal-dialog modal-dialog-centered" role="document">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title" id="locationModalLabel">Enable Location Sharing</h5>
-                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                <span aria-hidden="true">&times;</span>
-                            </button>
-                        </div>
-                        <div class="modal-body">
-                            <p>To get the most of this feature, please enable location sharing in your browser settings.</p>
-                        </div>
-                        <div class="modal-footer">
-                            <!-- <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button> -->
-                            <button type="button" class="btn btn-secondary" id="enableLocation" data-dismiss="modal">Close</button>
+
+<!-- Main Map Interface -->
+<div class="container-fluid px-3 py-3 mb-4" style="overflow: hidden;">
+    <div class="row map-container">
+        <!-- Sidebar -->
+        <div class="col-lg-4 p-0">
+            <div class="sidebar d-flex flex-column">
+                <!-- Search Section -->
+                <div class="search-section">
+                    <div class="search-container">
+                        <input id="pac-input" class="search-input" type="text" placeholder="Search for pantries or locations...">
+                        <i class="fas fa-search search-icon"></i>
+                    </div>
+                    <button id="find-near-me" class="location-btn">
+                        <i class="fas fa-location-arrow"></i>
+                        Find Pantries Near Me
+                    </button>
+                </div>
+
+                <!-- Filters Section -->
+                <div class="filters-section">
+                    <div class="filters-title">
+                        <i class="fas fa-filter"></i>
+                        Filters
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label class="filter-label">Pantry Status</label>
+                        <div class="status-filters">
+                            <div class="status-filter active" data-status="all">All</div>
+                            <div class="status-filter full" data-status="full">Full</div>
+                            <div class="status-filter low" data-status="low">Low</div>
+                            <div class="status-filter empty" data-status="empty">Empty</div>
                         </div>
                     </div>
+
+                    <div class="filter-group">
+                        <label class="filter-label">Search Radius</label>
+                        <input type="range" class="distance-slider" id="distance-slider" min="1" max="50" value="10">
+                        <div class="distance-value">Within <span id="distance-value">10</span> miles</div>
+                    </div>
                 </div>
+
+                <!-- Results Section -->
+                <div class="results-section">
+                    <div class="results-header">
+                        <div class="results-count">
+                            <span id="pantry-count">Loading...</span> pantries found
+                        </div>
+                        <select class="sort-dropdown" id="sort-select">
+                            <option value="distance">Sort by Distance</option>
+                            <option value="updated">Recently Updated</option>
+                            <option value="name">Name A-Z</option>
+                            <option value="status">Status</option>
+                        </select>
+                    </div>
+                    
+                    <ul id="pantry-list" class="pantry-list">
+                        <div class="loading">
+                            <i class="fas fa-spinner"></i>
+                            <div>Loading pantries...</div>
+                        </div>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Map -->
+        <div class="col-lg-8 p-0">
+            <div class="map-wrapper">
+                <div id="map"></div>
             </div>
         </div>
     </div>
 </div>
 
-
+<!-- Location Modal -->
+<div class="modal fade" id="locationModal" tabindex="-1" role="dialog" aria-labelledby="locationModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="locationModalLabel">Enable Location Sharing</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>To find pantries near you, please enable location sharing in your browser settings.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="enableLocation" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
 
 <script src="https://maps.googleapis.com/maps/api/js?key={{ api_key }}&libraries=places,marker,geometry&callback=initMap&loading=async" async defer></script>
 <script src="{{ url_for('static', filename='map.js') }}"></script>
+<script>
+// Ensure event listeners are set up when DOM is ready
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM fully loaded, setting up event listeners...');
+    
+    // Status filters
+    const statusFilters = document.querySelectorAll('.status-filter');
+    console.log('Found status filters:', statusFilters.length);
+    
+    statusFilters.forEach(filter => {
+        filter.addEventListener('click', (e) => {
+            console.log('Status filter clicked:', e.target.dataset.status);
+            // Remove active class from all filters
+            document.querySelectorAll('.status-filter').forEach(f => f.classList.remove('active'));
+            // Add active class to clicked filter
+            e.target.classList.add('active');
+            
+            if (window.currentFilters) {
+                window.currentFilters.status = e.target.dataset.status;
+                if (window.applyFilters) window.applyFilters();
+            }
+        });
+    });
+
+    // Distance slider
+    const distanceSlider = document.getElementById('distance-slider');
+    const distanceValue = document.getElementById('distance-value');
+    
+    if (distanceSlider && distanceValue) {
+        console.log('Distance slider found');
+        
+        distanceSlider.addEventListener('input', (e) => {
+            console.log('Distance slider changed:', e.target.value);
+            const distance = e.target.value;
+            distanceValue.textContent = distance;
+            
+            if (window.currentFilters) {
+                window.currentFilters.distance = parseInt(distance);
+                if (window.applyFilters) window.applyFilters();
+            }
+            
+            // Update slider background
+            const value = (distanceSlider.value - distanceSlider.min) / (distanceSlider.max - distanceSlider.min) * 100;
+            distanceSlider.style.background = `linear-gradient(to right, #667eea 0%, #667eea ${value}%, #e9ecef ${value}%, #e9ecef 100%)`;
+        });
+        
+        // Initialize slider background
+        const value = (distanceSlider.value - distanceSlider.min) / (distanceSlider.max - distanceSlider.min) * 100;
+        distanceSlider.style.background = `linear-gradient(to right, #667eea 0%, #667eea ${value}%, #e9ecef ${value}%, #e9ecef 100%)`;
+    }
+
+    // Sort dropdown
+    const sortSelect = document.getElementById('sort-select');
+    if (sortSelect) {
+        sortSelect.addEventListener('change', (e) => {
+            console.log('Sort changed:', e.target.value);
+            if (window.currentFilters) {
+                window.currentFilters.sort = e.target.value;
+                if (window.applyFilters) window.applyFilters();
+            }
+        });
+    }
+});
+</script>
 
 {% endblock %}
