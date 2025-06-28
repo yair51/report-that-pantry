@@ -89,7 +89,15 @@ class Report(db.Model):
     def get_detected_food_items(self):
         analysis = self.get_vision_analysis()
         if analysis and "food_items" in analysis:
-            return [item["description"] for item in analysis["food_items"]]
+            food_items = analysis["food_items"]
+            # Handle both old format (dict with description) and new format (strings)
+            if food_items:
+                if isinstance(food_items[0], dict):
+                    # Old format: list of objects with description field
+                    return [item.get("description", str(item)) for item in food_items]
+                else:
+                    # New format: list of strings
+                    return food_items
         return []
 
     # Get AI-suggested fullness

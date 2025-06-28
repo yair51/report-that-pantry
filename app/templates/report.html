@@ -56,10 +56,19 @@
                         </label>
                     <input type="file" class="form-control-file" id="pantryPhoto" name="pantryPhoto" accept="image/*">
                     <small class="form-text text-muted">
-                        <i class="fas fa-robot"></i> AI analysis will be performed automatically when you upload a photo to help detect food items and estimate fullness.
+                        <i class="fas fa-robot"></i> Enhanced AI analysis using Google Vision API and Gemini will detect food items and suggest fullness percentage.
                     </small>
                     <div id="imagePreview" class="mt-2" style="display: none;">
                         <img id="previewImg" src="" alt="Image Preview" class="img-thumbnail" style="max-width: 200px;">
+                    </div>
+                    
+                    <!-- AI Analysis Results Display -->
+                    <div id="aiAnalysisResults" class="mt-3" style="display: none;">
+                        <div class="alert alert-info">
+                            <h6><i class="fas fa-robot"></i> AI Analysis Results</h6>
+                            <div id="aiSuggestedFullness" class="mb-2"></div>
+                            <div id="aiDetectedItems" class="mb-2"></div>
+                        </div>
                     </div>
                 </div>
 
@@ -218,11 +227,12 @@
             loadingIndicator.scrollIntoView({ behavior: 'smooth', block: 'center' });
         });
 
-        // Image preview functionality
+        // Image preview functionality with real AI analysis
         document.getElementById("pantryPhoto").addEventListener("change", function(event) {
             const file = event.target.files[0];
             const preview = document.getElementById("imagePreview");
             const previewImg = document.getElementById("previewImg");
+            const aiResultsDiv = document.getElementById("aiAnalysisResults");
             
             if (file) {
                 const reader = new FileReader();
@@ -231,10 +241,76 @@
                     preview.style.display = "block";
                 };
                 reader.readAsDataURL(file);
+                
+                // Show AI analysis loading state
+                aiResultsDiv.style.display = "block";
+                document.getElementById("aiSuggestedFullness").innerHTML = '<i class="fas fa-spinner fa-spin"></i> Analyzing image with AI...';
+                document.getElementById("aiDetectedItems").innerHTML = '';
+                document.getElementById("applyAiSuggestion").style.display = "none";
+                
+                // Perform real AI analysis
+                analyzeImageWithAI(file);
             } else {
                 preview.style.display = "none";
+                aiResultsDiv.style.display = "none";
             }
         });
+        
+        function analyzeImageWithAI(imageFile) {
+            const formData = new FormData();
+            formData.append('image', imageFile);
+            
+            fetch('/analyze-image', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    displayAIResults(data);
+                } else {
+                    displayAIError(data.error || 'Analysis failed');
+                }
+            })
+            .catch(error => {
+                console.error('AI analysis error:', error);
+                displayAIError('Network error. Please try again.');
+            });
+        }
+        
+        function displayAIResults(data) {
+            // Display suggested fullness
+            const fullness = data.fullness_estimate;
+            document.getElementById("aiSuggestedFullness").innerHTML = 
+                `<strong>AI Suggested Fullness:</strong> <span class="text-primary">${fullness}%</span> <small class="text-success">(Applied automatically)</small>`;
+            
+            // Automatically apply the AI suggestion to the slider
+            const slider = document.getElementById("pantryFullness");
+            const rangeValue = document.getElementById("rangeValue");
+            
+            slider.value = fullness;
+            rangeValue.textContent = fullness + "%";
+            updateSliderAppearance(slider);
+            rangeTouched = true; // Mark as touched for form validation
+            
+            // Display detected food items (more concise format)
+            const foodItems = data.food_items || [];
+            if (foodItems.length > 0) {
+                const itemsText = foodItems.slice(0, 4).join(', ') + (foodItems.length > 4 ? '...' : '');
+                document.getElementById("aiDetectedItems").innerHTML = 
+                    `<strong>Detected Items:</strong> <small class="text-muted">${itemsText}</small>`;
+            } else {
+                document.getElementById("aiDetectedItems").innerHTML = 
+                    '<strong>Detected Items:</strong> <small class="text-muted">No food items detected</small>';
+            }
+        }
+        
+        function displayAIError(errorMessage) {
+            document.getElementById("aiSuggestedFullness").innerHTML = 
+                `<span class="text-danger"><i class="fas fa-exclamation-triangle"></i> ${errorMessage}</span>`;
+            document.getElementById("aiDetectedItems").innerHTML = '';
+        }
+    </script>
     </script>
 
 {% endblock %}

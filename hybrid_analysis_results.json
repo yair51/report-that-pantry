@@ -1,0 +1,11 @@
+{
+  "food_items": [
+    "Gatorade Frost"
+  ],
+  "fullness_estimate": 20,
+  "confidence_score": 93,
+  "method_agreement": true,
+  "analysis_method": "gemini_primary",
+  "empty_areas": "The majority of the shelves are empty.",
+  "non_food_items": []
+}

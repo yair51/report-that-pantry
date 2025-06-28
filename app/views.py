@@ -19,6 +19,8 @@ import boto3
 from boto3 import s3
 # Google Vision API imports
 from google.cloud import vision
+# Import our enhanced vision analysis
+from .vision import analyze_pantry_image_hybrid
 
 views = Blueprint('views', __name__)
 
@@ -45,253 +47,10 @@ def get_vision_client():
 
 def analyze_pantry_image(image_content):
     """
-    Analyze pantry image using Google Vision API to extract useful information
-    Returns a dictionary with analysis results
+    Analyze pantry image using hybrid AI approach (Google Vision API + Gemini)
+    Returns a dictionary with enhanced analysis results
     """
-    client = get_vision_client()
-    if not client:
-        return {"error": "Vision API client not available"}
-    
-    try:
-        # Create Vision API image object
-        image = vision.Image(content=image_content)
-        
-        # Perform different types of analysis
-        analysis_results = {
-            "labels": [],
-            "objects": [],
-            "text": [],
-            "fullness_estimate": None,
-            "food_items": [],
-            "organization_score": None
-        }
-        
-        # 1. Label Detection - identifies general content
-        labels_response = client.label_detection(image=image)
-        labels = labels_response.label_annotations
-        
-        food_related_labels = []
-        container_labels = []
-        
-        for label in labels:
-            label_info = {
-                "description": label.description,
-                "confidence": label.score,
-                "topicality": label.topicality
-            }
-            analysis_results["labels"].append(label_info)
-            
-            # Categorize food-related labels - be more specific about actual food items
-            actual_food_keywords = [
-                # Fruits
-                'apple', 'banana', 'orange', 'grape', 'berry', 'fruit', 'citrus', 'avocado',
-                'lemon', 'lime', 'peach', 'pear', 'strawberry', 'blueberry', 'cherry',
-                # Vegetables  
-                'vegetable', 'carrot', 'potato', 'onion', 'tomato', 'lettuce', 'spinach',
-                'broccoli', 'corn', 'bean', 'pea', 'pepper', 'cucumber', 'celery',
-                # Grains and bread
-                'bread', 'cereal', 'rice', 'pasta', 'grain', 'oats', 'wheat', 'bagel',
-                'muffin', 'cracker', 'biscuit', 'roll',
-                # Dairy
-                'milk', 'cheese', 'yogurt', 'butter', 'cream', 'dairy',
-                # Meat and protein
-                'meat', 'chicken', 'beef', 'pork', 'fish', 'salmon', 'tuna', 'egg',
-                'protein', 'turkey', 'ham', 'bacon', 'sausage',
-                # Pantry staples
-                'soup', 'sauce', 'oil', 'vinegar', 'spice', 'herb', 'salt', 'sugar',
-                'honey', 'jam', 'jelly', 'nut', 'almond', 'peanut', 'snack',
-                # Canned/packaged foods (but actual food, not containers)
-                'canned food', 'canned goods', 'packaged food'
-            ]
-            
-            # Items to explicitly exclude (containers, not food)
-            exclude_keywords = [
-                'container', 'storage', 'shelf', 'shelving', 'basket', 'bin', 'rack',
-                'cabinet', 'cupboard', 'pantry', 'kitchen', 'room', 'wall', 'door',
-                'bag', 'plastic', 'glass', 'metal', 'wood', 'material', 'product',
-                'package', 'packaging', 'wrapper', 'label', 'brand', 'box', 'carton',
-                'bottle', 'jar', 'can', 'tin', 'aluminum', 'cardboard'
-            ]
-            
-            # Check if this is an actual food item
-            description_lower = label.description.lower()
-            
-            # First check if it should be excluded
-            is_excluded = any(exclude_word in description_lower for exclude_word in exclude_keywords)
-            
-            # Then check if it's actual food
-            is_actual_food = any(food_word in description_lower for food_word in actual_food_keywords)
-            
-            # Only add to food items if it's actual food and not excluded
-            if is_actual_food and not is_excluded:
-                food_related_labels.append(label_info)
-            elif any(keyword in description_lower for keyword in ['shelf', 'container', 'basket', 'storage']):
-                container_labels.append(label_info)
-                container_labels.append(label_info)
-        
-        analysis_results["food_items"] = food_related_labels
-        
-        # 2. Object Detection - locates and identifies objects
-        objects_response = client.object_localization(image=image)
-        objects = objects_response.localized_object_annotations
-        
-        for obj in objects:
-            object_info = {
-                "name": obj.name,
-                "confidence": obj.score,
-                "bounding_box": {
-                    "vertices": [(vertex.x, vertex.y) for vertex in obj.bounding_poly.normalized_vertices]
-                }
-            }
-            analysis_results["objects"].append(object_info)
-        
-        # 3. Text Detection - reads any text in the image (labels, signs, etc.)
-        text_response = client.text_detection(image=image)
-        texts = text_response.text_annotations
-        
-        if texts:
-            # First text annotation contains the full detected text
-            full_text = texts[0].description if texts else ""
-            analysis_results["text"] = full_text.split('\n') if full_text else []
-        
-        # 4. Estimate fullness based on detected objects and labels
-        analysis_results["fullness_estimate"] = estimate_pantry_fullness(analysis_results)
-        
-        # 5. Calculate organization score
-        analysis_results["organization_score"] = calculate_organization_score(analysis_results)
-        
-        return analysis_results
-        
-    except Exception as e:
-        return {"error": f"Vision API analysis failed: {str(e)}"}
-
-
-def estimate_pantry_fullness(analysis_results):
-    """
-    Estimate pantry fullness percentage based on Vision API results
-    This is a heuristic approach that can be improved with machine learning
-    """
-    try:
-        food_items = analysis_results.get("food_items", [])
-        objects = analysis_results.get("objects", [])
-        labels = analysis_results.get("labels", [])
-        
-        # Count different types of detected items
-        food_count = len(food_items)  # Only actual food items, not containers
-        total_objects = len(objects)
-        
-        # Look for shelf/container indicators
-        container_indicators = 0
-        empty_indicators = 0
-        full_indicators = 0
-        
-        for label in labels:
-            desc_lower = label["description"].lower()
-            confidence = label["confidence"]
-            
-            # Weighted scoring based on confidence
-            weight = confidence
-            
-            if any(word in desc_lower for word in ["shelf", "shelving", "storage", "container", "cupboard"]):
-                container_indicators += weight
-            elif any(word in desc_lower for word in ["empty", "bare", "vacant", "sparse"]):
-                empty_indicators += weight * 2  # Empty indicators more important
-            elif any(word in desc_lower for word in ["full", "packed", "stocked", "abundant", "plenty"]):
-                full_indicators += weight * 2
-        
-        # Base fullness on actual food item count (primary factor)
-        # This now only counts real food, not containers or packaging
-        if food_count == 0:
-            base_fullness = 0
-        elif food_count <= 1:
-            base_fullness = 10
-        elif food_count <= 3:
-            base_fullness = 25
-        elif food_count <= 6:
-            base_fullness = 45
-        elif food_count <= 10:
-            base_fullness = 65
-        elif food_count <= 15:
-            base_fullness = 85
-        else:
-            base_fullness = 95
-        
-        # Adjust based on contextual indicators
-        if empty_indicators > 0.3:  # Strong empty indicators
-            base_fullness = max(0, base_fullness - 30)
-        elif full_indicators > 0.3:  # Strong full indicators
-            base_fullness = min(100, base_fullness + 20)
-        
-        # Ensure reasonable bounds
-        estimated_fullness = max(0, min(100, base_fullness))
-        
-        return int(estimated_fullness)
-            
-    except Exception as e:
-        print(f"Error estimating fullness: {e}")
-        return None
-
-
-def calculate_organization_score(analysis_results):
-    """
-    Calculate how well-organized the pantry appears to be
-    Returns a score from 0-100 based on various visual indicators
-    """
-    try:
-        objects = analysis_results.get("objects", [])
-        labels = analysis_results.get("labels", [])
-        
-        organization_score = 0
-        max_score = 100
-        
-        # Check for organization-related labels
-        organization_keywords = {
-            'shelf': 25, 'shelving': 25, 'container': 20, 'basket': 15, 
-            'organized': 30, 'neat': 25, 'tidy': 25, 'storage': 20,
-            'box': 10, 'bin': 15, 'rack': 20, 'cupboard': 15
-        }
-        
-        disorganization_keywords = {
-            'messy': -20, 'cluttered': -15, 'scattered': -10, 'chaotic': -25
-        }
-        
-        # Analyze labels for organization indicators
-        for label in labels:
-            desc_lower = label["description"].lower()
-            confidence = label["confidence"]
-            
-            for keyword, score_value in organization_keywords.items():
-                if keyword in desc_lower:
-                    organization_score += score_value * confidence
-                    
-            for keyword, score_value in disorganization_keywords.items():
-                if keyword in desc_lower:
-                    organization_score += score_value * confidence
-        
-        # Analyze object distribution (more evenly distributed = better organized)
-        if len(objects) > 1:
-            # Calculate if objects are well-distributed (simple heuristic)
-            # More objects with similar confidence levels suggest better organization
-            confidences = [obj["confidence"] for obj in objects]
-            if confidences:
-                confidence_variance = sum((c - sum(confidences)/len(confidences))**2 for c in confidences) / len(confidences)
-                # Lower variance = more consistent detection = better organization
-                if confidence_variance < 0.1:
-                    organization_score += 15
-        
-        # Bonus for having multiple containers/storage solutions
-        container_objects = [obj for obj in objects if any(word in obj["name"].lower() 
-                           for word in ['container', 'box', 'basket', 'shelf'])]
-        organization_score += min(20, len(container_objects) * 5)
-        
-        # Normalize and cap the score
-        final_score = max(0, min(max_score, organization_score))
-        
-        return round(final_score, 1)
-        
-    except Exception as e:
-        print(f"Error calculating organization score: {e}")
-        return None
+    return analyze_pantry_image_hybrid(image_content)
 
 
 def calculate_pantry_analytics(location):
@@ -842,8 +601,10 @@ def report(id):
         suggested_fullness = None
         
         if photo:
+            # Reset file pointer
+            photo.seek(0)
+            
             # Read photo content for Vision API analysis
-            photo.seek(0)  # Reset file pointer
             photo_content = photo.read()
             photo.seek(0)  # Reset again for S3 upload
             
@@ -876,11 +637,21 @@ def report(id):
             
             # Also add some key findings to description for backward compatibility
             if vision_analysis.get("food_items"):
-                food_items_text = ", ".join([item["description"] for item in vision_analysis["food_items"][:5]])
-                if new_report.description:
-                    new_report.description += f"\n\nAI detected items: {food_items_text}"
-                else:
-                    new_report.description = f"AI detected items: {food_items_text}"
+                food_items = vision_analysis["food_items"]
+                
+                # Handle both old format (objects with description) and new format (strings)
+                if food_items:
+                    if isinstance(food_items[0], dict):
+                        # Old format: list of objects with description field
+                        food_items_text = ", ".join([item.get("description", str(item)) for item in food_items[:5]])
+                    else:
+                        # New format: list of strings
+                        food_items_text = ", ".join(food_items[:5])
+                    
+                    if new_report.description:
+                        new_report.description += f"\n\nAI detected items: {food_items_text}"
+                    else:
+                        new_report.description = f"AI detected items: {food_items_text}"
             
             # Add suggested fullness comparison if available
             if suggested_fullness is not None:
@@ -1657,3 +1428,93 @@ def safe_datetime_filter(reports, cutoff_datetime):
             continue
     
     return filtered_reports
+
+
+@views.route('/analyze_image', methods=['POST'])
+@login_required
+def analyze_image():
+    """
+    Real-time AI analysis endpoint for uploaded images
+    Returns JSON with analysis results
+    """
+    try:
+        if 'image' not in request.files:
+            return jsonify({"error": "No image file provided"}), 400
+        
+        file = request.files['image']
+        if file.filename == '':
+            return jsonify({"error": "No image file selected"}), 400
+        
+        if not allowed_file(file.filename):
+            return jsonify({"error": "Invalid file type. Please upload a valid image."}), 400
+        
+        # Read image content
+        file.seek(0)
+        photo_content = file.read()
+        
+        # Run hybrid AI analysis
+        analysis_results = analyze_pantry_image(photo_content)
+        
+        if "error" in analysis_results:
+            return jsonify({
+                "error": analysis_results["error"],
+                "fallback_message": "AI analysis failed, but you can still submit manually."
+            }), 500
+        
+        # Extract key information for frontend
+        response_data = {
+            "success": True,
+            "fullness_estimate": analysis_results.get("fullness_estimate"),
+            "confidence_score": analysis_results.get("confidence_score", 0),
+            "method_agreement": analysis_results.get("method_agreement", False),
+            "food_items": analysis_results.get("food_items", [])[:8],  # Limit to 8 items for display
+            "food_count": len(analysis_results.get("food_items", []))
+        }
+        
+        return jsonify(response_data)
+        
+    except Exception as e:
+        print(f"Error in real-time AI analysis: {e}")
+        return jsonify({
+            "error": "Analysis failed due to technical error",
+            "fallback_message": "Please continue with manual entry."
+        }), 500
+
+
+# AJAX endpoint for real-time AI image analysis
+@views.route('/analyze-image', methods=['POST'])
+def analyze_image_ajax():
+    """
+    AJAX endpoint to analyze uploaded image in real-time and return AI suggestions
+    """
+    try:
+        if 'image' not in request.files:
+            return jsonify({'error': 'No image provided'}), 400
+        
+        photo = request.files['image']
+        if photo.filename == '':
+            return jsonify({'error': 'No image selected'}), 400
+        
+        # Read photo content for AI analysis
+        photo_content = photo.read()
+        
+        # Perform AI analysis
+        analysis_result = analyze_pantry_image(photo_content)
+        
+        if 'error' in analysis_result:
+            return jsonify({'error': analysis_result['error']}), 500
+        
+        # Format response for frontend
+        response = {
+            'success': True,
+            'fullness_estimate': analysis_result.get('fullness_estimate'),
+            'food_items': analysis_result.get('food_items', []),
+            'empty_areas': analysis_result.get('empty_areas', ''),
+            'analysis_method': analysis_result.get('analysis_method', 'ai')
+        }
+        
+        return jsonify(response)
+        
+    except Exception as e:
+        print(f"AJAX image analysis error: {e}")
+        return jsonify({'error': 'Analysis failed. Please try again.'}), 500
