@@ -52,7 +52,6 @@ class Report(db.Model):
     photo = db.Column(db.String(150), nullable=True)
     description = db.Column(db.String(250), nullable=True)
     vision_analysis = db.Column(db.Text, nullable=True)  # Store Vision API results as JSON
-    # points = db.Column(db.Integer)
     location_id = db.Column(db.Integer, db.ForeignKey('location.id'))
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
 
@@ -121,6 +120,4 @@ class Notification(db.Model):
     location_id = db.Column(db.Integer, db.ForeignKey('location.id'))
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     low_inventory = db.Column(db.Boolean, default=True)   
-    # ... other preferences you want to add ...
-
 

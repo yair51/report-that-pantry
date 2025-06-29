@@ -139,8 +139,8 @@
                             </div>
                         </div>
 
-                        <!-- Time Period Trends Chart -->
-                        {% if analytics.time_trends.has_weekly_data or analytics.time_trends.has_monthly_data or analytics.time_trends.has_yearly_data %}
+                        <!-- Time Period Trends Chart - TEMPORARILY DISABLED -->
+                        <!-- {% if analytics.time_trends.has_weekly_data or analytics.time_trends.has_monthly_data or analytics.time_trends.has_yearly_data %}
                         <div class="card mb-4">
                             <div class="card-header">
                                 <div class="d-flex justify-content-between align-items-center">
@@ -168,7 +168,7 @@
                                 </div>
                             </div>
                         </div>
-                        {% endif %}
+                        {% endif %} -->
 
                         <!-- Usage Patterns -->
                         <div class="row mb-4">
@@ -628,7 +628,8 @@ $(document).ready(function() {
                     });
                 }
                 
-                // Time Period Trends Chart
+                // Time Period Trends Chart - TEMPORARILY DISABLED
+                /*
                 const trendsData = window.pantryAnalyticsData.trendsData || {};
                 if (Object.keys(trendsData).length > 0) {
                     let trendsChart = null;
@@ -696,6 +697,7 @@ $(document).ready(function() {
                         switchTrendPeriod(defaultPeriod);
                     }
                 }
+                */
                 
             } catch (error) {
                 console.error('Error initializing charts:', error);
