@@ -6,7 +6,7 @@ from .models import Location, Report, Notification, User
 from app.helpers import send_email, allowed_file, upload_photo_to_s3, delete_photo_from_s3
 from . import db, Message, mail
 import json
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from time import mktime
 from sqlalchemy import func, and_, desc
 from werkzeug.utils import secure_filename
@@ -17,6 +17,9 @@ import io
 import uuid
 import boto3
 from boto3 import s3
+import calendar
+import numpy as np
+from collections import defaultdict, Counter
 # Google Vision API imports
 from google.cloud import vision
 # Import our enhanced vision analysis
@@ -75,7 +78,10 @@ def calculate_pantry_analytics(location):
             'trends': {},
             'patterns': {},
             'ai_insights': {},
-            'chart_data': {}
+            'chart_data': {},
+            'engagement': {},
+            'restocking': {},
+            'predictions': {}
         }
         
         # Calculate fullness statistics
@@ -112,8 +118,6 @@ def calculate_pantry_analytics(location):
         }
         
         # Calculate usage patterns
-        from collections import defaultdict
-        import calendar
         
         # Group by day of week
         day_counts = defaultdict(int)
@@ -157,7 +161,6 @@ def calculate_pantry_analytics(location):
                     ai_fullness_estimates.append(ai_fullness)
             
             # Count most common food items
-            from collections import Counter
             food_item_counts = Counter(all_detected_items)
             
             analytics['ai_insights'] = {
@@ -167,14 +170,109 @@ def calculate_pantry_analytics(location):
                 'ai_coverage_percentage': round((len(ai_reports) / len(reports)) * 100, 1)
             }
         
-        # Prepare chart data
+        # Prepare chart data - FIX: Use actual timestamps for proper time-based x-axis
         chart_reports = reports[-30:] if len(reports) > 30 else reports  # Last 30 reports or all
+        
+        # Generate proper time-based chart data
+        chart_data_points = []
+        for report in chart_reports:
+            chart_data_points.append({
+                'timestamp': report.time.isoformat(),
+                'date': report.time.strftime('%Y-%m-%d'),
+                'datetime': report.time.strftime('%Y-%m-%d %H:%M'),
+                'fullness': report.pantry_fullness,
+                'ai_fullness': report.get_ai_fullness_estimate()
+            })
+        
         analytics['chart_data'] = {
+            'data_points': chart_data_points,
             'dates': [r.time.strftime('%Y-%m-%d') for r in chart_reports],
+            'timestamps': [r.time.isoformat() for r in chart_reports],
             'fullness_values': [r.pantry_fullness for r in chart_reports],
             'ai_fullness_values': [r.get_ai_fullness_estimate() or 0 for r in chart_reports if r.get_vision_analysis()],
             'report_count_by_month': {},
             'fullness_distribution': {'empty': 0, 'low': 0, 'medium': 0, 'high': 0, 'full': 0}
+        }
+        
+        # ENHANCED ANALYTICS - Time Period Trends
+        from datetime import timedelta
+        
+        # Calculate weekly, monthly, and yearly trends
+        weekly_trends = []
+        monthly_trends = []
+        yearly_trends = []
+        
+        # Group reports by time periods
+        report_groups = {
+            'weekly': defaultdict(list),
+            'monthly': defaultdict(list),
+            'yearly': defaultdict(list)
+        }
+        
+        for report in reports:
+            # Weekly grouping (Monday as start of week)
+            week_start = report.time - timedelta(days=report.time.weekday())
+            week_key = week_start.strftime('%Y-%m-%d')
+            report_groups['weekly'][week_key].append(report)
+            
+            # Monthly grouping
+            month_key = report.time.strftime('%Y-%m')
+            report_groups['monthly'][month_key].append(report)
+            
+            # Yearly grouping
+            year_key = report.time.strftime('%Y')
+            report_groups['yearly'][year_key].append(report)
+        
+        # Calculate averages for each period
+        for week_key, week_reports in report_groups['weekly'].items():
+            if len(week_reports) >= 2:  # Need at least 2 reports for meaningful average
+                avg_fullness = sum(r.pantry_fullness for r in week_reports) / len(week_reports)
+                weekly_trends.append({
+                    'period': week_key,
+                    'label': f"Week of {week_key}",
+                    'average_fullness': round(avg_fullness, 1),
+                    'report_count': len(week_reports),
+                    'min_fullness': min(r.pantry_fullness for r in week_reports),
+                    'max_fullness': max(r.pantry_fullness for r in week_reports)
+                })
+        
+        for month_key, month_reports in report_groups['monthly'].items():
+            if len(month_reports) >= 2:
+                avg_fullness = sum(r.pantry_fullness for r in month_reports) / len(month_reports)
+                monthly_trends.append({
+                    'period': month_key,
+                    'label': datetime.strptime(month_key, '%Y-%m').strftime('%B %Y'),
+                    'average_fullness': round(avg_fullness, 1),
+                    'report_count': len(month_reports),
+                    'min_fullness': min(r.pantry_fullness for r in month_reports),
+                    'max_fullness': max(r.pantry_fullness for r in month_reports)
+                })
+        
+        for year_key, year_reports in report_groups['yearly'].items():
+            if len(year_reports) >= 5:  # Need more reports for yearly average
+                avg_fullness = sum(r.pantry_fullness for r in year_reports) / len(year_reports)
+                yearly_trends.append({
+                    'period': year_key,
+                    'label': year_key,
+                    'average_fullness': round(avg_fullness, 1),
+                    'report_count': len(year_reports),
+                    'min_fullness': min(r.pantry_fullness for r in year_reports),
+                    'max_fullness': max(r.pantry_fullness for r in year_reports)
+                })
+        
+        # Sort trends chronologically
+        weekly_trends.sort(key=lambda x: x['period'])
+        monthly_trends.sort(key=lambda x: x['period'])
+        yearly_trends.sort(key=lambda x: x['period'])
+        
+        # Add to analytics
+        analytics['time_trends'] = {
+            'weekly': weekly_trends,
+            'monthly': monthly_trends,
+            'yearly': yearly_trends,
+            'has_weekly_data': len(weekly_trends) >= 2,
+            'has_monthly_data': len(monthly_trends) >= 2,
+            'has_yearly_data': len(yearly_trends) >= 2
         }
         
         # Calculate fullness distribution
@@ -189,6 +287,91 @@ def calculate_pantry_analytics(location):
                 analytics['chart_data']['fullness_distribution']['high'] += 1
             else:
                 analytics['chart_data']['fullness_distribution']['full'] += 1
+        
+        # ENHANCED ANALYTICS - Community Engagement
+        unique_users = set()
+        user_report_counts = {}
+        for report in reports:
+            if report.user_id:
+                unique_users.add(report.user_id)
+                user_report_counts[report.user_id] = user_report_counts.get(report.user_id, 0) + 1
+        
+        analytics['engagement'] = {
+            'unique_reporters': len(unique_users),
+            'anonymous_reports': sum(1 for r in reports if not r.user_id),
+            'average_reports_per_user': round(len(reports) / max(1, len(unique_users)), 1),
+            'most_active_reporter': max(user_report_counts.values()) if user_report_counts else 0,
+            'engagement_rate': round((len(unique_users) / max(1, analytics['date_range']['days'])) * 7, 2)  # reporters per week
+        }
+        
+        # ENHANCED ANALYTICS - Restocking Patterns
+        restocking_events = []
+        depletion_events = []
+        
+        for i in range(1, len(reports)):
+            prev_report = reports[i-1]
+            curr_report = reports[i]
+            
+            # Detect restocking (significant increase in fullness)
+            if curr_report.pantry_fullness > prev_report.pantry_fullness + 30:
+                time_diff = (curr_report.time - prev_report.time).total_seconds() / 3600  # hours
+                restocking_events.append({
+                    'time': curr_report.time,
+                    'from_fullness': prev_report.pantry_fullness,
+                    'to_fullness': curr_report.pantry_fullness,
+                    'time_since_last': time_diff
+                })
+            
+            # Detect depletion (significant decrease)
+            elif prev_report.pantry_fullness > curr_report.pantry_fullness + 20:
+                time_diff = (curr_report.time - prev_report.time).total_seconds() / 3600  # hours
+                depletion_events.append({
+                    'time': curr_report.time,
+                    'from_fullness': prev_report.pantry_fullness,
+                    'to_fullness': curr_report.pantry_fullness,
+                    'depletion_rate': time_diff
+                })
+        
+        # Calculate restocking analytics
+        restock_times = [event['time_since_last'] for event in restocking_events if event['time_since_last'] < 24*7]  # within a week
+        depletion_rates = [event['depletion_rate'] for event in depletion_events if event['depletion_rate'] < 24*3]  # within 3 days
+        
+        analytics['restocking'] = {
+            'total_restocking_events': len(restocking_events),
+            'total_depletion_events': len(depletion_events),
+            'average_restock_time_hours': round(sum(restock_times) / len(restock_times), 1) if restock_times else None,
+            'average_depletion_time_hours': round(sum(depletion_rates) / len(depletion_rates), 1) if depletion_rates else None,
+            'recent_restocking_events': restocking_events[-3:],  # Last 3
+            'restocking_frequency_per_week': round(len(restocking_events) / max(1, analytics['date_range']['days'] / 7), 1)
+        }
+        
+        # ENHANCED ANALYTICS - Peak Usage Patterns  
+        hour_patterns = defaultdict(list)
+        month_patterns = defaultdict(list)
+        
+        for report in reports:
+            hour_patterns[report.time.hour].append(report.pantry_fullness)
+            month_patterns[report.time.strftime('%B')].append(report.pantry_fullness)
+        
+        # Find peak depletion hours (hours with lowest average fullness)
+        hour_averages = {hour: sum(fullness_list) / len(fullness_list) 
+                        for hour, fullness_list in hour_patterns.items()}
+        
+        sorted_hours = sorted(hour_averages.items(), key=lambda x: x[1])
+        peak_depletion_hours = sorted_hours[:3] if len(sorted_hours) >= 3 else sorted_hours
+        
+        analytics['patterns'].update({
+            'peak_depletion_hours': [f"{hour:02d}:00 ({avg:.1f}% avg)" for hour, avg in peak_depletion_hours],
+            'month_averages': {month: round(sum(fullness_list) / len(fullness_list), 1) 
+                             for month, fullness_list in month_patterns.items()},
+            'busiest_months': sorted(month_patterns.items(), key=lambda x: len(x[1]), reverse=True)[:3]
+        })
+        
+        # ENHANCED ANALYTICS - Advanced Predictive Insights
+        if len(reports) >= 5:
+            # Multiple prediction methods for better accuracy
+            predictions = calculate_advanced_predictions(reports, analytics)
+            analytics['predictions'] = predictions
         
         # Add advanced insights
         analytics['insights'] = generate_pantry_insights(analytics, reports)
@@ -639,26 +822,8 @@ def report(id):
             if vision_analysis.get("food_items"):
                 food_items = vision_analysis["food_items"]
                 
-                # Handle both old format (objects with description) and new format (strings)
-                if food_items:
-                    if isinstance(food_items[0], dict):
-                        # Old format: list of objects with description field
-                        food_items_text = ", ".join([item.get("description", str(item)) for item in food_items[:5]])
-                    else:
-                        # New format: list of strings
-                        food_items_text = ", ".join(food_items[:5])
-                    
-                    if new_report.description:
-                        new_report.description += f"\n\nAI detected items: {food_items_text}"
-                    else:
-                        new_report.description = f"AI detected items: {food_items_text}"
-            
-            # Add suggested fullness comparison if available
-            if suggested_fullness is not None:
-                fullness_diff = abs(int(pantry_fullness) - suggested_fullness)
-                if fullness_diff > 20:  # Significant difference
-                    suggestion_text = f"\n\nAI suggested fullness: {suggested_fullness}%"
-                    new_report.description = (new_report.description or "") + suggestion_text
+                # Store AI analysis in JSON field for display in AI Analysis section
+                # Don't add to description to avoid duplication
         elif vision_analysis and "error" in vision_analysis:
             # Log the error but don't fail the report submission
             print(f"Vision API analysis error: {vision_analysis['error']}")
@@ -1190,7 +1355,7 @@ def calculate_nationwide_analytics():
         try:
             normalized_time = normalize_datetime(report.time)
             normalized_two_weeks = normalize_datetime(two_weeks_ago)
-            normalized_one_week = normalize_datetime(one_week_ago)
+            normalized_one_week = normalize_datetime(one_week_ago);
             
             if normalized_two_weeks <= normalized_time < normalized_one_week:
                 previous_week_reports.append(report)
@@ -1518,3 +1683,223 @@ def analyze_image_ajax():
     except Exception as e:
         print(f"AJAX image analysis error: {e}")
         return jsonify({'error': 'Analysis failed. Please try again.'}), 500
+
+
+def calculate_advanced_predictions(reports, analytics):
+    """
+    Advanced prediction algorithm using multiple methods for when pantry will be empty
+    Returns comprehensive prediction data including chart projections
+    """
+    from datetime import datetime, timedelta
+    import numpy as np
+    from scipy import stats
+    
+    try:
+        current_fullness = analytics['fullness_stats']['current']
+        if current_fullness <= 5:
+            return {
+                'days_until_empty': 0,
+                'prediction_method': 'already_empty',
+                'confidence': 100,
+                'risk_level': 'critical',
+                'prediction_explanation': 'Pantry is currently empty or nearly empty',
+                'chart_data': []
+            }
+        
+        # Method 1: Linear Trend Analysis (last 7 reports)
+        recent_reports = reports[-7:] if len(reports) >= 7 else reports[-5:]
+        times = [(r.time - reports[0].time).total_seconds() / 86400 for r in recent_reports]  # days since first report
+        fullness_values = [r.pantry_fullness for r in recent_reports]
+        
+        linear_prediction = None
+        if len(times) >= 3:
+            try:
+                slope, intercept, r_value, p_value, std_err = stats.linregress(times, fullness_values)
+                if slope < 0:  # Declining trend
+                    current_time = (recent_reports[-1].time - reports[0].time).total_seconds() / 86400
+                    days_to_zero = (0 - (slope * current_time + intercept)) / slope if slope != 0 else None
+                    if days_to_zero and days_to_zero > 0:
+                        linear_prediction = {
+                            'days': days_to_zero,
+                            'confidence': min(95, abs(r_value) * 100),
+                            'method': 'linear_regression'
+                        }
+            except:
+                pass
+        
+        # Method 2: Historical Depletion Rate Analysis
+        depletion_rates = []
+        for i in range(1, len(reports)):
+            prev_report = reports[i-1]
+            curr_report = reports[i]
+            time_diff_hours = (curr_report.time - prev_report.time).total_seconds() / 3600
+            fullness_change = curr_report.pantry_fullness - prev_report.pantry_fullness
+            
+            # Only consider depletion events (negative changes > 5%)
+            if fullness_change < -5 and time_diff_hours > 0:
+                rate_per_hour = abs(fullness_change) / time_diff_hours
+                depletion_rates.append(rate_per_hour)
+        
+        historical_prediction = None
+        if depletion_rates:
+            avg_depletion_rate = np.mean(depletion_rates)
+            median_depletion_rate = np.median(depletion_rates)
+            # Use median for more robust prediction
+            hours_until_empty = current_fullness / median_depletion_rate
+            historical_prediction = {
+                'days': hours_until_empty / 24,
+                'confidence': min(85, len(depletion_rates) * 10),
+                'method': 'historical_depletion'
+            }
+        
+        # Method 3: Pattern-Based Prediction (weekly patterns)
+        weekly_patterns = {}
+        for report in reports:
+            week_day = report.time.weekday()
+            if week_day not in weekly_patterns:
+                weekly_patterns[week_day] = []
+            weekly_patterns[week_day].append(report.pantry_fullness)
+        
+        pattern_prediction = None
+        if len(weekly_patterns) >= 3:
+            # Calculate average depletion by day of week
+            daily_averages = {day: np.mean(values) for day, values in weekly_patterns.items()}
+            current_day = reports[-1].time.weekday()
+            
+            # Project forward based on weekly pattern
+            projection_days = []
+            current_projected = current_fullness
+            for day_offset in range(1, 15):  # Project 2 weeks ahead
+                future_day = (current_day + day_offset) % 7
+                if future_day in daily_averages:
+                    # Estimate daily change based on historical pattern
+                    expected_fullness = daily_averages[future_day]
+                    daily_change = (expected_fullness - current_projected) * 0.3  # Damping factor
+                    current_projected = max(0, current_projected + daily_change)
+                    projection_days.append(current_projected)
+                    
+                    if current_projected <= 5:
+                        pattern_prediction = {
+                            'days': day_offset,
+                            'confidence': 70,
+                            'method': 'weekly_pattern'
+                        }
+                        break
+        
+        # Combine predictions using weighted average
+        predictions = [p for p in [linear_prediction, historical_prediction, pattern_prediction] if p]
+        
+        if not predictions:
+            return {
+                'days_until_empty': None,
+                'prediction_method': 'insufficient_data',
+                'confidence': 0,
+                'risk_level': 'unknown',
+                'prediction_explanation': 'Insufficient data for reliable prediction',
+                'chart_data': []
+            }
+        
+        # Weight predictions by confidence
+        total_weight = sum(p['confidence'] for p in predictions)
+        weighted_days = sum(p['days'] * p['confidence'] for p in predictions) / total_weight
+        avg_confidence = total_weight / len(predictions)
+        
+        # Generate prediction chart data (7 days forward)
+        chart_data = []
+        base_time = reports[-1].time
+        
+        # Use the best prediction method for chart projection
+        best_prediction = max(predictions, key=lambda x: x['confidence'])
+        daily_decline_rate = current_fullness / best_prediction['days'] if best_prediction['days'] > 0 else 0
+        
+        for day in range(8):  # Include today + 7 days
+            future_date = base_time + timedelta(days=day)
+            projected_fullness = max(0, current_fullness - (daily_decline_rate * day))
+            
+            chart_data.append({
+                'date': future_date.strftime('%Y-%m-%d'),
+                'timestamp': future_date.isoformat(),
+                'projected_fullness': round(projected_fullness, 1),
+                'is_prediction': day > 0,
+                'confidence_lower': max(0, projected_fullness - (projected_fullness * 0.2)),
+                'confidence_upper': min(100, projected_fullness + (projected_fullness * 0.2))
+            })
+        
+        # Determine risk level
+        if weighted_days <= 2:
+            risk_level = 'critical'
+        elif weighted_days <= 5:
+            risk_level = 'high'
+        elif weighted_days <= 10:
+            risk_level = 'medium'
+        else:
+            risk_level = 'low'
+        
+        # Generate explanation
+        method_names = {
+            'linear_regression': 'recent trend analysis',
+            'historical_depletion': 'historical usage patterns',
+            'weekly_pattern': 'weekly usage patterns'
+        }
+        
+        used_methods = [method_names.get(p['method'], p['method']) for p in predictions]
+        explanation = f"Prediction based on {', '.join(used_methods)}. "
+        
+        if best_prediction['method'] == 'linear_regression':
+            explanation += f"Current trend shows consistent depletion pattern."
+        elif best_prediction['method'] == 'historical_depletion':
+            explanation += f"Based on {len(depletion_rates)} historical depletion events."
+        else:
+            explanation += f"Derived from weekly usage patterns across {len(weekly_patterns)} days."
+        
+        return {
+            'days_until_empty': round(weighted_days, 1) if weighted_days < 30 else None,
+            'prediction_method': best_prediction['method'],
+            'confidence': round(avg_confidence, 1),
+            'risk_level': risk_level,
+            'prediction_explanation': explanation,
+            'chart_data': chart_data,
+            'alternative_predictions': [
+                {
+                    'method': method_names.get(p['method'], p['method']),
+                    'days': round(p['days'], 1),
+                    'confidence': round(p['confidence'], 1)
+                } for p in predictions
+            ],
+            'factors': {
+                'current_fullness': current_fullness,
+                'recent_trend': 'declining' if linear_prediction and linear_prediction['days'] < 14 else 'stable',
+                'historical_depletion_events': len(depletion_rates),
+                'weekly_pattern_available': len(weekly_patterns) >= 3
+            }
+        }
+        
+    except Exception as e:
+        print(f"Error in advanced predictions: {e}")
+        # Fallback to simple prediction
+        if len(reports) >= 3:
+            recent_trend = reports[-3:]
+            time_span = (recent_trend[-1].time - recent_trend[0].time).total_seconds() / 86400  # days
+            fullness_change = recent_trend[-1].pantry_fullness - recent_trend[0].pantry_fullness
+            
+            if time_span > 0 and fullness_change < 0:
+                daily_rate = abs(fullness_change) / time_span
+                days_until_empty = current_fullness / daily_rate if daily_rate > 0 else None
+                
+                return {
+                    'days_until_empty': round(days_until_empty, 1) if days_until_empty and days_until_empty < 30 else None,
+                    'prediction_method': 'simple_trend',
+                    'confidence': 60,
+                    'risk_level': 'high' if days_until_empty and days_until_empty < 3 else 'medium' if days_until_empty and days_until_empty < 7 else 'low',
+                    'prediction_explanation': 'Simple trend analysis based on recent reports',
+                    'chart_data': []
+                }
+        
+        return {
+            'days_until_empty': None,
+            'prediction_method': 'error',
+            'confidence': 0,
+            'risk_level': 'unknown',
+            'prediction_explanation': 'Unable to generate prediction due to insufficient data',
+            'chart_data': []
+        }

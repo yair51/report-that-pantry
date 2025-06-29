@@ -56,7 +56,7 @@
                         </label>
                     <input type="file" class="form-control-file" id="pantryPhoto" name="pantryPhoto" accept="image/*">
                     <small class="form-text text-muted">
-                        <i class="fas fa-robot"></i> Enhanced AI analysis using Google Vision API and Gemini will detect food items and suggest fullness percentage.
+                        <i class="fas fa-robot"></i> Enhanced AI analysis using Gemini will detect food items and suggest fullness percentage.
                     </small>
                     <div id="imagePreview" class="mt-2" style="display: none;">
                         <img id="previewImg" src="" alt="Image Preview" class="img-thumbnail" style="max-width: 200px;">
@@ -66,7 +66,6 @@
                     <div id="aiAnalysisResults" class="mt-3" style="display: none;">
                         <div class="alert alert-info">
                             <h6><i class="fas fa-robot"></i> AI Analysis Results</h6>
-                            <div id="aiSuggestedFullness" class="mb-2"></div>
                             <div id="aiDetectedItems" class="mb-2"></div>
                         </div>
                     </div>
@@ -244,9 +243,7 @@
                 
                 // Show AI analysis loading state
                 aiResultsDiv.style.display = "block";
-                document.getElementById("aiSuggestedFullness").innerHTML = '<i class="fas fa-spinner fa-spin"></i> Analyzing image with AI...';
-                document.getElementById("aiDetectedItems").innerHTML = '';
-                document.getElementById("applyAiSuggestion").style.display = "none";
+                document.getElementById("aiDetectedItems").innerHTML = '<i class="fas fa-spinner fa-spin"></i> Analyzing image with AI...';
                 
                 // Perform real AI analysis
                 analyzeImageWithAI(file);
@@ -279,12 +276,8 @@
         }
         
         function displayAIResults(data) {
-            // Display suggested fullness
+            // Automatically apply the AI suggestion to the slider (without displaying the value)
             const fullness = data.fullness_estimate;
-            document.getElementById("aiSuggestedFullness").innerHTML = 
-                `<strong>AI Suggested Fullness:</strong> <span class="text-primary">${fullness}%</span> <small class="text-success">(Applied automatically)</small>`;
-            
-            // Automatically apply the AI suggestion to the slider
             const slider = document.getElementById("pantryFullness");
             const rangeValue = document.getElementById("rangeValue");
             
@@ -293,10 +286,10 @@
             updateSliderAppearance(slider);
             rangeTouched = true; // Mark as touched for form validation
             
-            // Display detected food items (more concise format)
+            // Display detected food items
             const foodItems = data.food_items || [];
             if (foodItems.length > 0) {
-                const itemsText = foodItems.slice(0, 4).join(', ') + (foodItems.length > 4 ? '...' : '');
+                const itemsText = foodItems.join(', '); // Show all items, no truncation
                 document.getElementById("aiDetectedItems").innerHTML = 
                     `<strong>Detected Items:</strong> <small class="text-muted">${itemsText}</small>`;
             } else {
@@ -306,9 +299,8 @@
         }
         
         function displayAIError(errorMessage) {
-            document.getElementById("aiSuggestedFullness").innerHTML = 
+            document.getElementById("aiDetectedItems").innerHTML = 
                 `<span class="text-danger"><i class="fas fa-exclamation-triangle"></i> ${errorMessage}</span>`;
-            document.getElementById("aiDetectedItems").innerHTML = '';
         }
     </script>
     </script>

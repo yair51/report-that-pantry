@@ -106,24 +106,181 @@
                                 </div>
                             </div>
                             <div class="col-md-3 col-sm-6 mb-2">
-                                <div class="card bg-danger text-white">
+                                <div class="card 
+                                    {% if analytics.engagement.unique_reporters >= 5 %}
+                                        bg-success
+                                    {% elif analytics.engagement.unique_reporters >= 2 %}
+                                        bg-warning
+                                    {% else %}
+                                        bg-danger
+                                    {% endif %} text-white">
                                     <div class="card-body text-center p-3">
-                                        <h5 class="card-title mb-1">{{ analytics.patterns.empty_percentage }}%</h5>
-                                        <p class="card-text small mb-0">Empty Reports</p>
+                                        <h5 class="card-title mb-1">{{ analytics.engagement.unique_reporters }}</h5>
+                                        <p class="card-text small mb-0">Active Reporters</p>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
+                        <!-- Predictive Insights Alert -->
+                        {% if analytics.predictions and analytics.predictions.days_until_empty %}
+                        <div class="alert 
+                            {% if analytics.predictions.risk_level == 'high' %}
+                                alert-danger
+                            {% elif analytics.predictions.risk_level == 'medium' %}
+                                alert-warning
+                            {% else %}
+                                alert-info
+                            {% endif %} mb-4">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <strong>Prediction:</strong> Based on recent trends, this pantry may be empty in 
+                            <strong>{{ analytics.predictions.days_until_empty }} days</strong>
+                            {% if analytics.predictions.risk_level == 'high' %}
+                                - Consider restocking soon!
+                            {% endif %}
+                        </div>
+                        {% endif %}
+
+                        <!-- Advanced Prediction Chart -->
+                        {% if analytics.predictions and analytics.predictions.chart_data %}
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <h5 class="mb-0"><i class="fas fa-crystal-ball"></i> Predictive Analysis</h5>
+                                    <div class="d-flex align-items-center">
+                                        <small class="text-muted me-3">
+                                            Confidence: <strong>{{ analytics.predictions.confidence }}%</strong>
+                                        </small>
+                                        <span class="badge 
+                                            {% if analytics.predictions.risk_level == 'critical' %}
+                                                bg-danger
+                                            {% elif analytics.predictions.risk_level == 'high' %}
+                                                bg-warning
+                                            {% elif analytics.predictions.risk_level == 'medium' %}
+                                                bg-info
+                                            {% else %}
+                                                bg-success
+                                            {% endif %}">
+                                            {{ analytics.predictions.risk_level|title }} Risk
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-8">
+                                        <canvas id="predictionChart" width="400" height="250"></canvas>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="prediction-details">
+                                            <h6><i class="fas fa-info-circle"></i> Prediction Details</h6>
+                                            
+                                            {% if analytics.predictions.days_until_empty %}
+                                            <div class="prediction-stat mb-3">
+                                                <strong>Estimated Empty Date:</strong><br>
+                                                <span class="h5 text-{{ 'danger' if analytics.predictions.risk_level in ['critical', 'high'] else 'warning' if analytics.predictions.risk_level == 'medium' else 'success' }}">
+                                                    {{ analytics.predictions.days_until_empty }} days
+                                                </span>
+                                            </div>
+                                            {% endif %}
+                                            
+                                            <div class="prediction-method mb-3">
+                                                <strong>Analysis Method:</strong><br>
+                                                <small class="text-muted">{{ analytics.predictions.prediction_explanation }}</small>
+                                            </div>
+                                            
+                                            {% if analytics.predictions.alternative_predictions %}
+                                            <div class="alternative-methods">
+                                                <h6 class="text-muted">Alternative Predictions:</h6>
+                                                {% for alt in analytics.predictions.alternative_predictions %}
+                                                <div class="d-flex justify-content-between small mb-1">
+                                                    <span>{{ alt.method|title }}:</span>
+                                                    <span><strong>{{ alt.days }} days</strong> ({{ alt.confidence }}%)</span>
+                                                </div>
+                                                {% endfor %}
+                                            </div>
+                                            {% endif %}
+                                            
+                                            {% if analytics.predictions.factors %}
+                                            <div class="mt-3 pt-3 border-top">
+                                                <h6 class="text-muted">Key Factors:</h6>
+                                                <ul class="list-unstyled small">
+                                                    <li><i class="fas fa-chart-line text-info"></i> Trend: {{ analytics.predictions.factors.recent_trend|title }}</li>
+                                                    <li><i class="fas fa-percentage text-info"></i> Current: {{ analytics.predictions.factors.current_fullness }}% full</li>
+                                                    {% if analytics.predictions.factors.historical_depletion_events > 0 %}
+                                                    <li><i class="fas fa-history text-info"></i> {{ analytics.predictions.factors.historical_depletion_events }} depletion events analyzed</li>
+                                                    {% endif %}
+                                                    {% if analytics.predictions.factors.weekly_pattern_available %}
+                                                    <li><i class="fas fa-calendar text-info"></i> Weekly usage patterns detected</li>
+                                                    {% endif %}
+                                                </ul>
+                                            </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="mt-3">
+                                    <small class="text-muted">
+                                        <i class="fas fa-info-circle"></i> 
+                                        Predictions are based on historical data and current trends. Actual usage may vary based on community needs and restocking patterns.
+                                        <span class="d-inline-block ms-2">
+                                            <span style="color: #007bff;">●</span> Historical Data
+                                            <span style="color: #dc3545;" class="ms-2">●</span> Prediction
+                                            <span style="color: rgba(220, 53, 69, 0.3);" class="ms-2">▬</span> Confidence Range
+                                        </span>
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+
                         <!-- Fullness Trend Chart -->
                         <div class="card mb-4">
                             <div class="card-header">
-                                <h5 class="mb-0"><i class="fas fa-chart-area"></i> Fullness Over Time</h5>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <h5 class="mb-0"><i class="fas fa-chart-area"></i> Fullness Over Time</h5>
+                                    <small class="text-muted">
+                                        <span class="badge" style="background-color: #dc3545; color: #dc3545;">●</span> Empty/Low (≤33%)
+                                        <span class="badge ml-1" style="background-color: #ffc107; color: #ffc107;">●</span> Half Full (34-67%)
+                                        <span class="badge ml-1" style="background-color: #28a745; color: #28a745;">●</span> Full (≥68%)
+                                    </small>
+                                </div>
                             </div>
                             <div class="card-body">
                                 <canvas id="fullnessChart" width="400" height="200"></canvas>
                             </div>
                         </div>
+
+                        <!-- Time Period Trends Chart -->
+                        {% if analytics.time_trends.has_weekly_data or analytics.time_trends.has_monthly_data or analytics.time_trends.has_yearly_data %}
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <h5 class="mb-0"><i class="fas fa-calendar-alt"></i> Period Trends</h5>
+                                    <div class="btn-group btn-group-sm" role="group" id="trend-buttons">
+                                        {% if analytics.time_trends.has_weekly_data %}
+                                            <button type="button" class="btn btn-outline-primary active trend-btn" data-period="weekly">Weekly</button>
+                                        {% endif %}
+                                        {% if analytics.time_trends.has_monthly_data %}
+                                            <button type="button" class="btn btn-outline-primary{% if not analytics.time_trends.has_weekly_data %} active{% endif %} trend-btn" data-period="monthly">Monthly</button>
+                                        {% endif %}
+                                        {% if analytics.time_trends.has_yearly_data %}
+                                            <button type="button" class="btn btn-outline-primary{% if not analytics.time_trends.has_weekly_data and not analytics.time_trends.has_monthly_data %} active{% endif %} trend-btn" data-period="yearly">Yearly</button>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <canvas id="trendsChart" width="400" height="200"></canvas>
+                                <div class="mt-3">
+                                    <small class="text-muted">
+                                        <i class="fas fa-info-circle"></i> 
+                                        Shows average fullness per period with error bars indicating min/max values
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
 
                         <!-- Usage Patterns -->
                         <div class="row mb-4">
@@ -135,7 +292,14 @@
                                     <div class="card-body">
                                         <p class="mb-2"><strong>Most Active Day:</strong> {{ analytics.patterns.most_active_day or 'N/A' }}</p>
                                         <p class="mb-2"><strong>Least Active Day:</strong> {{ analytics.patterns.least_active_day or 'N/A' }}</p>
-                                        <p class="mb-0"><strong>Critical Periods:</strong> {{ analytics.patterns.critical_periods }} reports ≤10% full</p>
+                                        <p class="mb-2"><strong>Critical Periods:</strong> {{ analytics.patterns.critical_periods }} reports ≤10% full</p>
+                                        {% if analytics.patterns.peak_depletion_hours %}
+                                            <p class="mb-0"><strong>Peak Usage Hours:</strong> 
+                                                {% for hour in analytics.patterns.peak_depletion_hours[:2] %}
+                                                    {{ hour }}{% if not loop.last %}, {% endif %}
+                                                {% endfor %}
+                                            </p>
+                                        {% endif %}
                                     </div>
                                 </div>
                             </div>
@@ -146,6 +310,52 @@
                                     </div>
                                     <div class="card-body">
                                         <canvas id="distributionChart" width="300" height="200"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Restocking & Community Insights -->
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h6 class="mb-0"><i class="fas fa-sync-alt"></i> Restocking Patterns</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <p class="mb-2"><strong>Restocking Events:</strong> {{ analytics.restocking.total_restocking_events }}</p>
+                                        <p class="mb-2"><strong>Frequency:</strong> {{ analytics.restocking.restocking_frequency_per_week }} per week</p>
+                                        {% if analytics.restocking.average_restock_time_hours %}
+                                            <p class="mb-2"><strong>Avg Time Empty:</strong> 
+                                                {% if analytics.restocking.average_restock_time_hours < 24 %}
+                                                    {{ "%.1f"|format(analytics.restocking.average_restock_time_hours) }} hours
+                                                {% else %}
+                                                    {{ "%.1f"|format(analytics.restocking.average_restock_time_hours / 24) }} days
+                                                {% endif %}
+                                            </p>
+                                        {% endif %}
+                                        {% if analytics.restocking.average_depletion_time_hours %}
+                                            <p class="mb-0"><strong>Avg Depletion Time:</strong> 
+                                                {% if analytics.restocking.average_depletion_time_hours < 24 %}
+                                                    {{ "%.1f"|format(analytics.restocking.average_depletion_time_hours) }} hours
+                                                {% else %}
+                                                    {{ "%.1f"|format(analytics.restocking.average_depletion_time_hours / 24) }} days
+                                                {% endif %}
+                                            </p>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h6 class="mb-0"><i class="fas fa-users"></i> Community Engagement</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <p class="mb-2"><strong>Unique Reporters:</strong> {{ analytics.engagement.unique_reporters }}</p>
+                                        <p class="mb-2"><strong>Anonymous Reports:</strong> {{ analytics.engagement.anonymous_reports }}</p>
+                                        <p class="mb-2"><strong>Avg Reports/User:</strong> {{ analytics.engagement.average_reports_per_user }}</p>
+                                        <p class="mb-0"><strong>Engagement Rate:</strong> {{ analytics.engagement.engagement_rate }} reporters/week</p>
                                     </div>
                                 </div>
                             </div>
@@ -179,52 +389,6 @@
                                         {% endif %}
                                     </div>
                                 </div>
-                            </div>
-                        </div>
-                        {% endif %}
-
-                        <!-- Insights and Recommendations -->
-                        {% if analytics.insights %}
-                        <div class="card mb-4">
-                            <div class="card-header">
-                                <h6 class="mb-0"><i class="fas fa-lightbulb"></i> Insights & Recommendations</h6>
-                            </div>
-                            <div class="card-body">
-                                <!-- Alerts -->
-                                {% if analytics.insights.alerts %}
-                                    {% for alert in analytics.insights.alerts %}
-                                        <div class="alert alert-warning alert-dismissible fade show" role="alert">
-                                            <i class="fas fa-exclamation-triangle"></i> {{ alert }}
-                                            <button type="button" class="close" data-dismiss="alert">
-                                                <span aria-hidden="true">&times;</span>
-                                            </button>
-                                        </div>
-                                    {% endfor %}
-                                {% endif %}
-                                
-                                <!-- Summary -->
-                                {% if analytics.insights.summary %}
-                                    <div class="mb-3">
-                                        <h6><i class="fas fa-info-circle text-info"></i> Summary:</h6>
-                                        <ul class="mb-0">
-                                            {% for item in analytics.insights.summary %}
-                                                <li>{{ item }}</li>
-                                            {% endfor %}
-                                        </ul>
-                                    </div>
-                                {% endif %}
-                                
-                                <!-- Recommendations -->
-                                {% if analytics.insights.recommendations %}
-                                    <div>
-                                        <h6><i class="fas fa-thumbs-up text-success"></i> Recommendations:</h6>
-                                        <ul class="mb-0">
-                                            {% for rec in analytics.insights.recommendations %}
-                                                <li>{{ rec }}</li>
-                                            {% endfor %}
-                                        </ul>
-                                    </div>
-                                {% endif %}
                             </div>
                         </div>
                         {% endif %}
@@ -283,7 +447,7 @@
                         <h3>Reporting History</h3>
                         {% if pantry.reports|length > 0 %}
                             <ul class="list-group">
-                                {% for report in pantry.reports[:10] %}
+                                {% for report in pantry.reports %}
                                     <li class="list-group-item">
                                         <div class="d-flex justify-content-between align-items-start">
                                             <div class="flex-grow-1">
@@ -291,7 +455,6 @@
                                                     {{ report.time.strftime('%Y-%m-%d %H:%M') }}
                                                 </span>
                                                 <span class="ms-2">
-                                                    {{ report.get_status() }}
                                                     <span class="badge 
                                                         {% if report.pantry_fullness <= 33 %}
                                                             bg-danger
@@ -300,7 +463,7 @@
                                                         {% else %}
                                                             bg-success
                                                         {% endif %}">
-                                                        {{ report.pantry_fullness }}% full
+                                                        {{ report.pantry_fullness }}% Full
                                                     </span>
                                                 </span>
                                                 
@@ -318,12 +481,9 @@
                                                         <div class="mt-1">
                                                             <small>
                                                                 <strong>Detected items:</strong> 
-                                                                {% for item in report.get_detected_food_items()[:5] %}
+                                                                {% for item in report.get_detected_food_items() %}
                                                                     <span class="badge bg-light text-dark me-1">{{ item }}</span>
                                                                 {% endfor %}
-                                                                {% if report.get_detected_food_items()|length > 5 %}
-                                                                    <span class="text-muted">+{{ report.get_detected_food_items()|length - 5 }} more</span>
-                                                                {% endif %}
                                                             </small>
                                                         </div>
                                                         {% set ai_fullness = report.get_ai_fullness_estimate() %}
@@ -371,19 +531,6 @@
         </div>
 
         <div class="col-md-4">
-            <!-- <div class="card">
-                <div class="card-header">
-                    <h3>Community Leaderboard</h3>
-                </div>
-                <div class="card-body">
-                    <ul class="list-group" id="leaderboard">
-                        {% for user in top_reporters %}
-                            <li class="list-group-item">{{ user.username }} - {{ user.report_count }} reports</li>
-                        {% endfor %}
-                    </ul>
-                </div>
-            </div> -->
-
             <div class="card">
                 <div class="card-header">
                     <h3>Actions</h3>
@@ -423,14 +570,51 @@
 <!-- Chart.js for analytics charts -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
+<!-- Data Generation Script -->
+{% if analytics %}
+<script>
+window.pantryAnalyticsData = {
+    hasAnalytics: true,
+    {% if analytics.predictions and analytics.predictions.chart_data %}
+    predictionData: {{ analytics.predictions.chart_data | tojson | safe }},
+    {% else %}
+    predictionData: [],
+    {% endif %}
+    {% if analytics.chart_data and analytics.chart_data.data_points %}
+    chartData: {{ analytics.chart_data.data_points | tojson | safe }},
+    {% else %}
+    chartData: [],
+    {% endif %}
+    {% if analytics.chart_data and analytics.chart_data.fullness_distribution %}
+    distributionData: {{ analytics.chart_data.fullness_distribution | tojson | safe }},
+    {% else %}
+    distributionData: {},
+    {% endif %}
+    {% if analytics.trends_data %}
+    trendsData: {{ analytics.trends_data | tojson | safe }}
+    {% else %}
+    trendsData: {}
+    {% endif %}
+};
+</script>
+{% else %}
+<script>
+window.pantryAnalyticsData = {
+    hasAnalytics: false,
+    predictionData: [],
+    chartData: [],
+    distributionData: {},
+    trendsData: {}
+};
+</script>
+{% endif %}
+
 <script>
 $(document).ready(function() {
     $('#photoModal').on('show.bs.modal', function (event) {
         var button = $(event.relatedTarget); 
-        console.log("button: ", button);
         var imageUrl = button.attr('href'); 
         var modal = $(this);
-        console.log("image URL: ", imageUrl);
         modal.find('.modal-body #modal-image').attr('src', imageUrl);
     })
 });
@@ -459,105 +643,435 @@ $(document).ready(function() {
     });
 
     // Analytics Charts
-    {% if analytics %}
-    // Fullness Trend Chart
-    const fullnessCtx = document.getElementById('fullnessChart').getContext('2d');
-    const fullnessChart = new Chart(fullnessCtx, {
-        type: 'line',
-        data: {
-            labels: {{ analytics.chart_data.dates | tojson }},
-            datasets: [{
-                label: 'User Reported Fullness',
-                data: {{ analytics.chart_data.fullness_values | tojson }},
+    if (window.pantryAnalyticsData && window.pantryAnalyticsData.hasAnalytics) {
+        console.log('Analytics data available');
+        
+        // Check if Chart.js is loaded
+        if (typeof Chart !== 'undefined') {
+            
+            try {
+                
+                // Extract data from global object
+                const predictionData = window.pantryAnalyticsData.predictionData || [];
+                const chartData = window.pantryAnalyticsData.chartData || [];
+                const distributionData = window.pantryAnalyticsData.distributionData || {};
+                
+                // Fullness Trend Chart with proper time-based x-axis
+                const fullnessCtx = document.getElementById('fullnessChart')?.getContext('2d');
+                
+                // Fullness Distribution Pie Chart
+                const distributionCtx = document.getElementById('distributionChart')?.getContext('2d');
+    
+    // Advanced Prediction Chart
+    {% if analytics.predictions and analytics.predictions.chart_data %}
+    const predictionCtx = document.getElementById('predictionChart')?.getContext('2d');
+    
+    if (predictionCtx && predictionData && predictionData.length > 0) {
+        // Separate historical and prediction data
+        const historicalData = predictionData.filter(d => !d.is_prediction);
+        const predictionDataPoints = predictionData.filter(d => d.is_prediction);
+        
+        // Create datasets
+        const datasets = [];
+        
+        // Historical data line
+        if (historicalData.length > 0) {
+            datasets.push({
+                label: 'Current Status',
+                data: [{
+                    x: historicalData[0].date,
+                    y: historicalData[0].projected_fullness
+                }],
                 borderColor: '#007bff',
-                backgroundColor: 'rgba(0, 123, 255, 0.1)',
-                borderWidth: 2,
-                fill: true,
-                tension: 0.3
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    max: 100,
-                    ticks: {
-                        callback: function(value) {
-                            return value + '%';
-                        }
-                    }
-                }
-            },
-            plugins: {
-                legend: {
-                    display: true,
-                    position: 'top'
-                },
-                tooltip: {
-                    callbacks: {
-                        label: function(context) {
-                            return context.dataset.label + ': ' + context.parsed.y + '%';
-                        }
-                    }
-                }
-            }
+                backgroundColor: '#007bff',
+                borderWidth: 3,
+                pointRadius: 8,
+                pointHoverRadius: 10,
+                fill: false,
+                tension: 0.1
+            });
         }
-    });
+        
+        // Prediction line
+        if (predictionDataPoints.length > 0) {
+            const allPredictionPoints = [...(historicalData.length > 0 ? [historicalData[0]] : []), ...predictionDataPoints];
+            
+            datasets.push({
+                label: 'Predicted Trend',
+                data: allPredictionPoints.map(d => ({
+                    x: d.date,
+                    y: d.projected_fullness
+                })),
+                borderColor: '#dc3545',
+                backgroundColor: 'rgba(220, 53, 69, 0.1)',
+                borderWidth: 2,
+                borderDash: [5, 5],
+                pointRadius: 4,
+                pointHoverRadius: 6,
+                fill: false,
+                tension: 0.1
+            });
+            
+            // Confidence interval
+            datasets.push({
+                label: 'Confidence Range',
+                data: allPredictionPoints.map(d => ({
+                    x: d.date,
+                    y: d.confidence_upper
+                })),
+                borderColor: 'rgba(220, 53, 69, 0.3)',
+                backgroundColor: 'rgba(220, 53, 69, 0.1)',
+                borderWidth: 1,
+                pointRadius: 0,
+                fill: '+1',
+                tension: 0.1
+            });
+            
+            datasets.push({
+                label: 'Confidence Lower',
+                data: allPredictionPoints.map(d => ({
+                    x: d.date,
+                    y: d.confidence_lower
+                })),
+                borderColor: 'rgba(220, 53, 69, 0.3)',
+                backgroundColor: 'rgba(220, 53, 69, 0.1)',
+                borderWidth: 1,
+                pointRadius: 0,
+                fill: false,
+                tension: 0.1
+            });
+        }
+        
+        new Chart(predictionCtx, {
+            type: 'line',
+            data: {
+                datasets: datasets
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: {
+                    intersect: false,
+                    mode: 'index'
+                },
+                scales: {
+                    x: {
+                        type: 'time',
+                        time: {
+                            unit: 'day',
+                            displayFormats: {
+                                day: 'MMM DD'
+                            }
+                        },
+                        title: {
+                            display: true,
+                            text: 'Date'
+                        }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        max: 100,
+                        title: {
+                            display: true,
+                            text: 'Fullness (%)'
+                        },
+                        ticks: {
+                            callback: function(value) {
+                                return value + '%';
+                            }
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top',
+                        labels: {
+                            filter: function(legendItem, chartData) {
+                                // Hide the confidence lower bound from legend
+                                return legendItem.text !== 'Confidence Lower';
+                            }
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            title: function(context) {
+                                return new Date(context[0].parsed.x).toLocaleDateString();
+                            },
+                            label: function(context) {
+                                if (context.dataset.label === 'Confidence Range' || context.dataset.label === 'Confidence Lower') {
+                                    return null; // Don't show tooltip for confidence bounds
+                                }
+                                const value = Math.round(context.parsed.y);
+                                const isPrediction = context.parsed.x > new Date().getTime();
+                                const prefix = isPrediction ? 'Predicted: ' : 'Current: ';
+                                return prefix + value + '%';
+                            }
+                        },
+                        filter: function(tooltipItem) {
+                            // Don't show tooltips for confidence bounds
+                            return tooltipItem.dataset.label !== 'Confidence Range' && 
+                                   tooltipItem.dataset.label !== 'Confidence Lower';
+                        }
+                    }
+                }
+            });
+    }
+    {% endif %}
+    
+    // Fullness Trend Chart with proper time-based x-axis
+    const fullnessCtx = document.getElementById('fullnessChart').getContext('2d');
+    
+    // Prepare data with actual timestamps for proper time series
+    const chartData = {{ analytics.chart_data.data_points | tojson | safe }};
+    
+    // Check if chartData exists and has length
+    if (chartData && chartData.length > 0) {
+        // Create color arrays based on fullness levels
+        const pointColors = chartData.map(point => {
+            if (point.fullness <= 33) {
+                return '#dc3545'; // Red for empty/low
+            } else if (point.fullness <= 67) {
+                return '#ffc107'; // Yellow for half full
+            } else {
+                return '#28a745'; // Green for full
+            }
+        });
+        
+        const fullnessChart = new Chart(fullnessCtx, {
+            type: 'line',
+            data: {
+                labels: chartData.map(point => {
+                    const date = new Date(point.timestamp);
+                    return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                }),
+                datasets: [{
+                    label: 'User Reported Fullness',
+                    data: chartData.map(point => point.fullness),
+                    borderColor: '#007bff',
+                    backgroundColor: 'rgba(0, 123, 255, 0.1)',
+                    borderWidth: 2,
+                    fill: false,
+                    tension: 0.3,
+                    pointBackgroundColor: pointColors,
+                    pointBorderColor: '#ffffff',
+                    pointBorderWidth: 2,
+                    pointRadius: 6,
+                    pointHoverRadius: 8
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: {
+                    intersect: false,
+                    mode: 'index'
+                },
+                scales: {
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Date & Time'
+                        },
+                        ticks: {
+                            maxTicksLimit: 8
+                        }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        max: 100,
+                        title: {
+                            display: true,
+                            text: 'Fullness (%)'
+                        },
+                        ticks: {
+                            callback: function(value) {
+                                return value + '%';
+                            }
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top'
+                    },
+                    tooltip: {
+                        callbacks: {
+                            title: function(context) {
+                                const point = chartData[context[0].dataIndex];
+                                return new Date(point.timestamp).toLocaleString();
+                            },
+                            label: function(context) {
+                                const fullness = context.parsed.y;
+                                let status;
+                                if (fullness <= 33) {
+                                    status = 'Empty/Low';
+                                } else if (fullness <= 67) {
+                                    status = 'Half Full';
+                                } else {
+                                    status = 'Full';
+                                }
+                                return `Fullness: ${fullness}% (${status})`;
+                            }
+                        }
+                    }
+                }
+            });
+    } else {
+        // Show error message if no data
+        document.getElementById('fullnessChart').style.display = 'none';
+        const chartContainer = document.querySelector('#fullnessChart').parentElement;
+        chartContainer.innerHTML = '<p class="text-muted text-center">No chart data available</p>';
+    }
 
     // Fullness Distribution Pie Chart
     const distributionCtx = document.getElementById('distributionChart').getContext('2d');
-    const distributionChart = new Chart(distributionCtx, {
-        type: 'doughnut',
-        data: {
-            labels: ['Empty (≤10%)', 'Low (11-33%)', 'Medium (34-66%)', 'High (67-90%)', 'Full (>90%)'],
-            datasets: [{
-                data: [
-                    {{ analytics.chart_data.fullness_distribution.empty }},
-                    {{ analytics.chart_data.fullness_distribution.low }},
-                    {{ analytics.chart_data.fullness_distribution.medium }},
-                    {{ analytics.chart_data.fullness_distribution.high }},
-                    {{ analytics.chart_data.fullness_distribution.full }}
-                ],
-                backgroundColor: [
-                    '#dc3545',  // Red for empty
-                    '#fd7e14',  // Orange for low
-                    '#ffc107',  // Yellow for medium
-                    '#28a745',  // Green for high
-                    '#007bff'   // Blue for full
-                ],
-                borderWidth: 2,
-                borderColor: '#fff'
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    position: 'bottom',
-                    labels: {
-                        padding: 15,
-                        font: {
-                            size: 11
+    
+    // Get distribution data from Jinja
+    const distributionData = {{ analytics.chart_data.fullness_distribution | tojson | safe }};
+    
+    // Check if analytics data exists
+    if (distributionData) {
+        const distributionChart = new Chart(distributionCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Empty/Low (≤33%)', 'Medium (34-66%)', 'Full (≥67%)'],
+                datasets: [{
+                    data: [
+                        distributionData.empty + distributionData.low,
+                        distributionData.medium,
+                        distributionData.high + distributionData.full
+                    ],
+                    backgroundColor: [
+                        '#dc3545',  // Red for empty/low
+                        '#ffc107',  // Yellow for medium
+                        '#28a745'   // Green for full
+                    ],
+                    borderWidth: 2,
+                    borderColor: '#fff'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            padding: 15,
+                            font: {
+                                size: 11
+                            }
                         }
-                    }
-                },
-                tooltip: {
-                    callbacks: {
-                        label: function(context) {
-                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                            const percentage = ((context.parsed / total) * 100).toFixed(1);
-                            return context.label + ': ' + context.parsed + ' reports (' + percentage + '%)';
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                const percentage = ((context.parsed / total) * 100).toFixed(1);
+                                return context.label + ': ' + context.parsed + ' reports (' + percentage + '%)';
+                            }
                         }
                     }
                 }
+            });
+    } else {
+        document.getElementById('distributionChart').style.display = 'none';
+        const chartContainer = document.querySelector('#distributionChart').parentElement;
+        chartContainer.innerHTML = '<p class="text-muted text-center">No distribution data available</p>';
+    }
+    
+    // Time Period Trends Chart - SIMPLE IMPLEMENTATION
+    {% if analytics.time_trends.has_weekly_data or analytics.time_trends.has_monthly_data or analytics.time_trends.has_yearly_data %}
+    
+    // Store trends data directly in JavaScript
+    window.trendsData = {
+        weekly: {{ analytics.time_trends.weekly | tojson | safe }},
+        monthly: {{ analytics.time_trends.monthly | tojson | safe }},
+        yearly: {{ analytics.time_trends.yearly | tojson | safe }}
+    };
+    
+    const defaultPeriod = "{% if analytics.time_trends.has_weekly_data %}weekly{% elif analytics.time_trends.has_monthly_data %}monthly{% elif analytics.time_trends.has_yearly_data %}yearly{% endif %}";
+    
+    let trendsChart = null;
+    
+    // Simple function to show trend chart
+    function switchTrendPeriod(period) {
+        // Update buttons
+        document.querySelectorAll('.trend-btn').forEach(btn => {
+            btn.classList.remove('active');
+            if (btn.getAttribute('data-period') === period) {
+                btn.classList.add('active');
             }
+        });
+        
+        // Get data
+        const data = window.trendsData[period];
+        if (!data || !data.length) {
+            return;
+        }
+        
+        // Destroy existing chart
+        if (trendsChart) {
+            trendsChart.destroy();
+        }
+        
+        // Create simple chart
+        const canvas = document.getElementById('trendsChart');
+        if (canvas) {
+            trendsChart = new Chart(canvas, {
+                type: 'line',
+                data: {
+                    labels: data.map(d => d.label),
+                    datasets: [{
+                        label: 'Average Fullness',
+                        data: data.map(d => d.average_fullness),
+                        borderColor: '#007bff',
+                        backgroundColor: 'rgba(0,123,255,0.1)',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100
+                        }
+                    }
+                }
+            });
+        }
+    }
+    
+    // Setup event listeners when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+        // Add click listeners to buttons
+        document.querySelectorAll('.trend-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const period = this.getAttribute('data-period');
+                switchTrendPeriod(period);
+            });
+        });
+        
+        // Initialize with default period
+        if (defaultPeriod) {
+            switchTrendPeriod(defaultPeriod);
         }
     });
+    
     {% endif %}
-
+    
+    } catch (error) {
+        console.error('Error initializing charts:', error);
+    }
+    
+    } else {
+        console.error('Chart.js library is not loaded!');
+    }
+    
+    } // End of analytics check
 
 </script>
 {% endblock %}
