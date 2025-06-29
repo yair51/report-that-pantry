@@ -122,118 +122,6 @@
                             </div>
                         </div>
 
-                        <!-- Predictive Insights Alert -->
-                        {% if analytics.predictions and analytics.predictions.days_until_empty %}
-                        <div class="alert 
-                            {% if analytics.predictions.risk_level == 'high' %}
-                                alert-danger
-                            {% elif analytics.predictions.risk_level == 'medium' %}
-                                alert-warning
-                            {% else %}
-                                alert-info
-                            {% endif %} mb-4">
-                            <i class="fas fa-exclamation-triangle"></i>
-                            <strong>Prediction:</strong> Based on recent trends, this pantry may be empty in 
-                            <strong>{{ analytics.predictions.days_until_empty }} days</strong>
-                            {% if analytics.predictions.risk_level == 'high' %}
-                                - Consider restocking soon!
-                            {% endif %}
-                        </div>
-                        {% endif %}
-
-                        <!-- Advanced Prediction Chart -->
-                        {% if analytics.predictions and analytics.predictions.chart_data %}
-                        <div class="card mb-4">
-                            <div class="card-header">
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <h5 class="mb-0"><i class="fas fa-crystal-ball"></i> Predictive Analysis</h5>
-                                    <div class="d-flex align-items-center">
-                                        <small class="text-muted me-3">
-                                            Confidence: <strong>{{ analytics.predictions.confidence }}%</strong>
-                                        </small>
-                                        <span class="badge 
-                                            {% if analytics.predictions.risk_level == 'critical' %}
-                                                bg-danger
-                                            {% elif analytics.predictions.risk_level == 'high' %}
-                                                bg-warning
-                                            {% elif analytics.predictions.risk_level == 'medium' %}
-                                                bg-info
-                                            {% else %}
-                                                bg-success
-                                            {% endif %}">
-                                            {{ analytics.predictions.risk_level|title }} Risk
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="card-body">
-                                <div class="row">
-                                    <div class="col-md-8">
-                                        <canvas id="predictionChart" width="400" height="250"></canvas>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <div class="prediction-details">
-                                            <h6><i class="fas fa-info-circle"></i> Prediction Details</h6>
-                                            
-                                            {% if analytics.predictions.days_until_empty %}
-                                            <div class="prediction-stat mb-3">
-                                                <strong>Estimated Empty Date:</strong><br>
-                                                <span class="h5 text-{{ 'danger' if analytics.predictions.risk_level in ['critical', 'high'] else 'warning' if analytics.predictions.risk_level == 'medium' else 'success' }}">
-                                                    {{ analytics.predictions.days_until_empty }} days
-                                                </span>
-                                            </div>
-                                            {% endif %}
-                                            
-                                            <div class="prediction-method mb-3">
-                                                <strong>Analysis Method:</strong><br>
-                                                <small class="text-muted">{{ analytics.predictions.prediction_explanation }}</small>
-                                            </div>
-                                            
-                                            {% if analytics.predictions.alternative_predictions %}
-                                            <div class="alternative-methods">
-                                                <h6 class="text-muted">Alternative Predictions:</h6>
-                                                {% for alt in analytics.predictions.alternative_predictions %}
-                                                <div class="d-flex justify-content-between small mb-1">
-                                                    <span>{{ alt.method|title }}:</span>
-                                                    <span><strong>{{ alt.days }} days</strong> ({{ alt.confidence }}%)</span>
-                                                </div>
-                                                {% endfor %}
-                                            </div>
-                                            {% endif %}
-                                            
-                                            {% if analytics.predictions.factors %}
-                                            <div class="mt-3 pt-3 border-top">
-                                                <h6 class="text-muted">Key Factors:</h6>
-                                                <ul class="list-unstyled small">
-                                                    <li><i class="fas fa-chart-line text-info"></i> Trend: {{ analytics.predictions.factors.recent_trend|title }}</li>
-                                                    <li><i class="fas fa-percentage text-info"></i> Current: {{ analytics.predictions.factors.current_fullness }}% full</li>
-                                                    {% if analytics.predictions.factors.historical_depletion_events > 0 %}
-                                                    <li><i class="fas fa-history text-info"></i> {{ analytics.predictions.factors.historical_depletion_events }} depletion events analyzed</li>
-                                                    {% endif %}
-                                                    {% if analytics.predictions.factors.weekly_pattern_available %}
-                                                    <li><i class="fas fa-calendar text-info"></i> Weekly usage patterns detected</li>
-                                                    {% endif %}
-                                                </ul>
-                                            </div>
-                                            {% endif %}
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="mt-3">
-                                    <small class="text-muted">
-                                        <i class="fas fa-info-circle"></i> 
-                                        Predictions are based on historical data and current trends. Actual usage may vary based on community needs and restocking patterns.
-                                        <span class="d-inline-block ms-2">
-                                            <span style="color: #007bff;">●</span> Historical Data
-                                            <span style="color: #dc3545;" class="ms-2">●</span> Prediction
-                                            <span style="color: rgba(220, 53, 69, 0.3);" class="ms-2">▬</span> Confidence Range
-                                        </span>
-                                    </small>
-                                </div>
-                            </div>
-                        </div>
-                        {% endif %}
-
                         <!-- Fullness Trend Chart -->
                         <div class="card mb-4">
                             <div class="card-header">
@@ -575,11 +463,6 @@
 <script>
 window.pantryAnalyticsData = {
     hasAnalytics: true,
-    {% if analytics.predictions and analytics.predictions.chart_data %}
-    predictionData: {{ analytics.predictions.chart_data | tojson | safe }},
-    {% else %}
-    predictionData: [],
-    {% endif %}
     {% if analytics.chart_data and analytics.chart_data.data_points %}
     chartData: {{ analytics.chart_data.data_points | tojson | safe }},
     {% else %}
@@ -601,7 +484,6 @@ window.pantryAnalyticsData = {
 <script>
 window.pantryAnalyticsData = {
     hasAnalytics: false,
-    predictionData: [],
     chartData: [],
     distributionData: {},
     trendsData: {}
@@ -648,430 +530,180 @@ $(document).ready(function() {
         
         // Check if Chart.js is loaded
         if (typeof Chart !== 'undefined') {
-            
             try {
-                
                 // Extract data from global object
-                const predictionData = window.pantryAnalyticsData.predictionData || [];
                 const chartData = window.pantryAnalyticsData.chartData || [];
                 const distributionData = window.pantryAnalyticsData.distributionData || {};
                 
-                // Fullness Trend Chart with proper time-based x-axis
+                // Fullness Trend Chart
                 const fullnessCtx = document.getElementById('fullnessChart')?.getContext('2d');
-                
+                if (fullnessCtx && chartData.length > 0) {
+                    // Create color arrays based on fullness levels
+                    const pointColors = chartData.map(point => {
+                        if (point.fullness <= 33) {
+                            return '#dc3545'; // Red for empty/low
+                        } else if (point.fullness <= 67) {
+                            return '#ffc107'; // Yellow for half full
+                        } else {
+                            return '#28a745'; // Green for full
+                        }
+                    });
+                    
+                    const fullnessChart = new Chart(fullnessCtx, {
+                        type: 'line',
+                        data: {
+                            labels: chartData.map(point => {
+                                const date = new Date(point.timestamp);
+                                return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                            }),
+                            datasets: [{
+                                label: 'Fullness (%)',
+                                data: chartData.map(point => point.fullness),
+                                borderColor: '#007bff',
+                                backgroundColor: 'rgba(0, 123, 255, 0.1)',
+                                borderWidth: 2,
+                                fill: false,
+                                tension: 0.3,
+                                pointBackgroundColor: pointColors,
+                                pointBorderColor: '#ffffff',
+                                pointBorderWidth: 2,
+                                pointRadius: 6,
+                                pointHoverRadius: 8
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            scales: {
+                                x: {
+                                    title: {
+                                        display: true,
+                                        text: 'Date & Time'
+                                    }
+                                },
+                                y: {
+                                    beginAtZero: true,
+                                    max: 100,
+                                    title: {
+                                        display: true,
+                                        text: 'Fullness (%)'
+                                    }
+                                }
+                            }
+                        }
+                    });
+                }
+
                 // Fullness Distribution Pie Chart
                 const distributionCtx = document.getElementById('distributionChart')?.getContext('2d');
-    
-    // Advanced Prediction Chart
-    {% if analytics.predictions and analytics.predictions.chart_data %}
-    const predictionCtx = document.getElementById('predictionChart')?.getContext('2d');
-    
-    if (predictionCtx && predictionData && predictionData.length > 0) {
-        // Separate historical and prediction data
-        const historicalData = predictionData.filter(d => !d.is_prediction);
-        const predictionDataPoints = predictionData.filter(d => d.is_prediction);
-        
-        // Create datasets
-        const datasets = [];
-        
-        // Historical data line
-        if (historicalData.length > 0) {
-            datasets.push({
-                label: 'Current Status',
-                data: [{
-                    x: historicalData[0].date,
-                    y: historicalData[0].projected_fullness
-                }],
-                borderColor: '#007bff',
-                backgroundColor: '#007bff',
-                borderWidth: 3,
-                pointRadius: 8,
-                pointHoverRadius: 10,
-                fill: false,
-                tension: 0.1
-            });
-        }
-        
-        // Prediction line
-        if (predictionDataPoints.length > 0) {
-            const allPredictionPoints = [...(historicalData.length > 0 ? [historicalData[0]] : []), ...predictionDataPoints];
-            
-            datasets.push({
-                label: 'Predicted Trend',
-                data: allPredictionPoints.map(d => ({
-                    x: d.date,
-                    y: d.projected_fullness
-                })),
-                borderColor: '#dc3545',
-                backgroundColor: 'rgba(220, 53, 69, 0.1)',
-                borderWidth: 2,
-                borderDash: [5, 5],
-                pointRadius: 4,
-                pointHoverRadius: 6,
-                fill: false,
-                tension: 0.1
-            });
-            
-            // Confidence interval
-            datasets.push({
-                label: 'Confidence Range',
-                data: allPredictionPoints.map(d => ({
-                    x: d.date,
-                    y: d.confidence_upper
-                })),
-                borderColor: 'rgba(220, 53, 69, 0.3)',
-                backgroundColor: 'rgba(220, 53, 69, 0.1)',
-                borderWidth: 1,
-                pointRadius: 0,
-                fill: '+1',
-                tension: 0.1
-            });
-            
-            datasets.push({
-                label: 'Confidence Lower',
-                data: allPredictionPoints.map(d => ({
-                    x: d.date,
-                    y: d.confidence_lower
-                })),
-                borderColor: 'rgba(220, 53, 69, 0.3)',
-                backgroundColor: 'rgba(220, 53, 69, 0.1)',
-                borderWidth: 1,
-                pointRadius: 0,
-                fill: false,
-                tension: 0.1
-            });
-        }
-        
-        new Chart(predictionCtx, {
-            type: 'line',
-            data: {
-                datasets: datasets
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                interaction: {
-                    intersect: false,
-                    mode: 'index'
-                },
-                scales: {
-                    x: {
-                        type: 'time',
-                        time: {
-                            unit: 'day',
-                            displayFormats: {
-                                day: 'MMM DD'
-                            }
+                if (distributionCtx && distributionData && Object.keys(distributionData).length > 0) {
+                    const distributionChart = new Chart(distributionCtx, {
+                        type: 'doughnut',
+                        data: {
+                            labels: ['Empty/Low (≤33%)', 'Medium (34-66%)', 'Full (≥67%)'],
+                            datasets: [{
+                                data: [
+                                    (distributionData.empty || 0) + (distributionData.low || 0),
+                                    distributionData.medium || 0,
+                                    (distributionData.high || 0) + (distributionData.full || 0)
+                                ],
+                                backgroundColor: [
+                                    '#dc3545',  // Red for empty/low
+                                    '#ffc107',  // Yellow for medium
+                                    '#28a745'   // Green for full
+                                ],
+                                borderWidth: 2,
+                                borderColor: '#fff'
+                            }]
                         },
-                        title: {
-                            display: true,
-                            text: 'Date'
-                        }
-                    },
-                    y: {
-                        beginAtZero: true,
-                        max: 100,
-                        title: {
-                            display: true,
-                            text: 'Fullness (%)'
-                        },
-                        ticks: {
-                            callback: function(value) {
-                                return value + '%';
-                            }
-                        }
-                    }
-                },
-                plugins: {
-                    legend: {
-                        display: true,
-                        position: 'top',
-                        labels: {
-                            filter: function(legendItem, chartData) {
-                                // Hide the confidence lower bound from legend
-                                return legendItem.text !== 'Confidence Lower';
-                            }
-                        }
-                    },
-                    tooltip: {
-                        callbacks: {
-                            title: function(context) {
-                                return new Date(context[0].parsed.x).toLocaleDateString();
-                            },
-                            label: function(context) {
-                                if (context.dataset.label === 'Confidence Range' || context.dataset.label === 'Confidence Lower') {
-                                    return null; // Don't show tooltip for confidence bounds
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    position: 'bottom'
                                 }
-                                const value = Math.round(context.parsed.y);
-                                const isPrediction = context.parsed.x > new Date().getTime();
-                                const prefix = isPrediction ? 'Predicted: ' : 'Current: ';
-                                return prefix + value + '%';
                             }
-                        },
-                        filter: function(tooltipItem) {
-                            // Don't show tooltips for confidence bounds
-                            return tooltipItem.dataset.label !== 'Confidence Range' && 
-                                   tooltipItem.dataset.label !== 'Confidence Lower';
                         }
-                    }
+                    });
                 }
-            });
-    }
-    {% endif %}
-    
-    // Fullness Trend Chart with proper time-based x-axis
-    const fullnessCtx = document.getElementById('fullnessChart').getContext('2d');
-    
-    // Prepare data with actual timestamps for proper time series
-    const chartData = {{ analytics.chart_data.data_points | tojson | safe }};
-    
-    // Check if chartData exists and has length
-    if (chartData && chartData.length > 0) {
-        // Create color arrays based on fullness levels
-        const pointColors = chartData.map(point => {
-            if (point.fullness <= 33) {
-                return '#dc3545'; // Red for empty/low
-            } else if (point.fullness <= 67) {
-                return '#ffc107'; // Yellow for half full
-            } else {
-                return '#28a745'; // Green for full
-            }
-        });
-        
-        const fullnessChart = new Chart(fullnessCtx, {
-            type: 'line',
-            data: {
-                labels: chartData.map(point => {
-                    const date = new Date(point.timestamp);
-                    return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-                }),
-                datasets: [{
-                    label: 'User Reported Fullness',
-                    data: chartData.map(point => point.fullness),
-                    borderColor: '#007bff',
-                    backgroundColor: 'rgba(0, 123, 255, 0.1)',
-                    borderWidth: 2,
-                    fill: false,
-                    tension: 0.3,
-                    pointBackgroundColor: pointColors,
-                    pointBorderColor: '#ffffff',
-                    pointBorderWidth: 2,
-                    pointRadius: 6,
-                    pointHoverRadius: 8
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                interaction: {
-                    intersect: false,
-                    mode: 'index'
-                },
-                scales: {
-                    x: {
-                        title: {
-                            display: true,
-                            text: 'Date & Time'
-                        },
-                        ticks: {
-                            maxTicksLimit: 8
-                        }
-                    },
-                    y: {
-                        beginAtZero: true,
-                        max: 100,
-                        title: {
-                            display: true,
-                            text: 'Fullness (%)'
-                        },
-                        ticks: {
-                            callback: function(value) {
-                                return value + '%';
+                
+                // Time Period Trends Chart
+                const trendsData = window.pantryAnalyticsData.trendsData || {};
+                if (Object.keys(trendsData).length > 0) {
+                    let trendsChart = null;
+                    
+                    // Function to show trend chart
+                    function switchTrendPeriod(period) {
+                        // Update buttons
+                        document.querySelectorAll('.trend-btn').forEach(btn => {
+                            btn.classList.remove('active');
+                            if (btn.getAttribute('data-period') === period) {
+                                btn.classList.add('active');
                             }
+                        });
+                        
+                        // Get data
+                        const data = trendsData[period];
+                        if (!data || !data.length) {
+                            return;
                         }
-                    }
-                },
-                plugins: {
-                    legend: {
-                        display: true,
-                        position: 'top'
-                    },
-                    tooltip: {
-                        callbacks: {
-                            title: function(context) {
-                                const point = chartData[context[0].dataIndex];
-                                return new Date(point.timestamp).toLocaleString();
-                            },
-                            label: function(context) {
-                                const fullness = context.parsed.y;
-                                let status;
-                                if (fullness <= 33) {
-                                    status = 'Empty/Low';
-                                } else if (fullness <= 67) {
-                                    status = 'Half Full';
-                                } else {
-                                    status = 'Full';
+                        
+                        // Destroy existing chart
+                        if (trendsChart) {
+                            trendsChart.destroy();
+                        }
+                        
+                        // Create simple chart
+                        const canvas = document.getElementById('trendsChart');
+                        if (canvas) {
+                            trendsChart = new Chart(canvas, {
+                                type: 'line',
+                                data: {
+                                    labels: data.map(d => d.label),
+                                    datasets: [{
+                                        label: 'Average Fullness',
+                                        data: data.map(d => d.average_fullness),
+                                        borderColor: '#007bff',
+                                        backgroundColor: 'rgba(0,123,255,0.1)',
+                                        borderWidth: 2
+                                    }]
+                                },
+                                options: {
+                                    responsive: true,
+                                    scales: {
+                                        y: {
+                                            beginAtZero: true,
+                                            max: 100
+                                        }
+                                    }
                                 }
-                                return `Fullness: ${fullness}% (${status})`;
-                            }
+                            });
                         }
                     }
-                }
-            });
-    } else {
-        // Show error message if no data
-        document.getElementById('fullnessChart').style.display = 'none';
-        const chartContainer = document.querySelector('#fullnessChart').parentElement;
-        chartContainer.innerHTML = '<p class="text-muted text-center">No chart data available</p>';
-    }
-
-    // Fullness Distribution Pie Chart
-    const distributionCtx = document.getElementById('distributionChart').getContext('2d');
-    
-    // Get distribution data from Jinja
-    const distributionData = {{ analytics.chart_data.fullness_distribution | tojson | safe }};
-    
-    // Check if analytics data exists
-    if (distributionData) {
-        const distributionChart = new Chart(distributionCtx, {
-            type: 'doughnut',
-            data: {
-                labels: ['Empty/Low (≤33%)', 'Medium (34-66%)', 'Full (≥67%)'],
-                datasets: [{
-                    data: [
-                        distributionData.empty + distributionData.low,
-                        distributionData.medium,
-                        distributionData.high + distributionData.full
-                    ],
-                    backgroundColor: [
-                        '#dc3545',  // Red for empty/low
-                        '#ffc107',  // Yellow for medium
-                        '#28a745'   // Green for full
-                    ],
-                    borderWidth: 2,
-                    borderColor: '#fff'
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        position: 'bottom',
-                        labels: {
-                            padding: 15,
-                            font: {
-                                size: 11
-                            }
-                        }
-                    },
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                                const percentage = ((context.parsed / total) * 100).toFixed(1);
-                                return context.label + ': ' + context.parsed + ' reports (' + percentage + '%)';
-                            }
-                        }
+                    
+                    // Add click listeners to buttons
+                    document.querySelectorAll('.trend-btn').forEach(btn => {
+                        btn.addEventListener('click', function() {
+                            const period = this.getAttribute('data-period');
+                            switchTrendPeriod(period);
+                        });
+                    });
+                    
+                    // Initialize with first available period
+                    const defaultPeriod = document.querySelector('.trend-btn.active')?.getAttribute('data-period');
+                    if (defaultPeriod) {
+                        switchTrendPeriod(defaultPeriod);
                     }
                 }
-            });
-    } else {
-        document.getElementById('distributionChart').style.display = 'none';
-        const chartContainer = document.querySelector('#distributionChart').parentElement;
-        chartContainer.innerHTML = '<p class="text-muted text-center">No distribution data available</p>';
-    }
-    
-    // Time Period Trends Chart - SIMPLE IMPLEMENTATION
-    {% if analytics.time_trends.has_weekly_data or analytics.time_trends.has_monthly_data or analytics.time_trends.has_yearly_data %}
-    
-    // Store trends data directly in JavaScript
-    window.trendsData = {
-        weekly: {{ analytics.time_trends.weekly | tojson | safe }},
-        monthly: {{ analytics.time_trends.monthly | tojson | safe }},
-        yearly: {{ analytics.time_trends.yearly | tojson | safe }}
-    };
-    
-    const defaultPeriod = "{% if analytics.time_trends.has_weekly_data %}weekly{% elif analytics.time_trends.has_monthly_data %}monthly{% elif analytics.time_trends.has_yearly_data %}yearly{% endif %}";
-    
-    let trendsChart = null;
-    
-    // Simple function to show trend chart
-    function switchTrendPeriod(period) {
-        // Update buttons
-        document.querySelectorAll('.trend-btn').forEach(btn => {
-            btn.classList.remove('active');
-            if (btn.getAttribute('data-period') === period) {
-                btn.classList.add('active');
+                
+            } catch (error) {
+                console.error('Error initializing charts:', error);
             }
-        });
-        
-        // Get data
-        const data = window.trendsData[period];
-        if (!data || !data.length) {
-            return;
-        }
-        
-        // Destroy existing chart
-        if (trendsChart) {
-            trendsChart.destroy();
-        }
-        
-        // Create simple chart
-        const canvas = document.getElementById('trendsChart');
-        if (canvas) {
-            trendsChart = new Chart(canvas, {
-                type: 'line',
-                data: {
-                    labels: data.map(d => d.label),
-                    datasets: [{
-                        label: 'Average Fullness',
-                        data: data.map(d => d.average_fullness),
-                        borderColor: '#007bff',
-                        backgroundColor: 'rgba(0,123,255,0.1)',
-                        borderWidth: 2
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            max: 100
-                        }
-                    }
-                }
-            });
+        } else {
+            console.error('Chart.js library is not loaded!');
         }
     }
-    
-    // Setup event listeners when page loads
-    document.addEventListener('DOMContentLoaded', function() {
-        // Add click listeners to buttons
-        document.querySelectorAll('.trend-btn').forEach(btn => {
-            btn.addEventListener('click', function() {
-                const period = this.getAttribute('data-period');
-                switchTrendPeriod(period);
-            });
-        });
-        
-        // Initialize with default period
-        if (defaultPeriod) {
-            switchTrendPeriod(defaultPeriod);
-        }
-    });
-    
-    {% endif %}
-    
-    } catch (error) {
-        console.error('Error initializing charts:', error);
-    }
-    
-    } else {
-        console.error('Chart.js library is not loaded!');
-    }
-    
-    } // End of analytics check
 
 </script>
 {% endblock %}
