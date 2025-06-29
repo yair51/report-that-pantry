@@ -1,0 +1,126 @@
+{
+  "timestamp": "2025-06-29T16:12:50.304798",
+  "source": "json_export",
+  "total_tests": 16,
+  "mean_error": 52.525,
+  "median_error": 35.3,
+  "accuracy_metrics": {
+    "within_1_day": 0,
+    "within_2_days": 3,
+    "within_5_days": 4
+  },
+  "results": [
+    {
+      "pantry_name": "Revida",
+      "predicted": 0.7,
+      "actual": 36,
+      "error": 35.3,
+      "confidence": 10.0
+    },
+    {
+      "pantry_name": "Revida",
+      "predicted": 1.0,
+      "actual": 3,
+      "error": 2.0,
+      "confidence": 20.0
+    },
+    {
+      "pantry_name": "Revida",
+      "predicted": 1.0,
+      "actual": 117,
+      "error": 116.0,
+      "confidence": 30.0
+    },
+    {
+      "pantry_name": "Wytheville Library",
+      "predicted": 6.6,
+      "actual": 96,
+      "error": 89.4,
+      "confidence": 70.0
+    },
+    {
+      "pantry_name": "Shirley's House",
+      "predicted": 20.9,
+      "actual": 41,
+      "error": 20.1,
+      "confidence": 50.2
+    },
+    {
+      "pantry_name": "Shirley's House",
+      "predicted": 8.7,
+      "actual": 7,
+      "error": 1.6999999999999993,
+      "confidence": 70.0
+    },
+    {
+      "pantry_name": "Wilkes Dr.",
+      "predicted": 8.3,
+      "actual": 179,
+      "error": 170.7,
+      "confidence": 20.0
+    },
+    {
+      "pantry_name": "Heritage Ave.",
+      "predicted": 2.5,
+      "actual": 7,
+      "error": 4.5,
+      "confidence": 85.0
+    },
+    {
+      "pantry_name": "Heritage Ave.",
+      "predicted": 2.2,
+      "actual": 33,
+      "error": 30.8,
+      "confidence": 85.0
+    },
+    {
+      "pantry_name": "Argon Ave.",
+      "predicted": 6.7,
+      "actual": 70,
+      "error": 63.3,
+      "confidence": 85.0
+    },
+    {
+      "pantry_name": "Argon Ave.",
+      "predicted": 6.7,
+      "actual": 42,
+      "error": 35.3,
+      "confidence": 85.0
+    },
+    {
+      "pantry_name": "Acorn Park",
+      "predicted": 1.3,
+      "actual": 3,
+      "error": 1.7,
+      "confidence": 40.9
+    },
+    {
+      "pantry_name": "YMCA",
+      "predicted": 2.7,
+      "actual": 16,
+      "error": 13.3,
+      "confidence": 80.0
+    },
+    {
+      "pantry_name": "Howard",
+      "predicted": 15.9,
+      "actual": 89,
+      "error": 73.1,
+      "confidence": 60.0
+    },
+    {
+      "pantry_name": "Howard",
+      "predicted": 8.0,
+      "actual": 76,
+      "error": 68.0,
+      "confidence": 82.0
+    },
+    {
+      "pantry_name": "750 E 36th Pl",
+      "predicted": 16.8,
+      "actual": 132,
+      "error": 115.2,
+      "confidence": 40.0
+    }
+  ]
+}

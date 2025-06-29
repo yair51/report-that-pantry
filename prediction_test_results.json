@@ -1,0 +1,93 @@
+{
+  "test_timestamp": "2025-06-29T15:50:31.680581",
+  "tests": [
+    {
+      "pantry_id": 29,
+      "pantry_name": "d afkds fka",
+      "prediction_date": "2025-06-29T19:38:29.593757+00:00",
+      "predicted_days_until_empty": 2.2,
+      "predicted_confidence": 30.0,
+      "actual_days_until_empty": null,
+      "prediction_method": "Prediction based on historical usage patterns. Based on 3 historical depletion events.",
+      "accuracy_error": null,
+      "relative_error": null
+    },
+    {
+      "pantry_id": 29,
+      "pantry_name": "d afkds fka",
+      "prediction_date": "2025-06-29T19:38:29.593757+00:00",
+      "predicted_days_until_empty": 2.2,
+      "predicted_confidence": 30.0,
+      "actual_days_until_empty": null,
+      "prediction_method": "Prediction based on historical usage patterns. Based on 3 historical depletion events.",
+      "accuracy_error": null,
+      "relative_error": null
+    },
+    {
+      "pantry_id": 29,
+      "pantry_name": "d afkds fka",
+      "prediction_date": "2025-06-29T19:38:38.307701+00:00",
+      "predicted_days_until_empty": 2.2,
+      "predicted_confidence": 30.0,
+      "actual_days_until_empty": null,
+      "prediction_method": "Prediction based on historical usage patterns. Based on 3 historical depletion events.",
+      "accuracy_error": null,
+      "relative_error": null
+    },
+    {
+      "pantry_id": 29,
+      "pantry_name": "d afkds fka",
+      "prediction_date": "2025-06-29T19:38:38.307701+00:00",
+      "predicted_days_until_empty": 2.2,
+      "predicted_confidence": 30.0,
+      "actual_days_until_empty": null,
+      "prediction_method": "Prediction based on historical usage patterns. Based on 3 historical depletion events.",
+      "accuracy_error": null,
+      "relative_error": null
+    },
+    {
+      "pantry_id": 28,
+      "pantry_name": "Burrito Brigade #1",
+      "prediction_date": "2025-06-29T01:54:40.844997+00:00",
+      "predicted_days_until_empty": 1.8,
+      "predicted_confidence": 46.6,
+      "actual_days_until_empty": 0,
+      "prediction_method": "Prediction based on recent trend analysis, historical usage patterns. Based on 9 historical depletion events.",
+      "accuracy_error": 1.8,
+      "relative_error": 180.0
+    },
+    {
+      "pantry_id": 28,
+      "pantry_name": "Burrito Brigade #1",
+      "prediction_date": "2025-06-29T02:04:22.807651+00:00",
+      "predicted_days_until_empty": 0.8,
+      "predicted_confidence": 73.2,
+      "actual_days_until_empty": 0,
+      "prediction_method": "Prediction based on recent trend analysis, historical usage patterns. Based on 9 historical depletion events.",
+      "accuracy_error": 0.8,
+      "relative_error": 80.0
+    },
+    {
+      "pantry_id": 28,
+      "pantry_name": "Burrito Brigade #1",
+      "prediction_date": "2025-06-29T02:04:22.807651+00:00",
+      "predicted_days_until_empty": 0.8,
+      "predicted_confidence": 73.2,
+      "actual_days_until_empty": 0,
+      "prediction_method": "Prediction based on recent trend analysis, historical usage patterns. Based on 9 historical depletion events.",
+      "accuracy_error": 0.8,
+      "relative_error": 80.0
+    },
+    {
+      "pantry_id": 28,
+      "pantry_name": "Burrito Brigade #1",
+      "prediction_date": "2025-06-29T02:05:05.768634+00:00",
+      "predicted_days_until_empty": 0.6,
+      "predicted_confidence": 71.3,
+      "actual_days_until_empty": 0,
+      "prediction_method": "Prediction based on recent trend analysis, historical usage patterns. Based on 10 historical depletion events.",
+      "accuracy_error": 0.6,
+      "relative_error": 60.0
+    }
+  ]
+}

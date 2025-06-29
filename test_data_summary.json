@@ -1,0 +1,43 @@
+{
+  "generation_date": "2025-06-29T15:47:27.123247",
+  "date_range": {
+    "start": "2025-06-15T15:47:27.069139",
+    "end": "2025-06-29T15:47:27.069146",
+    "days": 14
+  },
+  "pantries": [
+    {
+      "id": 42,
+      "name": "High Traffic Community Pantry",
+      "total_reports": 19,
+      "avg_fullness": 13.578947368421053,
+      "min_fullness": 0,
+      "max_fullness": 58,
+      "empty_periods": 13,
+      "full_periods": 0,
+      "reports_per_day": 1.3571428571428572
+    },
+    {
+      "id": 43,
+      "name": "Medium Traffic Neighborhood Pantry",
+      "total_reports": 18,
+      "avg_fullness": 26.88888888888889,
+      "min_fullness": 0,
+      "max_fullness": 89,
+      "empty_periods": 11,
+      "full_periods": 0,
+      "reports_per_day": 1.2857142857142858
+    },
+    {
+      "id": 44,
+      "name": "Low Traffic Rural Pantry",
+      "total_reports": 18,
+      "avg_fullness": 20.444444444444443,
+      "min_fullness": 0,
+      "max_fullness": 76,
+      "empty_periods": 12,
+      "full_periods": 0,
+      "reports_per_day": 1.2857142857142858
+    }
+  ]
+}

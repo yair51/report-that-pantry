@@ -569,6 +569,7 @@
   {% block script %}
 <!-- Chart.js for analytics charts -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
 
 <!-- Data Generation Script -->
 {% if analytics %}
@@ -650,10 +651,9 @@ $(document).ready(function() {
         if (typeof Chart !== 'undefined') {
             
             try {
-                
                 // Extract data from global object
                 const predictionData = window.pantryAnalyticsData.predictionData || [];
-                const chartData = window.pantryAnalyticsData.chartData || [];
+                // const chartData = window.pantryAnalyticsData.chartData || [];
                 const distributionData = window.pantryAnalyticsData.distributionData || {};
                 
                 // Fullness Trend Chart with proper time-based x-axis
@@ -760,7 +760,7 @@ $(document).ready(function() {
                         time: {
                             unit: 'day',
                             displayFormats: {
-                                day: 'MMM DD'
+                                day: 'MMM dd'
                             }
                         },
                         title: {
@@ -815,12 +815,13 @@ $(document).ready(function() {
                         }
                     }
                 }
-            });
+            }
+        });
     }
     {% endif %}
     
     // Fullness Trend Chart with proper time-based x-axis
-    const fullnessCtx = document.getElementById('fullnessChart').getContext('2d');
+    // const fullnessCtx = document.getElementById('fullnessChart').getContext('2d');
     
     // Prepare data with actual timestamps for proper time series
     const chartData = {{ analytics.chart_data.data_points | tojson | safe }};
@@ -917,7 +918,8 @@ $(document).ready(function() {
                         }
                     }
                 }
-            });
+            }
+        });
     } else {
         // Show error message if no data
         document.getElementById('fullnessChart').style.display = 'none';
@@ -926,10 +928,10 @@ $(document).ready(function() {
     }
 
     // Fullness Distribution Pie Chart
-    const distributionCtx = document.getElementById('distributionChart').getContext('2d');
+    // const distributionCtx = document.getElementById('distributionChart').getContext('2d');
     
     // Get distribution data from Jinja
-    const distributionData = {{ analytics.chart_data.fullness_distribution | tojson | safe }};
+    // const distributionData = {{ analytics.chart_data.fullness_distribution | tojson | safe }};
     
     // Check if analytics data exists
     if (distributionData) {
@@ -975,7 +977,8 @@ $(document).ready(function() {
                         }
                     }
                 }
-            });
+            }
+        });
     } else {
         document.getElementById('distributionChart').style.display = 'none';
         const chartContainer = document.querySelector('#distributionChart').parentElement;
