@@ -28,13 +28,21 @@ class Location(db.Model, UserMixin):
     photo = db.Column(db.String(255), nullable=True)
     description = db.Column(db.String(250), nullable=True)
     contact_info = db.Column(db.String(250), nullable=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
     reports = db.relationship('Report', backref='location')
     notifications = db.relationship('Notification', backref='location')
 
      # New fields for latitude and longitude
     latitude = db.Column(db.Float, nullable=True)  # Using Float for decimal precision
     longitude = db.Column(db.Float, nullable=True)
+    
+    # Email-only submission fields
+    submitter_email = db.Column(db.String(150), nullable=True)  # Email for non-account users
+    submitter_name = db.Column(db.String(150), nullable=True)   # Optional name
+    verification_token = db.Column(db.String(50), nullable=True)  # Email verification token
+    verified = db.Column(db.Boolean, default=False)  # Whether email is verified
+    verified_at = db.Column(db.DateTime(timezone=True), nullable=True)  # When verified
+    created_at = db.Column(db.DateTime(timezone=True), default=datetime.now(timezone.utc))
 
 
     def to_dict(self):
@@ -53,7 +61,8 @@ class Report(db.Model):
     description = db.Column(db.String(250), nullable=True)
     vision_analysis = db.Column(db.Text, nullable=True)  # Store Vision API results as JSON
     location_id = db.Column(db.Integer, db.ForeignKey('location.id'))
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
+    submitted_by_email = db.Column(db.String(150), nullable=True)  # For non-account submissions
 
     # Return path to photo on server
     def get_photo_url(self):

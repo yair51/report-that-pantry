@@ -7,6 +7,10 @@ from flask_migrate import Migrate
 from flask_mail import Mail, Message
 from config.config import DevelopmentConfig, ProductionConfig, StagingConfig  # Import all configs
 import os
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 
 db = SQLAlchemy()

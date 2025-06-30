@@ -1,0 +1,615 @@
+{% extends "base.html" %}
+{% block content %}
+<style>
+    :root {
+        --primary-color: #4a90e2;
+        --success-color: #27ae60;
+        --warning-color: #f39c12;
+        --danger-color: #e74c3c;
+        --light-bg: #f8f9fa;
+        --border-radius: 15px;
+        --shadow: 0 4px 20px rgba(0,0,0,0.1);
+        --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        --gradient-success: linear-gradient(135deg, #56ab2f 0%, #a8e6cf 100%);
+    }
+
+    body {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+
+    .form-container {
+        max-width: 600px;
+        margin: 0 auto;
+        padding: 20px 15px;
+    }
+
+    .form-card {
+        background: white;
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow);
+        overflow: hidden;
+        margin-bottom: 20px;
+    }
+
+    .card-header {
+        background: var(--gradient-primary);
+        color: white;
+        padding: 30px;
+        text-align: center;
+    }
+
+    .card-header h1 {
+        margin: 0;
+        font-size: 1.8rem;
+        font-weight: 600;
+    }
+
+    .card-header p {
+        margin: 10px 0 0 0;
+        opacity: 0.9;
+        font-size: 1rem;
+    }
+
+    .card-body {
+        padding: 40px 30px;
+    }
+
+    .form-group {
+        margin-bottom: 25px;
+    }
+
+    .form-label {
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 10px;
+        display: block;
+        font-size: 1rem;
+    }
+
+    .form-label i {
+        margin-right: 8px;
+        color: var(--primary-color);
+    }
+
+    .form-input {
+        width: 100%;
+        border: 2px solid #ecf0f1;
+        border-radius: 10px;
+        padding: 15px;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        box-sizing: border-box;
+    }
+
+    .form-input:focus {
+        border-color: var(--primary-color);
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+    }
+
+    .form-textarea {
+        min-height: 100px;
+        resize: vertical;
+    }
+
+    .form-select {
+        background: white;
+        cursor: pointer;
+    }
+
+    /* Photo Upload Section */
+    .photo-upload {
+        border: 2px dashed #ddd;
+        border-radius: var(--border-radius);
+        padding: 40px 20px;
+        text-align: center;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        margin: 15px 0;
+    }
+
+    .photo-upload:hover {
+        border-color: var(--primary-color);
+        background: rgba(74, 144, 226, 0.05);
+    }
+
+    .photo-upload.has-image {
+        border-color: var(--success-color);
+        background: rgba(39, 174, 96, 0.05);
+    }
+
+    .upload-icon {
+        font-size: 2.5rem;
+        color: #bdc3c7;
+        margin-bottom: 15px;
+    }
+
+    .upload-text {
+        font-weight: 600;
+        color: #7f8c8d;
+        margin-bottom: 8px;
+        font-size: 1.1rem;
+    }
+
+    .upload-subtext {
+        font-size: 0.9rem;
+        color: #95a5a6;
+    }
+
+    .file-input {
+        display: none;
+    }
+
+    .image-preview {
+        max-width: 100%;
+        max-height: 250px;
+        border-radius: 10px;
+        margin-top: 20px;
+        box-shadow: 0 2px 15px rgba(0,0,0,0.1);
+    }
+
+    /* Submit Button */
+    .submit-btn {
+        width: 100%;
+        background: var(--gradient-primary);
+        color: white;
+        border: none;
+        padding: 20px;
+        border-radius: 12px;
+        font-size: 1.2rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        margin-top: 30px;
+    }
+
+    .submit-btn:hover:not(:disabled) {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+    }
+
+    .submit-btn:disabled {
+        background: #bdc3c7;
+        cursor: not-allowed;
+        transform: none;
+    }
+
+    /* Success Message */
+    .success-message {
+        background: var(--gradient-success);
+        color: white;
+        padding: 25px;
+        border-radius: var(--border-radius);
+        text-align: center;
+        margin-bottom: 20px;
+        display: none;
+    }
+
+    .success-message.show {
+        display: block;
+        animation: slideIn 0.5s ease;
+    }
+
+    @keyframes slideIn {
+        from { opacity: 0; transform: translateY(-20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .success-icon {
+        font-size: 3rem;
+        margin-bottom: 15px;
+    }
+
+    /* Helper Text */
+    .helper-text {
+        font-size: 0.85rem;
+        color: #7f8c8d;
+        margin-top: 5px;
+    }
+
+    .required {
+        color: var(--danger-color);
+    }
+
+    .optional {
+        color: #7f8c8d;
+        font-weight: normal;
+        font-size: 0.9em;
+    }
+
+    /* Loading Animation */
+    .loading-spinner {
+        display: none;
+        text-align: center;
+        padding: 40px;
+    }
+
+    .spinner {
+        width: 50px;
+        height: 50px;
+        border: 4px solid #f3f3f3;
+        border-top: 4px solid var(--primary-color);
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin: 0 auto 20px;
+    }
+
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    /* Mobile Optimizations */
+    @media (max-width: 576px) {
+        .form-container {
+            padding: 10px;
+        }
+        
+        .card-body {
+            padding: 25px 20px;
+        }
+        
+        .card-header {
+            padding: 25px 20px;
+        }
+        
+        .card-header h1 {
+            font-size: 1.5rem;
+        }
+    }
+</style>
+
+<div class="form-container">
+    <!-- Success Message -->
+    <div class="success-message" id="successMessage">
+        <div class="success-icon">
+            <i class="fas fa-check-circle"></i>
+        </div>
+        <h3 style="margin: 0 0 10px 0;">Location Submitted Successfully! 🎉</h3>
+        <p style="margin: 0;">
+            Check your email for verification instructions. Once verified, your location will appear on our community map and you'll receive your QR code.
+        </p>
+    </div>
+
+    <!-- Loading Animation -->
+    <div class="loading-spinner" id="loadingSpinner">
+        <div class="spinner"></div>
+        <h4 style="color: white; margin: 0;">Submitting your location...</h4>
+        <p style="color: rgba(255,255,255,0.8); margin: 10px 0 0 0;">
+            Processing details and sending verification email...
+        </p>
+    </div>
+
+    <!-- Main Form Card -->
+    <div class="form-card" id="formCard">
+        <div class="card-header">
+            <h1><i class="fas fa-map-marker-alt"></i> Add New Pantry Location</h1>
+            <p>Help your community discover food resources by adding a new location</p>
+        </div>
+        
+        <div class="card-body">
+            <form id="locationForm" method="POST" enctype="multipart/form-data">
+                
+                <!-- Location Address -->
+                <div class="form-group">
+                    <label class="form-label" for="autocomplete">
+                        <i class="fas fa-home"></i> Location Address <span class="required">*</span>
+                    </label>
+                    <input type="text" 
+                           class="form-input" 
+                           id="autocomplete" 
+                           placeholder="Start typing an address..."
+                           required>
+                    <!-- Hidden fields to store parsed address components -->
+                    <input type="hidden" id="address" name="address">
+                    <input type="hidden" id="city" name="city">
+                    <input type="hidden" id="state" name="state">
+                    <input type="hidden" id="zipCode" name="zipCode">
+                    <input type="hidden" id="latitude" name="latitude">
+                    <input type="hidden" id="longitude" name="longitude">
+                    <div class="helper-text">Start typing to search for your address using Google Maps</div>
+                </div>
+
+                <!-- Pantry Name -->
+                <div class="form-group">
+                    <label class="form-label" for="pantryName">
+                        <i class="fas fa-tag"></i> Pantry Name <span class="optional">(Optional)</span>
+                    </label>
+                    <input type="text" 
+                           class="form-input" 
+                           id="pantryName" 
+                           name="pantryName" 
+                           placeholder="e.g., 'Community Garden Pantry'">
+                    <div class="helper-text">A custom name makes your pantry more memorable and welcoming</div>
+                </div>
+
+                <!-- Photo Upload -->
+                <div class="form-group">
+                    <label class="form-label">
+                        <i class="fas fa-camera"></i> Pantry Photo <span class="optional">(Optional)</span>
+                    </label>
+                    <div class="photo-upload" id="photoUpload" onclick="document.getElementById('pantryPhoto').click()">
+                        <div class="upload-icon">
+                            <i class="fas fa-camera" id="uploadIcon"></i>
+                        </div>
+                        <div class="upload-text" id="uploadText">Click to add a photo</div>
+                        <div class="upload-subtext" id="uploadSubtext">
+                            Help people recognize this location easily
+                        </div>
+                        <input type="file" 
+                               class="file-input" 
+                               id="pantryPhoto" 
+                               name="pantryPhoto" 
+                               accept="image/*">
+                        <img id="imagePreview" class="image-preview" style="display: none;">
+                    </div>
+                    <div class="helper-text">A clear photo helps people find and identify the pantry</div>
+                </div>
+
+                <!-- Description -->
+                <div class="form-group">
+                    <label class="form-label" for="description">
+                        <i class="fas fa-align-left"></i> Description (Optional)
+                    </label>
+                    <textarea class="form-input form-textarea" 
+                              id="description" 
+                              name="description" 
+                              placeholder="Additional details about this location, access instructions, or special notes..."
+                              maxlength="500"></textarea>
+                    <div class="helper-text">
+                        <span id="charCount">0</span>/500 characters
+                    </div>
+                </div>
+
+                <!-- Contact Information -->
+                <div class="form-group">
+                    <label class="form-label" for="email">
+                        <i class="fas fa-envelope"></i> Your Email <span class="required">*</span>
+                    </label>
+                    <input type="email" 
+                           class="form-input" 
+                           id="email" 
+                           name="email" 
+                           placeholder="your.email@example.com"
+                           required>
+                    <div class="helper-text">We'll send verification instructions and your QR code to this email</div>
+                </div>
+
+                <!-- Optional Name -->
+                <div class="form-group">
+                    <label class="form-label" for="submitterName">
+                        <i class="fas fa-user"></i> Your Name (Optional)
+                    </label>
+                    <input type="text" 
+                           class="form-input" 
+                           id="submitterName" 
+                           name="submitterName" 
+                           placeholder="Your name or organization">
+                    <div class="helper-text">This helps us credit you for building the community</div>
+                </div>
+
+                <!-- Submit Button -->
+                <button type="submit" class="submit-btn" id="submitBtn">
+                    <i class="fas fa-paper-plane"></i> Submit Location
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    // DOM elements
+    const locationForm = document.getElementById('locationForm');
+    const photoUpload = document.getElementById('photoUpload');
+    const photoInput = document.getElementById('pantryPhoto');
+    const imagePreview = document.getElementById('imagePreview');
+    const descriptionInput = document.getElementById('description');
+    const charCount = document.getElementById('charCount');
+    const submitBtn = document.getElementById('submitBtn');
+    const formCard = document.getElementById('formCard');
+    const loadingSpinner = document.getElementById('loadingSpinner');
+    const successMessage = document.getElementById('successMessage');
+
+    // Photo upload handling
+    photoInput.addEventListener('change', function(event) {
+        const file = event.target.files[0];
+        if (file) {
+            // Validate file size (max 5MB)
+            // if (file.size > 5 * 1024 * 1024) {
+            //     alert('Please choose an image smaller than 5MB');
+            //     photoInput.value = '';
+            //     return;
+            // }
+
+            // Show preview
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                imagePreview.src = e.target.result;
+                imagePreview.style.display = 'block';
+                
+                // Update upload UI
+                photoUpload.classList.add('has-image');
+                document.getElementById('uploadIcon').className = 'fas fa-check-circle';
+                document.getElementById('uploadText').textContent = 'Photo selected!';
+                document.getElementById('uploadSubtext').innerHTML = '<i class="fas fa-check"></i> Click to change photo';
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+
+    // Character counter for description
+    descriptionInput.addEventListener('input', function() {
+        charCount.textContent = this.value.length;
+    });
+
+    // Form submission
+    locationForm.addEventListener('submit', function(event) {
+        event.preventDefault();
+        
+        // Validate required fields
+        const requiredFields = ['email'];
+        const requiredFieldsVisible = ['autocomplete', 'email']; // For visual validation
+        let isValid = true;
+        
+        // Check required visible fields
+        requiredFieldsVisible.forEach(fieldId => {
+            const field = document.getElementById(fieldId);
+            if (!field.value.trim()) {
+                isValid = false;
+                field.style.borderColor = '#e74c3c';
+                setTimeout(() => {
+                    field.style.borderColor = '#ecf0f1';
+                }, 3000);
+            }
+        });
+        
+        if (!isValid) {
+            alert('Please fill in all required fields');
+            return;
+        }
+
+        // Validate email format
+        const emailField = document.getElementById('email');
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(emailField.value)) {
+            alert('Please enter a valid email address');
+            emailField.focus();
+            return;
+        }
+
+        // Validate address selection
+        const addressField = document.getElementById('address');
+        const latitudeField = document.getElementById('latitude'); 
+        const longitudeField = document.getElementById('longitude');
+        
+        if (!addressField.value || !latitudeField.value || !longitudeField.value) {
+            alert('Please select a valid address from the Google Maps suggestions');
+            document.getElementById('autocomplete').focus();
+            return;
+        }
+
+        // Show loading animation
+        formCard.style.display = 'none';
+        loadingSpinner.style.display = 'block';
+        
+        // Submit form to backend
+        const formData = new FormData(locationForm);
+        
+        fetch('/location/submit/', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            loadingSpinner.style.display = 'none';
+            
+            if (data.success) {
+                successMessage.classList.add('show');
+            } else {
+                formCard.style.display = 'block';
+                alert(data.error || 'An error occurred. Please try again.');
+            }
+        })
+        .catch(error => {
+            loadingSpinner.style.display = 'none';
+            formCard.style.display = 'block';
+            console.error('Error:', error);
+            alert('An error occurred. Please try again.');
+        });
+    });
+
+    // Email validation helper
+    function validateEmail(email) {
+        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    }
+
+    // Initialize form
+    document.addEventListener('DOMContentLoaded', function() {
+        // Focus on first input
+        document.getElementById('autocomplete').focus();
+    });
+</script>
+
+<!-- Google Maps API -->
+<script src="https://maps.googleapis.com/maps/api/js?key={{ api_key }}&libraries=places&callback=initAutocomplete&loading=async&v=weekly" defer></script>
+
+<script>
+function initAutocomplete() {
+    const input = document.getElementById("autocomplete");
+    const options = {
+        types: ['address'],  // Restrict to addresses only
+        componentRestrictions: {country: "us"}  // Restrict to US addresses
+    };
+    
+    // Create the Autocomplete object
+    const autocomplete = new google.maps.places.Autocomplete(input, options);
+
+    // When the user selects an address from the dropdown, populate the form fields
+    autocomplete.addListener("place_changed", () => {
+        const place = autocomplete.getPlace();
+
+        if (!place.geometry || !place.geometry.location) {
+            // Handle the case where the place doesn't have a geometry
+            console.log("No details available for input: '" + place.name + "'");
+            alert("Please select a valid address from the suggestions");
+            return;
+        }
+
+        // Extract relevant address components
+        const addressComponents = place.address_components;
+        let streetNumber = '';
+        let route = '';
+        let city = '';
+        let state = '';
+        let zipCode = '';
+
+        for (const component of addressComponents) {
+            const componentType = component.types[0];
+
+            switch (componentType) {
+                case 'street_number':
+                    streetNumber = component.long_name;
+                    break;
+                case 'route':
+                    route = component.long_name;
+                    break;
+                case 'locality':
+                    city = component.long_name;
+                    break;
+                case 'administrative_area_level_1':
+                    state = component.short_name;
+                    break;
+                case 'postal_code':
+                    zipCode = component.long_name;
+                    break;
+            }
+        }
+
+        // Populate hidden form fields with extracted data
+        document.getElementById('address').value = streetNumber + ' ' + route;
+        document.getElementById('city').value = city;
+        document.getElementById('state').value = state;
+        document.getElementById('zipCode').value = zipCode;
+
+        // Store the latitude and longitude in hidden fields
+        document.getElementById('latitude').value = place.geometry.location.lat();
+        document.getElementById('longitude').value = place.geometry.location.lng();
+
+        // Update the display of the autocomplete field to show the formatted address
+        input.value = place.formatted_address;
+        
+        console.log('Address parsed:', {
+            address: streetNumber + ' ' + route,
+            city: city,
+            state: state,
+            zipCode: zipCode,
+            latitude: place.geometry.location.lat(),
+            longitude: place.geometry.location.lng()
+        });
+    });
+}
+</script>
+
+{% endblock %}

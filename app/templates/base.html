@@ -147,27 +147,30 @@
                 <i class="fas fa-chart-line mr-1"></i>Analytics Dashboard
               </a>
             </li>
-            <li class="nav-item {% if title == 'Status' %}active{% endif %}">
+            <!-- <li class="nav-item {% if title == 'Status' %}active{% endif %}">
               <a class="nav-link" href="/map">
                 <i class="fas fa-map-marked-alt mr-1"></i>Map View
               </a>
-            </li>
-            <li class="nav-item {% if title == 'Vision API Demo' %}active{% endif %}">
+            </li> -->
+            <!-- <li class="nav-item {% if title == 'Vision API Demo' %}active{% endif %}">
               <a class="nav-link" href="/vision-demo">
                 <i class="fas fa-robot mr-1"></i>AI Demo
               </a>
-            </li>
+            </li> -->
             <!-- <li class="nav-item {% if title == 'Contact Us' %}active{% endif %}">
               <a class="nav-link" href="/contactus">Contact Us</a>
             </li> -->
-            {% if user.user_type == "owner" %}
-              <li class="nav-item {% if title == 'Add Location' %}active{% endif %}">
-                <a class="nav-link" href="/location/add">
-                  <i class="fas fa-plus-circle mr-1"></i>Add Location
-                </a>
-              </li>
-            {% endif %}
-              {% if user.is_authenticated %}
+            <!-- <li class="nav-item {% if title == 'Add Location' %}active{% endif %}">
+              <a class="nav-link" href="/location/add">
+                <i class="fas fa-plus-circle mr-1"></i>Add Location
+              </a>
+            </li> -->
+            <li class="nav-item {% if title == 'Submit Location' %}active{% endif %}">
+              <a class="nav-link" href="/location/submit">
+                <i class="fas fa-plus-circle mr-1"></i>Add Location
+              </a>
+            </li>
+            {% if user and user.is_authenticated %}
               <li class="nav-item {% if title == 'Manage Profile' %}active{% endif %}">
                 <a class="nav-link" href="/profile">
                   <i class="fas fa-user mr-1"></i>Profile
@@ -179,14 +182,14 @@
                 </a>
               </li>
             {% else %}
-              <li class="nav-item {% if title == 'Login' %}active{% endif %}">
+              <!-- <li class="nav-item {% if title == 'Login' %}active{% endif %}">
                 <a class="nav-link" href="/login">
                   <i class="fas fa-sign-in-alt mr-1"></i>Login
                 </a>
               </li>
               <li class="nav-item {% if title == 'Sign Up' %}active{% endif %}">
                 <a class="nav-link" href="/sign-up">Sign Up</a>
-              </li>
+              </li> -->
             {% endif %}
           </ul>
         </div>
@@ -223,7 +226,7 @@
                   <ul class="list-unstyled">
                       <li><a href="/">Home</a></li>
                       <li><a href="/map">Status</a></li>
-                      {% if user.is_authenticated %}
+                      {% if user and user.is_authenticated %}
 
                       <li><a href="/profile">Profile</a></li>
                       {% endif %}

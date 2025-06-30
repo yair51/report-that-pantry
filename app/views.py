@@ -3,7 +3,7 @@ from flask_login import login_required, current_user
 from sqlalchemy.sql.expression import true
 from sqlalchemy.orm import joinedload
 from .models import Location, Report, Notification, User
-from app.helpers import send_email, allowed_file, upload_photo_to_s3, delete_photo_from_s3
+from app.helpers import send_email, allowed_file, upload_photo_to_s3, delete_photo_from_s3, generate_qr_poster_pdf
 from . import db, Message, mail
 import json
 from datetime import datetime, timezone, timedelta
@@ -20,6 +20,7 @@ from boto3 import s3
 import calendar
 import numpy as np
 from collections import defaultdict, Counter
+import statistics
 # Google Vision API imports
 from google.cloud import vision
 # Import our enhanced vision analysis
@@ -221,7 +222,7 @@ def calculate_pantry_analytics(location):
             # Yearly grouping
             year_key = report.time.strftime('%Y')
             report_groups['yearly'][year_key].append(report)
-        
+        print("report_groups", report_groups)
         # Calculate averages for each period
         for week_key, week_reports in report_groups['weekly'].items():
             if len(week_reports) >= 2:  # Need at least 2 reports for meaningful average
@@ -449,18 +450,24 @@ def send_notification_emails(location, report, image_data=None):
     recipients = [n.user.email for n in location.notifications] 
     if recipients:
         subject = f"{location.name} is Empty!"
-        message = f"The Little Free Pantry located at {location.address}, {location.city}, {location.state} is currently empty.<br>"
-        message += "Can you help restock it?<br>"
-        if report.description:
-            message += f"Description: {report.description}<br>"
-        if report.photo:
-            message += "New pantry photo available on website!<br>"
-        message += f"View more details: <a href='{url_for('views.location', location_id=location.id, _external=True)}''>{url_for('views.location', location_id=location.id, _external=True)}</a>"
-
-
+        location_url = url_for('views.location', location_id=location.id, _external=True)
+        
         html = f"""
-            <p>{message}</p>
-            """
+        <h3>🚨 {location.name} Needs Restocking!</h3>
+        
+        <p>The Little Free Pantry located at <strong>{location.address}, {location.city}, {location.state}</strong> is currently running low on supplies.</p>
+        
+        <p><strong>Can you help restock it?</strong></p>
+        
+        {f'<p><strong>Recent Update:</strong> {report.description}</p>' if report.description else ''}
+        
+        {f'<p>📸 A new photo has been uploaded - check it out on the website!</p>' if report.photo else ''}
+        
+        <p><a href="{location_url}" style="background-color: #4a90e2; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block;">View Pantry Details</a></p>
+        
+        <p>Thank you for being part of our community!</p>
+        <p><strong>Report That Pantry Team</strong></p>
+        """
         
         send_email(recipients, subject, html)
 
@@ -573,7 +580,7 @@ def location(location_id):
 # Route for adding a location
 @views.route('/location/add', methods=['GET', 'POST'])
 @views.route('/location/add/', methods=['GET', 'POST'])
-@login_required
+# @login_required  # Temporarily removed - allowing anonymous submissions
 # @views.route('/add/<int:id>', methods=['GET', 'POST'])
 def add_location():
     # handles form submissions
@@ -610,7 +617,7 @@ def add_location():
             city=city, 
             state=state, 
             zip=zip,
-            user_id=current_user.id,
+            user_id=current_user.id if current_user.is_authenticated else None,  # Allow anonymous submissions
             description=description,
             contact_info=contact_info,
             latitude=latitude,
@@ -655,14 +662,18 @@ def add_location():
 # Edit Location
 @views.route('/location/edit/<int:location_id>', methods=['GET', 'POST'])
 @views.route('/location/edit/<int:location_id>/', methods=['GET', 'POST'])
-@login_required  # Ensure the user is logged in
+# @login_required  # Temporarily removed - will need to handle ownership differently
 def edit_location(location_id):
     location = Location.query.get_or_404(location_id)
 
-    # Check if the user owns this location
-    if location.user_id != current_user.id:
+    # Check if the user owns this location (only if authenticated)
+    if current_user.is_authenticated and location.user_id and location.user_id != current_user.id:
         flash("You do not have permission to edit this location.", category='error')
         return redirect(url_for('views.map'))
+    elif not current_user.is_authenticated and location.user_id:
+        # Location has an owner but user is not authenticated
+        flash("You must be logged in to edit this location.", category='error')
+        return redirect(url_for('auth.login'))
 
     if request.method == 'POST':
         # Get form data
@@ -743,8 +754,13 @@ def report(id):
         return redirect(url_for('views.map'))
 
     if request.method == 'POST':
-        # Get fullness level from the form
+        # Get fullness level from the form and convert to integer
         pantry_fullness = request.form.get('pantryFullness')
+        try:
+            pantry_fullness = int(pantry_fullness) if pantry_fullness else 0
+        except (ValueError, TypeError):
+            pantry_fullness = 0
+        
         # Get the description and photo
         description = request.form.get('pantryDescription')
         photo = request.files.get('pantryPhoto')
@@ -771,10 +787,11 @@ def report(id):
         # Create Report object
         new_report = Report(
             pantry_fullness=pantry_fullness,
-            time=datetime.now(timezone.utc),  # Use timezone-aware datetime in UTC
+            time=datetime.now(timezone.utc),
             location_id=location.id,
             description=description,
-            user_id=current_user.id if current_user.is_authenticated else None  # Associate with logged-in user if possible
+            user_id=current_user.id if current_user.is_authenticated else None,
+            submitted_by_email=request.form.get('submitterEmail', '').strip() if not current_user.is_authenticated else None
         )
         
         # Upload photo to Amazon S3, if provided
@@ -785,15 +802,7 @@ def report(id):
         
         # Store Vision API analysis results as JSON in the new field
         if vision_analysis and "error" not in vision_analysis:
-            import json
             new_report.vision_analysis = json.dumps(vision_analysis)
-            
-            # Also add some key findings to description for backward compatibility
-            if vision_analysis.get("food_items"):
-                food_items = vision_analysis["food_items"]
-                
-                # Store AI analysis in JSON field for display in AI Analysis section
-                # Don't add to description to avoid duplication
         elif vision_analysis and "error" in vision_analysis:
             # Log the error but don't fail the report submission
             print(f"Vision API analysis error: {vision_analysis['error']}")
@@ -802,34 +811,42 @@ def report(id):
         db.session.add(new_report)
         db.session.commit()
 
-
-        # TODO - send image in email
-        # if new_report.photo:
-        #     with open(os.path.join(current_app.config['UPLOAD_FOLDER'], str(location.id), new_report.photo), "rb") as f:
-        #         image_data = base64.b64encode(f.read()).decode()  # Encode image to base64
         # Send email notification if the pantry is empty
         if new_report.pantry_fullness <= 33:  # Check for empty status
             recipients = [n.user.email for n in location.notifications] 
             if recipients:
                 subject = f"{location.name} is Empty!"
-                message = f"The Little Free Pantry located at {location.address}, {location.city}, {location.state} is currently empty.<br>"
-                message += "Can you help restock it?<br>"
-                if new_report.description:
-                    message += f"Description: {new_report.description}<br>"
-                if new_report.photo:
-                    message += "New pantry photo available on website!<br>"
-                message += f"View more details: <a href='{url_for('views.location', location_id=location.id, _external=True)}''>{url_for('views.location', location_id=location.id, _external=True)}</a>"
+                location_url = url_for('views.location', location_id=location.id, _external=True)
+                
                 html = f"""
-                    <p>{message}</p>
-                    """
+                <h3>🚨 {location.name} Needs Restocking!</h3>
+                
+                <p>The Little Free Pantry located at <strong>{location.address}, {location.city}, {location.state}</strong> is currently running low on supplies.</p>
+                
+                <p><strong>Can you help restock it?</strong></p>
+                
+                {f'<p><strong>Recent Update:</strong> {new_report.description}</p>' if new_report.description else ''}
+                
+                {f'<p>📸 A new photo has been uploaded - check it out on the website!</p>' if new_report.photo else ''}
+                
+                <p><a href="{location_url}" style="background-color: #4a90e2; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block;">View Pantry Details</a></p>
+                
+                <p>Thank you for being part of our community!</p>
+                <p><strong>Report That Pantry Team</strong></p>
+                """
+                
                 send_email(recipients, subject, html)
-            # send_notification_emails(location, new_report, image_data)
 
-        flash("Thank you for your feedback!", category='success')
-        return redirect(url_for('views.location', location_id=id))
+        # Return JSON response for AJAX (modern interface)
+        return jsonify({
+            'success': True, 
+            'message': 'Thank you for your report!',
+            'location_id': location.id,
+            'redirect_url': url_for('views.location', location_id=id)
+        })
 
-    return render_template("report.html", user=current_user, title="Report", location_id=id) 
-
+    # Use the modern demo template for GET requests
+    return render_template("report-demo.html", user=current_user, title="Report Pantry Status", location_id=id) 
 
 
 # Route to serve images from S3
@@ -919,8 +936,12 @@ def setup():
 
 # Handles changes to subscription preferences on status page
 @views.route('/subscribe', methods=['POST'])
-@login_required
+# @login_required  # Temporarily removed - will handle subscriptions differently
 def subscribe():
+    # Check if user is authenticated
+    if not current_user.is_authenticated:
+        return jsonify({'status': 'error', 'message': 'Please log in to subscribe to notifications'})
+    
     location_id = request.form.get('location_id')
 
     if location_id:
@@ -945,9 +966,15 @@ def subscribe():
 
 # Handles changes to subscription preferances on pantry homepage
 @views.route('/location/subscribe/<int:location_id>', methods=['POST'])
-@login_required
+# @login_required  # Temporarily removed - will handle subscriptions differently
 def subscribe_location(location_id):
     print("page accessed")
+    
+    # Check if user is authenticated
+    if not current_user.is_authenticated:
+        flash('Please log in to subscribe to notifications for this pantry.', 'info')
+        return redirect(url_for('auth.login'))
+    
     # Check if location exists
     location = Location.query.get(location_id)
     print(location)
@@ -1136,7 +1163,20 @@ def api_analyze_image():
         # Perform Vision API analysis
         analysis_results = analyze_pantry_image(photo_content)
         
-        return jsonify(analysis_results)
+        if "error" in analysis_results:
+            return jsonify({'error': analysis_results['error']}), 500
+        
+        # Format response for frontend
+        response = {
+            'success': True,
+            'fullness_estimate': analysis_results.get('fullness_estimate'),
+            'food_items': analysis_results.get('food_items', []),
+            'organization_score': analysis_results.get('organization_score'),
+            'confidence_score': analysis_results.get('confidence_score'),
+            'analysis_details': analysis_results.get('analysis_summary', '')
+        }
+        
+        return jsonify(response)
         
     except Exception as e:
         return jsonify({'error': f'Error processing image: {str(e)}'}), 500
@@ -1566,7 +1606,7 @@ def safe_datetime_filter(reports, cutoff_datetime):
 
 
 @views.route('/analyze_image', methods=['POST'])
-@login_required
+# @login_required  # Temporarily removed - allowing anonymous AI analysis
 def analyze_image():
     """
     Real-time AI analysis endpoint for uploaded images
@@ -1653,5 +1693,233 @@ def analyze_image_ajax():
     except Exception as e:
         print(f"AJAX image analysis error: {e}")
         return jsonify({'error': 'Analysis failed. Please try again.'}), 500
+
+
+# Email-only location submission route (no login required)
+@views.route('/location/submit', methods=['GET', 'POST'])
+@views.route('/location/submit/', methods=['GET', 'POST'])
+def submit_location():
+    """
+    Email-only location submission - no account required
+    Users submit with just email, get verification email with QR code
+    """
+    if request.method == 'GET':
+        return render_template('add_location.html', api_key=current_app.config.get('GOOGLE_MAPS_API_KEY'))
+    
+    if request.method == 'POST':
+        try:
+            # Get form data
+            address = request.form.get('address', '').strip()
+            city = request.form.get('city', '').strip()
+            state = request.form.get('state', '').strip()
+            zip_code = request.form.get('zipCode', '').strip()
+            latitude = request.form.get('latitude', '').strip()
+            longitude = request.form.get('longitude', '').strip()
+            description = request.form.get('description', '').strip()
+            email = request.form.get('email', '').strip()
+            submitter_name = request.form.get('submitterName', '').strip()
+            pantry_name = request.form.get('pantryName', '').strip()
+            photo = request.files.get('pantryPhoto')
+            
+            # Basic validation
+            if not address:
+                return jsonify({'error': 'Address is required'}), 400
+            if not email:
+                return jsonify({'error': 'Email is required'}), 400
+            if not latitude or not longitude:
+                return jsonify({'error': 'Please select a valid address from the suggestions'}), 400
+                
+            # Validate email format
+            import re
+            email_pattern = r'^[^\s@]+@[^\s@]+\.[^\s@]+$'
+            if not re.match(email_pattern, email):
+                return jsonify({'error': 'Invalid email format'}), 400
+            
+            # Check if location already exists
+            existing_location = Location.query.filter_by(address=address).first()
+            if existing_location:
+                return jsonify({'error': 'A location with this address already exists'}), 400
+            
+            # Generate verification token
+            verification_token = str(uuid.uuid4())
+            
+            # Create new location (initially unverified)
+            new_location = Location(
+                address=address,
+                city=city,
+                state=state,
+                zip=int(zip_code) if zip_code and zip_code.isdigit() else None,
+                latitude=float(latitude) if latitude else None,
+                longitude=float(longitude) if longitude else None,
+                name=pantry_name if pantry_name else f"Pantry at {address}",
+                description=description,
+                user_id=None,  # No user account required
+                submitter_email=email,
+                submitter_name=submitter_name,
+                verification_token=verification_token,
+                verified=False,
+                created_at=datetime.now(timezone.utc)
+            )
+            
+            db.session.add(new_location)
+            db.session.commit()
+            
+            # Upload photo to S3 (if provided)
+            if photo:
+                s3_key = upload_photo_to_s3(photo, new_location.id)
+                if s3_key:
+                    new_location.photo = s3_key
+                    db.session.commit()
+            
+            # Create initial report (set to unknown status)
+            new_report = Report(
+                pantry_fullness=50,  # Default to 50% until first real report
+                time=datetime.now(timezone.utc),
+                location_id=new_location.id,
+                submitted_by_email=email
+            )
+            db.session.add(new_report)
+            db.session.commit()
+            
+            # Send verification email
+            verification_url = url_for('views.verify_location', 
+                                     token=verification_token, 
+                                     _external=True)
+            
+            email_subject = "Verify your pantry location submission"
+            email_body = f"""
+            <p>Hello{' ' + submitter_name if submitter_name else ''}!</p>
+            
+            <p>Thank you for adding a new pantry location to our community map!</p>
+            
+            <p>📍 <strong>Location:</strong> {pantry_name if pantry_name else address}</p>
+            <p>🏠 <strong>Address:</strong> {address}</p>
+            
+            <p>To complete your submission and receive your QR code, please verify your email by clicking the link below:</p>
+            
+            <p><a href="{verification_url}" style="background-color: #4a90e2; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block;">Verify Email Address</a></p>
+            
+            <p>Once verified, your location will appear on our map and you'll receive:</p>
+            <ul>
+                <li>✅ A QR code to attach to your pantry</li>
+                <li>📧 Email notifications when your pantry needs attention</li>
+                <li>🔗 A direct link to share with your community</li>
+            </ul>
+            
+            <p>If you didn't submit this location, you can safely ignore this email.</p>
+            
+            <p>Thanks for building our community!<br>
+            <strong>Report That Pantry Team</strong></p>
+            """
+            
+            try:
+                send_email(email, email_subject, email_body)
+                print(f"Verification email sent to {email}")
+            except Exception as e:
+                print(f"Failed to send verification email: {e}")
+                # Continue anyway - admin can manually verify
+            
+            return jsonify({
+                'success': True, 
+                'message': 'Location submitted successfully! Check your email for verification instructions.',
+                'location_id': new_location.id
+            })
+            
+        except Exception as e:
+            print(f"Error submitting location: {e}")
+            db.session.rollback()
+            return jsonify({'error': 'Failed to submit location. Please try again.'}), 500
+
+
+@views.route('/location/verify/<token>')
+def verify_location(token):
+    """
+    Verify a location submission via email token
+    """
+    try:
+        location = Location.query.filter_by(verification_token=token).first()
+        
+        if not location:
+            flash('Invalid or expired verification link.', 'error')
+            return redirect(url_for('views.index'))
+        
+        if location.verified:
+            flash('This location has already been verified.', 'info')
+            return redirect(url_for('views.location', location_id=location.id))
+        
+        # Mark as verified
+        location.verified = True
+        location.verified_at = datetime.now(timezone.utc)
+        db.session.commit()
+        
+        # Generate QR code URL
+        qr_url = url_for('views.report', id=location.id, _external=True)
+        
+        # Generate PDF poster
+        pdf_content = generate_qr_poster_pdf(location.name, location.id, qr_url)
+        
+        # Send QR code email with PDF attachment
+        email_subject = "🎉 Your pantry location is verified! Here's your QR code poster"
+        email_body = f"""
+        <h2>🎉 Great news! Your pantry location is verified!</h2>
+        
+        <p>Your pantry location has been verified and is now live on our community map.</p>
+        
+        <p><strong>📍 Location:</strong> {location.address}</p>
+        
+        <p><strong>🔗 View on map:</strong> <a href="{url_for('views.location', location_id=location.id, _external=True)}" style="color: #4a90e2;">Click here to view your location</a></p>
+        
+        <h3>🎯 Your QR Code Poster</h3>
+        
+        <p>We've attached a professionally designed QR code poster to this email. Here's what to do:</p>
+        
+        <ol>
+            <li><strong>Download and print</strong> the attached PDF poster</li>
+            <li><strong>Laminate it</strong> (recommended for weather protection)</li>
+            <li><strong>Attach it to your pantry</strong> where people can easily see it</li>
+        </ol>
+        
+        <p>The QR code on the poster will direct people to: <a href="{qr_url}" style="color: #4a90e2;">{qr_url}</a></p>
+        
+        <h3>💡 What's next?</h3>
+        
+        <ul>
+            <li>✅ Your location is now visible on our community map</li>
+            <li>📱 People can scan the QR code to report pantry status</li>
+            <li>📧 You'll get email notifications when your pantry needs attention</li>
+            <li>🌍 You're helping build a stronger community!</li>
+        </ul>
+        
+        <h3>📧 Need help?</h3>
+        
+        <p>If you need to make changes or have questions, contact us with your verification code: <strong>{token[:8]}</strong></p>
+        
+        <p>Thank you for serving your community! ❤️</p>
+        
+        <p><strong>The Report That Pantry Team</strong></p>
+        """
+        
+        # Prepare attachment
+        attachments = []
+        if pdf_content:
+            attachments.append({
+                'filename': f'pantry_qr_poster_{location.id}.pdf',
+                'content': pdf_content,
+                'content_type': 'application/pdf'
+            })
+        
+        try:
+            send_email(location.submitter_email, email_subject, email_body, attachments)
+            print(f"QR code poster email sent to {location.submitter_email}")
+        except Exception as e:
+            print(f"Failed to send QR code email: {e}")
+        
+        flash('Location verified successfully! Check your email for your QR code poster PDF.', 'success')
+        return redirect(url_for('views.location', location_id=location.id))
+        
+    except Exception as e:
+        print(f"Error verifying location: {e}")
+        flash('An error occurred during verification. Please try again.', 'error')
+        return redirect(url_for('views.index'))
 
 

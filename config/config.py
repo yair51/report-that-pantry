@@ -10,12 +10,14 @@ class Config:
     SECRET_KEY = os.getenv("SECRET_KEY")  # No default; this should always be set externally
     SQLALCHEMY_DATABASE_URI = "postgresql" + os.getenv("DATABASE_URL")[8:]  # Include +psycopg2
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+    # Google Maps API
+    GOOGLE_MAPS_API_KEY = os.getenv("GOOGLE_MAPS_API_KEY")
      # Email
     MAIL_SERVER = os.environ.get('MAIL_SERVER', 'smtp.sendgrid.net')  # SendGrid as default
     MAIL_PORT = int(os.environ.get('MAIL_PORT', 587))  # SendGrid's default port
     MAIL_USE_TLS = os.environ.get('MAIL_USE_TLS', 'True').lower() == 'true'
     MAIL_USERNAME = os.environ.get('MAIL_USERNAME', 'apikey')  # SendGrid uses 'apikey'
-    MAIL_PASSWORD = os.environ.get('SENDGRID_API_KEY')  # SendGrid API key
+    MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD') or os.environ.get('SENDGRID_API_KEY')  # Support both Mailtrap and SendGrid
     # File Uploads (S3)
     S3_BUCKET = os.environ.get('S3_BUCKET')
     S3_KEY = os.environ.get('S3_KEY')
@@ -40,4 +42,3 @@ class DevelopmentConfig(Config):
     DEBUG = True
     MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD')
     SQLALCHEMY_DATABASE_URI = os.getenv("DATABASE_URL", "sqlite:///database.db")
-    GOOGLE_MAPS_API_KEY = os.getenv("GOOGLE_MAPS_API_KEY")

@@ -37,7 +37,7 @@
                         <p class="report-time" data-utc-time="{{ latest_report.time.isoformat() }}">Last Updated: {{ latest_report.time.strftime('%Y-%m-%d %H:%M') if latest_report.time else 'N/A' }}</p> 
                         <form action="/location/subscribe/{{pantry.id}}" class="d-flex" method="POST" style="margin: 0px;"> 
                             <a href="{{ url_for('views.report', id=pantry.id) }}" class="btn btn-primary mr-2">Report Status</a> 
-                            {% if user.is_authenticated %}
+                            {% if user and user.is_authenticated %}
                             <button id="subscribe-button" class="btn btn-{{ 'danger' if pantry.id in subscribed_locations else 'success' }}"> 
                                 {% if pantry.id in subscribed_locations %}
                                     Unsubscribe
@@ -425,7 +425,7 @@
                 </div>
                 <div class="card-body">
                     <a href="https://www.google.com/maps/search/?api=1&query={{ pantry.latitude }},{{ pantry.longitude }}&zoom=16" target="_blank" class="btn btn-secondary btn-block mb-2">View on Google Maps</a>
-                    {% if user.is_authenticated and user.id == pantry.user_id %}
+                    {% if user and user.is_authenticated and user.id == pantry.user_id %}
                         <a href="{{ url_for('views.edit_location', location_id=pantry.id) }}" class="btn btn-info btn-block mb-2">Edit Location</a>
                         <a href="{{ url_for('views.poster', id=pantry.id, isNew1=1) }}" class="btn btn-success btn-block">Get QR Code</a> 
                     {% endif %}

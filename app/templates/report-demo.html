@@ -1,0 +1,1155 @@
+{% extends "base.html" %}
+{% block content %}
+<style>
+    :root {
+        --primary-color: #4a90e2;
+        --success-color: #27ae60;
+        --warning-color: #f39c12;
+        --danger-color: #e74c3c;
+        --light-bg: #f8f9fa;
+        --border-radius: 15px;
+        --shadow: 0 4px 20px rgba(0,0,0,0.1);
+        --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        --gradient-success: linear-gradient(135deg, #56ab2f 0%, #a8e6cf 100%);
+        --gradient-warning: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    }
+
+    body {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+
+    .report-container {
+        max-width: 500px;
+        margin: 0 auto;
+        padding: 20px 15px;
+    }
+
+    .report-card {
+        background: white;
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow);
+        overflow: hidden;
+        margin-bottom: 20px;
+    }
+
+    .card-header {
+        background: var(--gradient-primary);
+        color: white;
+        padding: 25px;
+        text-align: center;
+    }
+
+    .card-header h1 {
+        margin: 0;
+        font-size: 1.5rem;
+        font-weight: 600;
+    }
+
+    .card-header p {
+        margin: 5px 0 0 0;
+        opacity: 0.9;
+        font-size: 0.9rem;
+    }
+
+    .card-body {
+        padding: 30px 25px;
+    }
+
+    /* Visual Pantry Indicator */
+    .pantry-visual {
+        text-align: center;
+        margin: 20px 0 30px 0;
+    }
+
+    .pantry-container {
+        width: 120px;
+        height: 150px;
+        margin: 0 auto 15px;
+        position: relative;
+        background: #ecf0f1;
+        border: 3px solid #bdc3c7;
+        border-radius: 10px 10px 5px 5px;
+        overflow: hidden;
+    }
+
+    .pantry-fill {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: var(--gradient-success);
+        transition: all 0.3s ease;
+        border-radius: 0 0 5px 5px;
+    }
+
+    .pantry-fill.empty {
+        background: var(--gradient-warning);
+    }
+
+    .pantry-fill.half-full {
+        background: linear-gradient(135deg, #f39c12 0%, #f1c40f 100%);
+    }
+
+    .pantry-fill.very-empty {
+        background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+    }
+
+    .pantry-door {
+        position: absolute;
+        top: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 8px;
+        height: 15px;
+        background: #7f8c8d;
+        border-radius: 2px;
+    }
+
+    .pantry-status {
+        font-size: 1.1rem;
+        font-weight: 600;
+        margin-top: 10px;
+    }
+
+    /* Custom Range Slider */
+    .range-container {
+        margin: 30px 0;
+    }
+
+    .range-label {
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 20px;
+        display: block;
+    }
+
+    .custom-range {
+        width: 100%;
+        height: 8px;
+        border-radius: 10px;
+        background: #ddd;
+        outline: none;
+        -webkit-appearance: none;
+        appearance: none;
+        margin: 20px 0;
+    }
+
+    .custom-range::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        width: 25px;
+        height: 25px;
+        border-radius: 50%;
+        background: var(--primary-color);
+        cursor: pointer;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        transition: all 0.2s ease;
+    }
+
+    .custom-range::-webkit-slider-thumb:hover {
+        transform: scale(1.1);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    }
+
+    .custom-range::-moz-range-thumb {
+        width: 25px;
+        height: 25px;
+        border-radius: 50%;
+        background: var(--primary-color);
+        cursor: pointer;
+        border: none;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    }
+
+    /* Photo Upload Section */
+    .photo-upload {
+        border: 2px dashed #ddd;
+        border-radius: var(--border-radius);
+        padding: 30px 20px;
+        text-align: center;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        margin: 25px 0;
+    }
+
+    .photo-upload:hover {
+        border-color: var(--primary-color);
+        background: rgba(74, 144, 226, 0.05);
+    }
+
+    .photo-upload.has-image {
+        border-color: var(--success-color);
+        background: rgba(39, 174, 96, 0.05);
+    }
+
+    .upload-icon {
+        font-size: 2rem;
+        color: #bdc3c7;
+        margin-bottom: 10px;
+    }
+
+    .upload-text {
+        font-weight: 500;
+        color: #7f8c8d;
+        margin-bottom: 5px;
+    }
+
+    .upload-subtext {
+        font-size: 0.8rem;
+        color: #95a5a6;
+    }
+
+    .file-input {
+        display: none;
+    }
+
+    .image-preview {
+        max-width: 100%;
+        max-height: 200px;
+        border-radius: 10px;
+        margin-top: 15px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+
+    /* AI Analysis Results */
+    .ai-analysis {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 20px;
+        border-radius: var(--border-radius);
+        margin: 20px 0;
+        display: none;
+    }
+
+    .ai-analysis.show {
+        display: block;
+        animation: slideIn 0.3s ease;
+    }
+
+    @keyframes slideIn {
+        from { opacity: 0; transform: translateY(-10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .ai-icon {
+        font-size: 1.2rem;
+        margin-right: 8px;
+    }
+
+    /* Description Input */
+    .description-input {
+        border: 2px solid #ecf0f1;
+        border-radius: 10px;
+        padding: 15px;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        resize: vertical;
+        min-height: 100px;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .description-input:focus {
+        border-color: var(--primary-color);
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+    }
+
+    /* Submit Button */
+    .submit-btn {
+        width: 100%;
+        background: var(--gradient-primary);
+        color: white;
+        border: none;
+        padding: 18px;
+        border-radius: 12px;
+        font-size: 1.1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        margin-top: 25px;
+    }
+
+    .submit-btn:hover:not(:disabled) {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+    }
+
+    .submit-btn:disabled {
+        background: #bdc3c7;
+        cursor: not-allowed;
+        transform: none;
+    }
+
+    /* Impact Display */
+    .impact-preview {
+        background: var(--light-bg);
+        border-radius: var(--border-radius);
+        padding: 20px;
+        margin: 20px 0;
+        border-left: 4px solid var(--primary-color);
+        display: none;
+    }
+
+    .impact-preview.show {
+        display: block;
+        animation: slideIn 0.3s ease;
+    }
+
+    .impact-title {
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 10px;
+        display: flex;
+        align-items: center;
+    }
+
+    .impact-stats {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 15px;
+        margin-top: 15px;
+    }
+
+    .stat-item {
+        text-align: center;
+        padding: 10px;
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+
+    .stat-number {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--primary-color);
+    }
+
+    .stat-label {
+        font-size: 0.8rem;
+        color: #7f8c8d;
+        margin-top: 2px;
+    }
+
+    /* Loading Animation */
+    .loading-spinner {
+        display: none;
+        text-align: center;
+        padding: 30px;
+    }
+
+    .spinner {
+        width: 40px;
+        height: 40px;
+        border: 4px solid #f3f3f3;
+        border-top: 4px solid var(--primary-color);
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin: 0 auto 15px;
+    }
+
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    /* Success Animation */
+    .success-animation {
+        display: none;
+        text-align: center;
+        padding: 40px 20px;
+    }
+
+    .success-icon {
+        font-size: 4rem;
+        color: var(--success-color);
+        margin-bottom: 20px;
+        animation: bounce 0.6s ease;
+    }
+
+    @keyframes bounce {
+        0%, 20%, 60%, 100% { transform: translateY(0); }
+        40% { transform: translateY(-20px); }
+        80% { transform: translateY(-10px); }
+    }
+
+    /* Facebook Sharing Section */
+    .share-section {
+        margin-top: 30px;
+        padding: 20px;
+        background: rgba(255,255,255,0.1);
+        border-radius: 15px;
+        border: 1px solid rgba(255,255,255,0.2);
+    }
+
+    .share-title {
+        color: white;
+        font-size: 1.3rem;
+        font-weight: 700;
+        margin-bottom: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .share-title i {
+        margin-right: 10px;
+        color: #4267B2;
+        font-size: 1.4rem;
+    }
+
+    .share-buttons {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .share-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 18px 25px;
+        border: none;
+        border-radius: 12px;
+        font-size: 1.1rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        color: white;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .share-btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+        text-decoration: none;
+        color: white;
+    }
+
+    .share-btn i {
+        margin-right: 12px;
+        font-size: 1.3rem;
+    }
+
+    .facebook-share {
+        background: linear-gradient(135deg, #4267B2 0%, #365899 100%);
+        border: 2px solid rgba(255,255,255,0.2);
+        animation: pulse 2s infinite;
+        font-size: 1.2rem;
+        padding: 20px 30px;
+    }
+
+    @keyframes pulse {
+        0% {
+            box-shadow: 0 0 0 0 rgba(66, 103, 178, 0.7);
+        }
+        70% {
+            box-shadow: 0 0 0 10px rgba(66, 103, 178, 0);
+        }
+        100% {
+            box-shadow: 0 0 0 0 rgba(66, 103, 178, 0);
+        }
+    }
+
+    .general-share {
+        background: linear-gradient(135deg, #1da1f2 0%, #0d8bd9 100%);
+    }
+
+    .general-share:hover {
+        background: linear-gradient(135deg, #0d8bd9 0%, #0a6aa3 100%);
+    }
+
+    .share-preview {
+        background: rgba(255,255,255,0.1);
+        border-radius: 10px;
+        padding: 15px;
+        margin: 15px 0;
+        border-left: 4px solid #4267B2;
+    }
+
+    .preview-text {
+        color: white;
+        font-size: 0.9rem;
+        line-height: 1.4;
+        margin-bottom: 10px;
+    }
+
+    .preview-link {
+        color: #87CEEB;
+        font-size: 0.8rem;
+        text-decoration: none;
+    }
+
+    @media (max-width: 576px) {
+        .share-buttons {
+            gap: 8px;
+        }
+        
+        .share-btn {
+            padding: 12px 15px;
+            font-size: 0.9rem;
+        }
+    }
+
+    /* Mobile Optimizations */
+    @media (max-width: 576px) {
+        .report-container {
+            padding: 10px;
+        }
+        
+        .card-body {
+            padding: 20px 15px;
+        }
+        
+        .pantry-container {
+            width: 100px;
+            height: 125px;
+        }
+        
+        .impact-stats {
+            grid-template-columns: 1fr;
+            gap: 10px;
+        }
+    }
+
+    /* Accessibility */
+    @media (prefers-reduced-motion: reduce) {
+        * {
+            animation-duration: 0.01ms !important;
+            animation-iteration-count: 1 !important;
+            transition-duration: 0.01ms !important;
+        }
+    }
+</style>
+
+<div class="report-container">
+    <!-- Main Report Card -->
+    <div class="report-card">
+        <div class="card-header">
+            <h1><i class="fas fa-heart"></i> Help Your Community</h1>
+            <p>Your report helps neighbors find food when they need it most</p>
+        </div>
+        
+        <div class="card-body">
+            <form id="reportForm" method="POST" enctype="multipart/form-data">
+                
+                <!-- Visual Pantry Indicator -->
+                <div class="pantry-visual">
+                    <div class="pantry-container">
+                        <div class="pantry-door"></div>
+                        <div class="pantry-fill" id="pantryFill"></div>
+                    </div>
+                    <div class="pantry-status" id="pantryStatus">Move the slider to start</div>
+                </div>
+
+                <!-- Fullness Slider -->
+                <div class="range-container">
+                    <label class="range-label" for="pantryFullness">
+                        <i class="fas fa-adjust"></i> How full is this pantry?
+                    </label>
+                    <input type="range" 
+                           class="custom-range" 
+                           min="0" 
+                           max="100" 
+                           value="" 
+                           step="5" 
+                           name="pantryFullness" 
+                           id="pantryFullness" 
+                           required>
+                </div>
+
+                <!-- Photo Upload -->
+                <div class="photo-upload" id="photoUpload" onclick="document.getElementById('pantryPhoto').click()">
+                    <div class="upload-icon">
+                        <i class="fas fa-camera" id="uploadIcon"></i>
+                    </div>
+                    <div class="upload-text" id="uploadText">Add a photo</div>
+                    <div class="upload-subtext" id="uploadSubtext">
+                        <i class="fas fa-magic"></i> AI will help analyze the pantry
+                    </div>
+                    <input type="file" 
+                           class="file-input" 
+                           id="pantryPhoto" 
+                           name="pantryPhoto" 
+                           accept="image/*">
+                    <img id="imagePreview" class="image-preview" style="display: none;">
+                </div>
+
+                <!-- AI Analysis Results -->
+                <div class="ai-analysis" id="aiAnalysis">
+                    <div class="ai-icon">🤖</div>
+                    <strong>AI Analysis</strong>
+                    <div id="aiResults" style="margin-top: 10px;"></div>
+                </div>
+
+                <!-- Description -->
+                <div style="margin: 25px 0;">
+                    <label for="pantryDescription" style="font-weight: 600; color: #2c3e50; margin-bottom: 10px; display: block;">
+                        <i class="fas fa-comment-alt"></i> Add details (optional)
+                    </label>
+                    <textarea class="description-input" 
+                              id="pantryDescription" 
+                              name="pantryDescription" 
+                              placeholder="Help others by sharing what you see... (food types, fullness level, etc.)"
+                              maxlength="250"></textarea>
+                    <div style="text-align: right; font-size: 0.8rem; color: #95a5a6; margin-top: 5px;">
+                        <span id="charCount">0</span>/250 characters
+                    </div>
+                </div>
+
+                <!-- Impact Preview -->
+                <div class="impact-preview" id="impactPreview">
+                    <div class="impact-title">
+                        <i class="fas fa-chart-line" style="margin-right: 8px; color: var(--primary-color);"></i>
+                        Your Impact Preview
+                    </div>
+                    <p style="margin: 10px 0; color: #7f8c8d; font-size: 0.9rem;">
+                        This report will help community members know when to visit or restock this pantry.
+                    </p>
+                    <div class="impact-stats">
+                        <div class="stat-item">
+                            <div class="stat-number" id="statusUpdate">📊</div>
+                            <div class="stat-label">Status Update</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-number">+1</div>
+                            <div class="stat-label">Community Report</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Submit Button -->
+                <button type="submit" class="submit-btn" id="submitBtn">
+                    <i class="fas fa-paper-plane"></i> Submit Report
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Loading Animation -->
+    <div class="loading-spinner" id="loadingSpinner">
+        <div class="spinner"></div>
+        <h4 style="color: white; margin: 0;">Processing your report...</h4>
+        <p style="color: rgba(255,255,255,0.8); margin: 10px 0 0 0;" id="loadingText">
+            Analyzing photo and saving to database...
+        </p>
+    </div>
+
+    <!-- Success Animation -->
+    <div class="success-animation" id="successAnimation">
+        <div class="success-icon">
+            <i class="fas fa-check-circle"></i>
+        </div>
+        <h3 style="color: white; margin-bottom: 15px;">Thank You! 🎉</h3>
+        <p style="color: rgba(255,255,255,0.9); margin: 0;">
+            Your report is helping your community find food when they need it most.
+        </p>
+
+        <!-- Facebook Sharing Section -->
+        <div class="share-section">
+            <div class="share-title">
+                Share with Your Community
+            </div>
+            
+            <!-- Share Preview -->
+            <div class="share-preview">
+                <div class="preview-text" id="sharePreviewText">
+                    📦 Just reported the Little Free Pantry at 123 Main St is 65% full! 
+                    🍎 Found: Canned goods, Pasta, Snacks, Beverages
+                    
+                    #LittleFreePantry #CommunitySupport #FoodSecurity
+                </div>
+                <div class="preview-link">
+                    🔗 pantry-website.com/location/1
+                </div>
+            </div>
+
+            <div class="share-buttons">
+                <a href="#" class="share-btn facebook-share" id="facebookShareBtn">
+                    <i class="fab fa-facebook-f"></i>
+                    Share to Facebook
+                </a>
+                
+                <a href="#" class="share-btn general-share" id="webShareBtn" style="display: none;">
+                    <i class="fas fa-share-alt"></i>
+                    Share via Apps
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Global variables
+    let rangeTouched = false;
+    let selectedFile = null;
+    let reportData = {
+        pantryAddress: "123 Main St, Anytown USA", // This would come from the backend
+        fullness: 0,
+        status: "",
+        foodItems: [],
+        locationId: 1,
+        photoUrl: null
+    };
+    
+    // DOM elements
+    const rangeInput = document.getElementById("pantryFullness");
+    const pantryFill = document.getElementById("pantryFill");
+    const pantryStatus = document.getElementById("pantryStatus");
+    const photoUpload = document.getElementById("photoUpload");
+    const photoInput = document.getElementById("pantryPhoto");
+    const imagePreview = document.getElementById("imagePreview");
+    const aiAnalysis = document.getElementById("aiAnalysis");
+    const aiResults = document.getElementById("aiResults");
+    const impactPreview = document.getElementById("impactPreview");
+    const statusUpdate = document.getElementById("statusUpdate");
+    const descriptionInput = document.getElementById("pantryDescription");
+    const charCount = document.getElementById("charCount");
+    const submitBtn = document.getElementById("submitBtn");
+    const reportForm = document.getElementById("reportForm");
+    const loadingSpinner = document.getElementById("loadingSpinner");
+    const successAnimation = document.getElementById("successAnimation");
+
+    // Update visual pantry indicator
+    function updatePantryVisual() {
+        const value = parseInt(rangeInput.value);
+        const fillHeight = (value / 100) * 100;
+        
+        pantryFill.style.height = fillHeight + '%';
+        
+        // Update colors and status
+        if (value === 0) {
+            pantryFill.className = 'pantry-fill very-empty';
+            pantryStatus.textContent = `${value}% - Empty`;
+            pantryStatus.style.color = '#e74c3c';
+            statusUpdate.textContent = '🔴';
+        } else if (value <= 33) {
+            pantryFill.className = 'pantry-fill very-empty';
+            pantryStatus.textContent = `${value}% - Nearly Empty`;
+            pantryStatus.style.color = '#e74c3c';
+            statusUpdate.textContent = '🔴';
+        } else if (value <= 66) {
+            pantryFill.className = 'pantry-fill half-full';
+            pantryStatus.textContent = `${value}% - Half Full`;
+            pantryStatus.style.color = '#f39c12';
+            statusUpdate.textContent = '🟡';
+        }
+        else if (value < 100) {
+            pantryFill.className = 'pantry-fill';
+            pantryStatus.textContent = `${value}% - Well Stocked`;
+            pantryStatus.style.color = '#27ae60';
+            statusUpdate.textContent = '🟢';
+        } else {
+            pantryFill.className = 'pantry-fill';
+            pantryStatus.textContent = `${value}% - Fully Stocked`;
+            pantryStatus.style.color = '#27ae60';
+            statusUpdate.textContent = '🟢';
+        }
+        
+        // Show impact preview after first interaction
+        if (!impactPreview.classList.contains('show')) {
+            impactPreview.classList.add('show');
+        }
+    }
+
+    // Range input event listener
+    rangeInput.addEventListener("input", () => {
+        if (!rangeTouched) {
+            rangeTouched = true;
+            submitBtn.disabled = false;
+        }
+        updatePantryVisual();
+        
+        // Update report data
+        const value = parseInt(rangeInput.value);
+        reportData.fullness = value;
+        reportData.status = getStatusText(value);
+    });
+
+    // Helper function to get status text
+    function getStatusText(value) {
+        if (value === 0) return "Empty";
+        else if (value <= 33) return "Nearly Empty";
+        else if (value <= 66) return "Half Full";
+        else if (value < 100) return "Well Stocked";
+        else return "Fully Stocked";
+    }
+
+    // Photo upload handling
+    photoInput.addEventListener("change", function(event) {
+        const file = event.target.files[0];
+        if (file) {
+            selectedFile = file;
+            
+            // Show preview
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                imagePreview.src = e.target.result;
+                imagePreview.style.display = "block";
+                
+                // Update upload UI
+                photoUpload.classList.add('has-image');
+                document.getElementById('uploadIcon').className = 'fas fa-check-circle';
+                document.getElementById('uploadText').textContent = 'Photo added!';
+                document.getElementById('uploadSubtext').innerHTML = '<i class="fas fa-magic"></i> AI analysis in progress...';
+            };
+            reader.readAsDataURL(file);
+            
+            // Trigger AI analysis (demo version with mock data)
+            analyzeImageWithAI(file);
+        }
+    });
+
+    // AI Analysis (Real API call)
+    function analyzeImageWithAI(imageFile) {
+        // Show loading state
+        aiAnalysis.classList.add('show');
+        aiResults.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Analyzing image with AI...';
+        
+        // Create FormData for the API call
+        const formData = new FormData();
+        formData.append('image', imageFile);
+        
+        // Make real API call to backend
+        fetch('/api/analyze-image', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                console.error('AI Analysis error:', data.error);
+                aiResults.innerHTML = '<i class="fas fa-exclamation-triangle"></i> AI analysis failed. Report will still be saved.';
+                // Update upload text to show analysis failed but continue
+                document.getElementById('uploadSubtext').innerHTML = '<i class="fas fa-camera"></i> Photo ready (AI analysis unavailable)';
+            } else {
+                displayAIResults(data);
+            }
+        })
+        .catch(error => {
+            console.error('Error calling AI API:', error);
+            aiResults.innerHTML = '<i class="fas fa-exclamation-triangle"></i> AI analysis unavailable. Photo will still be included in report.';
+            // Update upload text to show analysis failed but continue
+            document.getElementById('uploadSubtext').innerHTML = '<i class="fas fa-camera"></i> Photo ready (AI analysis unavailable)';
+        });
+    }
+
+    function displayAIResults(data) {
+        // Update slider with AI suggestion
+        if (data.fullness_estimate !== undefined && data.fullness_estimate !== null) {
+            rangeInput.value = data.fullness_estimate;
+            updatePantryVisual();
+            rangeTouched = true;
+            submitBtn.disabled = false;
+            
+            // Update report data
+            reportData.fullness = data.fullness_estimate;
+            reportData.status = getStatusText(data.fullness_estimate);
+        }
+        
+        // Save food items to report data
+        if (data.food_items && Array.isArray(data.food_items)) {
+            reportData.foodItems = data.food_items;
+        }
+        
+        // Display results
+        let resultsHTML = '';
+        if (data.food_items && data.food_items.length > 0) {
+            resultsHTML += `<strong>🍎 Detected items:</strong> ${data.food_items.join(', ')}<br>`;
+        }
+        if (data.fullness_estimate !== undefined && data.fullness_estimate !== null) {
+            resultsHTML += `<strong>🤖 AI Suggested Fullness:</strong> ${data.fullness_estimate}% full<br>`;
+        }
+        if (data.organization_score !== undefined && data.organization_score !== null) {
+            resultsHTML += `<strong>📊 Organization Score:</strong> ${data.organization_score}/10`;
+        }
+        
+        // Show any additional analysis details
+        if (data.analysis_details) {
+            resultsHTML += `<br><em>${data.analysis_details}</em>`;
+        }
+        
+        aiResults.innerHTML = resultsHTML || '<i class="fas fa-info-circle"></i> AI analysis complete - basic pantry structure detected';
+        
+        // Update upload text
+        document.getElementById('uploadSubtext').innerHTML = '<i class="fas fa-check"></i> AI analysis complete!';
+    }
+
+    // Character counter
+    descriptionInput.addEventListener('input', function() {
+        charCount.textContent = this.value.length;
+    });
+
+    // Initialize
+    submitBtn.disabled = true;
+    
+    // Add some nice touch interactions for mobile
+    if ('ontouchstart' in window) {
+        rangeInput.addEventListener('touchstart', function() {
+            this.style.transform = 'scale(1.05)';
+        });
+        
+        rangeInput.addEventListener('touchend', function() {
+            this.style.transform = 'scale(1)';
+        });
+    }
+
+    // Facebook Sharing Functions
+    function generateShareText() {
+        const emoji = reportData.fullness <= 33 ? "🆘" : reportData.fullness <= 66 ? "📦" : "✅";
+        const statusEmoji = reportData.fullness <= 33 ? "🔴" : reportData.fullness <= 66 ? "🟡" : "🟢";
+        
+        let shareText = `${emoji} Just reported the Little Free Pantry at ${reportData.pantryAddress} is ${reportData.fullness}% full! ${statusEmoji}\n`;
+        
+        if (reportData.foodItems.length > 0) {
+            shareText += `🍎 Found: ${reportData.foodItems.join(', ')}\n`;
+        }
+        
+        if (reportData.fullness <= 33) {
+            shareText += `\n🆘 This pantry needs restocking! Can you help?\n`;
+        } else if (reportData.fullness >= 67) {
+            shareText += `\n✨ Well stocked and ready to serve our community!\n`;
+        }
+        
+        shareText += `\n#LittleFreePantry #CommunitySupport #FoodSecurity #MutualAid`;
+        
+        return shareText;
+    }
+
+    function generateShareUrl() {
+        return `${window.location.origin}/location/${reportData.locationId}`;
+    }
+
+    function updateSharePreview() {
+        const shareText = generateShareText();
+        const shareUrl = generateShareUrl();
+        
+        document.getElementById('sharePreviewText').textContent = shareText;
+        document.querySelector('.preview-link').textContent = `🔗 ${shareUrl}`;
+    }
+
+    function initializeSharing() {
+        // Update share preview with current data
+        updateSharePreview();
+        
+        // Facebook Share Button
+        document.getElementById('facebookShareBtn').addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            // Add celebration effect
+            celebrateShare();
+            
+            const shareText = generateShareText();
+            const shareUrl = generateShareUrl();
+            
+            // Facebook Share Dialog URL
+            const facebookUrl = `https://www.facebook.com/dialog/share?` +
+                `app_id=123456789&` + // You'll need to register a Facebook app
+                `href=${encodeURIComponent(shareUrl)}&` +
+                `quote=${encodeURIComponent(shareText)}&` +
+                `display=popup&` +
+                `redirect_uri=${encodeURIComponent(window.location.origin)}`;
+            
+            // Track sharing attempt
+            trackSharingAttempt('facebook');
+            
+            // Open in popup window
+            const popup = window.open(
+                facebookUrl,
+                'facebook-share-dialog',
+                'width=626,height=436,resizable=yes,scrollbars=yes'
+            );
+            
+            // Focus the popup
+            if (popup) {
+                popup.focus();
+            }
+        });
+
+        // Web Share API (for mobile devices)
+        if (navigator.share) {
+            document.getElementById('webShareBtn').style.display = 'flex';
+            document.getElementById('webShareBtn').addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                const shareData = {
+                    title: 'Little Free Pantry Report',
+                    text: generateShareText(),
+                    url: generateShareUrl()
+                };
+                
+                navigator.share(shareData).catch(err => {
+                    console.log('Error sharing:', err);
+                });
+            });
+        }
+    }
+
+    function celebrateShare() {
+        // Add confetti effect to button
+        const btn = document.getElementById('facebookShareBtn');
+        const originalText = btn.innerHTML;
+        
+        // Temporary celebration state
+        btn.innerHTML = '<i class="fas fa-heart" style="color: #ff6b6b;"></i> Thank You, Hero! ✨';
+        btn.style.background = 'linear-gradient(135deg, #27ae60 0%, #2ecc71 100%)';
+        btn.style.transform = 'scale(1.05)';
+        
+        // Reset after celebration
+        setTimeout(() => {
+            btn.innerHTML = originalText;
+            btn.style.background = 'linear-gradient(135deg, #4267B2 0%, #365899 100%)';
+            btn.style.transform = 'scale(1)';
+        }, 2000);
+        
+        // Add floating hearts effect
+        createFloatingHearts();
+    }
+
+    function createFloatingHearts() {
+        const container = document.querySelector('.share-section');
+        for (let i = 0; i < 5; i++) {
+            setTimeout(() => {
+                const heart = document.createElement('div');
+                heart.innerHTML = '❤️';
+                heart.style.position = 'absolute';
+                heart.style.left = Math.random() * 100 + '%';
+                heart.style.top = '50%';
+                heart.style.fontSize = '1.5rem';
+                heart.style.zIndex = '1000';
+                heart.style.pointerEvents = 'none';
+                heart.style.animation = 'floatUp 3s ease-out forwards';
+                container.style.position = 'relative';
+                container.appendChild(heart);
+                
+                // Remove after animation
+                setTimeout(() => {
+                    if (heart.parentNode) {
+                        heart.parentNode.removeChild(heart);
+                    }
+                }, 3000);
+            }, i * 200);
+        }
+    }
+
+    function trackSharingAttempt(platform) {
+        // Track sharing for analytics (would integrate with your analytics)
+        console.log(`Share attempted on ${platform} for pantry ${reportData.locationId} with ${reportData.fullness}% fullness`);
+        
+        // You could send this to your backend analytics
+        // fetch('/api/track-share', { method: 'POST', body: JSON.stringify({...}) })
+    }
+
+    // Add floating animation CSS
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes floatUp {
+            0% {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(-100px) scale(0.5);
+            }
+        }
+    `;
+    document.head.appendChild(style);
+
+    // Update displayAIResults to save food items to reportData
+    // (Function already defined above)
+
+    // Initialize sharing when success animation is shown
+    const originalSuccessShow = () => {
+        loadingSpinner.style.display = 'none';
+        successAnimation.style.display = 'block';
+        
+        // Initialize sharing functionality
+        setTimeout(() => {
+            initializeSharing();
+        }, 500);
+        
+        // Note: Removed automatic form submission to allow users to interact with sharing
+        // Users can manually navigate away when they're done sharing
+    };
+
+    // Store the form submit handler for real form submission
+    const formSubmitHandler = function(event) {
+        event.preventDefault();
+        
+        if (!rangeTouched) {
+            alert('Please indicate how full the pantry is using the slider.');
+            return;
+        }
+        
+        // Show loading animation
+        document.querySelector('.report-card').style.display = 'none';
+        loadingSpinner.style.display = 'block';
+        
+        // Update loading text based on whether photo was uploaded
+        const loadingText = document.getElementById('loadingText');
+        if (selectedFile) {
+            loadingText.textContent = 'Analyzing photo with AI and saving report...';
+        } else {
+            loadingText.textContent = 'Saving your community report...';
+        }
+        
+        // Create FormData for real submission
+        const formData = new FormData();
+        formData.append('pantryFullness', rangeInput.value);
+        formData.append('pantryDescription', descriptionInput.value);
+        
+        // Add photo if selected
+        if (selectedFile) {
+            formData.append('pantryPhoto', selectedFile);
+        }
+        
+        // Add optional email for anonymous submissions
+        const emailInput = document.getElementById('submitterEmail');
+        if (emailInput && emailInput.value.trim()) {
+            formData.append('submitterEmail', emailInput.value.trim());
+        }
+        
+        // Submit to current URL (which will be /report/<location_id>)
+        fetch(window.location.pathname, {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            loadingSpinner.style.display = 'none';
+            
+            if (data.success) {
+                // Show success animation
+                originalSuccessShow();
+                
+                // Redirect after showing success message
+                setTimeout(() => {
+                    if (data.redirect_url) {
+                        window.location.href = data.redirect_url;
+                    } else {
+                        window.location.reload();
+                    }
+                }, 3000);
+            } else {
+                // Show error and restore form
+                document.querySelector('.report-card').style.display = 'block';
+                alert(data.message || 'An error occurred. Please try again.');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            loadingSpinner.style.display = 'none';
+            document.querySelector('.report-card').style.display = 'block';
+            alert('An error occurred. Please try again.');
+        });
+    };
+
+    // Add form submission event listener after function declaration
+    reportForm.addEventListener('submit', formSubmitHandler);
+</script>
+
+{% endblock %}
