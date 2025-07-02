@@ -1430,7 +1430,9 @@ def calculate_nationwide_analytics():
         })
     
     # State/regional breakdown
-    state_stats = defaultdict(lambda: {'locations': 0, 'reports': 0, 'avg_fullness': 0.0, 'fullness_values': []})
+    def new_state_stats():
+        return {'locations': 0, 'reports': 0, 'avg_fullness': 0.0, 'fullness_values': []}
+    state_stats = defaultdict(new_state_stats)
     for location in active_locations:
         state = location.state
         state_stats[state]['locations'] += 1
