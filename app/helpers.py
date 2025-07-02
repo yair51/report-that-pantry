@@ -94,7 +94,7 @@ def send_email(to, subject, html_content, attachments=None):
             
             for recipient in to:
                 message = Mail(
-                    from_email=From(email="noreply@reportthatpantry.com", name="Report That Pantry"),  # Updated From email
+                    from_email=From(email="info@reportthatpantry.org", name="Report That Pantry"),  # Updated From email
                     to_emails=To(recipient),  # Send to one recipient at a time
                     subject=subject,
                     html_content=html_content
