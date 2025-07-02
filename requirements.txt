@@ -37,7 +37,7 @@ lazy-object-proxy==1.6.0
 Mako==1.1.4
 MarkupSafe==1.1.1
 mccabe==0.6.1
-numpy==1.24.3
+numpy==1.26.4
 pillow==10.3.0
 pillow-heif==0.18.0
 proto-plus==1.24.0
