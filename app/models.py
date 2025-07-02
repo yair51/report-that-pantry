@@ -128,5 +128,7 @@ class Notification(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     location_id = db.Column(db.Integer, db.ForeignKey('location.id'))
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
-    low_inventory = db.Column(db.Boolean, default=True)   
+    low_inventory = db.Column(db.Boolean, default=True)
+    unsubscribe_token = db.Column(db.String(100), unique=True, nullable=True)
+    created_at = db.Column(db.DateTime(timezone=True), default=datetime.now(timezone.utc))   
 

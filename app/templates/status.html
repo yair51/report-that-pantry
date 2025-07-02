@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "base-new.html" %}
 
 {% block style %}
 <link rel="stylesheet" href="https://unpkg.com/bootstrap-table@1.18.3/dist/bootstrap-table.min.css">
@@ -636,14 +636,14 @@
                 <div class="hero-stat-value">{{ nationwide_analytics.network_overview.total_reports }}</div>
                 <div class="hero-stat-label">Total Reports</div>
             </div>
-            
+<!--             
             <div class="hero-stat-card">
                 <div class="hero-stat-icon weekly">
                     <i class="fas fa-calendar-week"></i>
                 </div>
                 <div class="hero-stat-value">{{ nationwide_analytics.network_overview.reports_last_7_days }}</div>
                 <div class="hero-stat-label">Reports in Last Week</div>
-            </div>
+            </div> -->
             
             <div class="hero-stat-card">
                 <div class="hero-stat-icon fullness">
@@ -692,198 +692,11 @@
 </div>
 
 <div class="container">
-    {% if nationwide_analytics %}
-    <!-- Current Status and Trends -->
-    <div class="row analytics-section">
-        <div class="col-lg-8">
-            <div class="section-card">
-                <div class="card-header">
-                    <h4><i class="fas fa-chart-pie me-2"></i>Food Security Snapshot</h4>
-                </div>
-                <div class="card-body">
-                    <div class="row text-center mb-4">
-                        <div class="col-md-4">
-                            <div class="stat-value text-primary">{{ nationwide_analytics.current_status.avg_fullness }}%</div>
-                            <div class="stat-label">Average Stocked</div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="stat-value text-success">{{ nationwide_analytics.current_status.full_pantries }}</div>
-                            <div class="stat-label">Well Stocked</div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="stat-value text-danger">{{ nationwide_analytics.current_status.empty_pantries }}</div>
-                            <div class="stat-label">Need Restocking</div>
-                        </div>
-                    </div>
-                    
-                    <div class="chart-container">
-                        <canvas id="statusChart"></canvas>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-lg-4">
-            <div class="section-card">
-                <div class="card-header">
-                    <h4><i class="fas fa-trending-up me-2"></i>Weekly Trends</h4>
-                </div>
-                <div class="card-body">
-                    {% if nationwide_analytics.trends.fullness_trend_weekly is not none %}
-                    <div class="mb-4">
-                        <h6 class="mb-3">Overall Pantry Fullness</h6>
-                        <div class="trend-indicator {% if nationwide_analytics.trends.fullness_trend_weekly > 0 %}trend-up{% elif nationwide_analytics.trends.fullness_trend_weekly < 0 %}trend-down{% else %}trend-stable{% endif %}">
-                            <i class="fas fa-{% if nationwide_analytics.trends.fullness_trend_weekly > 0 %}arrow-up{% elif nationwide_analytics.trends.fullness_trend_weekly < 0 %}arrow-down{% else %}minus{% endif %} me-2"></i>
-                            {% if nationwide_analytics.trends.fullness_trend_weekly > 0 %}+{% endif %}{{ nationwide_analytics.trends.fullness_trend_weekly }}% this week
-                        </div>
-                    </div>
-                    {% endif %}
-                    
-                    <div class="mb-4">
-                        <h6 class="mb-3">Empty Pantries Reported</h6>
-                        <div class="trend-indicator {% if nationwide_analytics.trends.empty_trend == 'increasing' %}trend-down{% elif nationwide_analytics.trends.empty_trend == 'decreasing' %}trend-up{% else %}trend-stable{% endif %}">
-                            <i class="fas fa-{% if nationwide_analytics.trends.empty_trend == 'increasing' %}arrow-up{% elif nationwide_analytics.trends.empty_trend == 'decreasing' %}arrow-down{% else %}minus{% endif %} me-2"></i>
-                            {{ nationwide_analytics.trends.last_week_empty }} this week ({{ nationwide_analytics.trends.empty_trend }})
-                        </div>
-                    </div>
-                    
-                    <div class="mb-4">
-                        <h6 class="mb-3">Community Engagement</h6>
-                        <div class="trend-indicator {% if nationwide_analytics.trends.community_engagement == 'high' %}trend-up{% elif nationwide_analytics.trends.community_engagement == 'low' %}trend-down{% else %}trend-stable{% endif %}">
-                            <i class="fas fa-{% if nationwide_analytics.trends.community_engagement == 'high' %}arrow-up{% elif nationwide_analytics.trends.community_engagement == 'low' %}arrow-down{% else %}minus{% endif %} me-2"></i>
-                            {{ nationwide_analytics.trends.community_engagement|title }} reporting activity
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Insights -->
-    {% if nationwide_insights %}
-    <div class="analytics-section">
-        <div class="section-card">
-            <div class="card-header">
-                <h4><i class="fas fa-lightbulb me-2"></i>Insights & Recommendations</h4>
-            </div>
-            <div class="card-body">
-                <div class="insight-grid">
-                    {% for insight in nationwide_insights %}
-                    <div class="insight-card insight-{{ insight.type }}">
-                        <div class="insight-title">
-                            <i class="fas fa-{% if insight.type == 'success' %}check-circle{% elif insight.type == 'warning' %}exclamation-triangle{% elif insight.type == 'danger' %}times-circle{% else %}info-circle{% endif %}"></i>
-                            {{ insight.title }}
-                        </div>
-                        <p class="mb-0">{{ insight.message }}</p>
-                    </div>
-                    {% endfor %}
-                </div>
-            </div>
-        </div>
-    </div>
-    {% endif %}
-
-    <!-- Historical Trends -->
-    {% if nationwide_analytics.chart_data %}
-    <div class="analytics-section">
-        <div class="section-card">
-            <div class="card-header">
-                <h4><i class="fas fa-chart-area me-2"></i>30-Day Food Security Trend</h4>
-            </div>
-            <div class="card-body">
-                <div class="chart-container">
-                    <canvas id="trendsChart"></canvas>
-                </div>
-            </div>
-        </div>
-    </div>
-    {% endif %}
-
-    <!-- Regional and AI Insights -->
-    <div class="row analytics-section">
-        <!-- Regional Breakdown -->
-        {% if nationwide_analytics.state_breakdown %}
-        <div class="col-lg-8">
-            <div class="section-card">
-                <div class="card-header">
-                    <h4><i class="fas fa-map-marked-alt me-2"></i>State-by-State Impact</h4>
-                </div>
-                <div class="card-body">
-                    <div class="regional-grid">
-                        {% for state, data in nationwide_analytics.state_breakdown.items() %}
-                        <div class="regional-card">
-                            <div class="regional-header">
-                                <div class="regional-icon">
-                                    <i class="fas fa-map-marker-alt"></i>
-                                </div>
-                                <div>
-                                    <h6 class="mb-1 text-primary">{{ state }}</h6>
-                                    <small class="text-muted">{{ data.locations }} locations</small>
-                                </div>
-                            </div>
-                            <div class="mb-2">
-                                <strong>{{ data.reports }}</strong> total reports
-                            </div>
-                            <div class="d-flex align-items-center">
-                                <span class="status-indicator {% if data.avg_fullness > 66 %}status-full{% elif data.avg_fullness > 33 %}status-low{% else %}status-empty{% endif %}"></span>
-                                <strong>{{ data.avg_fullness }}%</strong> avg fullness
-                            </div>
-                        </div>
-                        {% endfor %}
-                    </div>
-                </div>
-            </div>
-        </div>
-        {% endif %}
-
-        <!-- AI Insights -->
-        {% if nationwide_analytics.ai_insights.reports_with_ai > 0 %}
-        <div class="col-lg-4">
-            <div class="section-card">
-                <div class="card-header">
-                    <h4><i class="fas fa-robot me-2"></i>AI Insights</h4>
-                </div>
-                <div class="card-body">
-                    <div class="mb-4">
-                        <h6 class="mb-2">AI Coverage</h6>
-                        <div class="stat-value text-info h4">{{ nationwide_analytics.ai_insights.reports_with_ai }}</div>
-                        <small class="text-muted">reports analyzed</small>
-                    </div>
-                    
-                    {% if nationwide_analytics.ai_insights.common_foods %}
-                    <div class="mb-4">
-                        <h6 class="mb-3">Common Items</h6>
-                        <div>
-                            {% for food, count in nationwide_analytics.ai_insights.common_foods[:5] %}
-                            <span class="food-tag">{{ food }} ({{ count }})</span>
-                            {% endfor %}
-                        </div>
-                    </div>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-        {% endif %}
-    </div>
-    
-    {% else %}
-    <!-- Empty State -->
-    <div class="section-card">
-        <div class="card-body">
-            <div class="empty-state">
-                <i class="fas fa-chart-line"></i>
-                <h4>No Analytics Data Available</h4>
-                <p>Start adding pantry reports to see comprehensive analytics and trends.</p>
-            </div>
-        </div>
-    </div>
-    {% endif %}
-
-    <!-- Individual Location Status -->
+        <!-- Individual Location Status -->
     <div class="location-table-section">
         <div class="section-card">
             <div class="card-header">
-                <h4><i class="fas fa-list me-2"></i>Individual Pantry Status</h4>
+                <h4><i class="fas fa-list me-2"></i>Latest Pantry Updates</h4>
             </div>
             <div class="card-body">
                 <div class="search-container">
@@ -939,6 +752,192 @@
             </div>
         </div>
     </div>
+    {% if nationwide_analytics %}
+    <!-- Current Status and Trends -->
+    <div class="row analytics-section">
+        <div class="col-lg-8">
+            <div class="section-card">
+                <div class="card-header">
+                    <h4><i class="fas fa-chart-pie me-2"></i>Food Security Snapshot</h4>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center mb-4">
+                        <div class="col-md-4">
+                            <div class="stat-value text-primary">{{ nationwide_analytics.current_status.avg_fullness }}%</div>
+                            <div class="stat-label">Average Fullness</div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="stat-value text-success">{{ nationwide_analytics.current_status.full_pantries }}</div>
+                            <div class="stat-label">Well Stocked</div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="stat-value text-danger">{{ nationwide_analytics.current_status.empty_pantries }}</div>
+                            <div class="stat-label">Need Restocking</div>
+                        </div>
+                    </div>
+                    
+                    <div class="chart-container">
+                        <canvas id="statusChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4">
+            <div class="section-card">
+                <div class="card-header">
+                    <h4><i class="fas fa-trending-up me-2"></i>Weekly Trends</h4>
+                </div>
+                <div class="card-body">
+                    {% if nationwide_analytics.trends.fullness_trend_weekly is not none %}
+                    <div class="mb-4">
+                        <h6 class="mb-3">Overall Pantry Fullness</h6>
+                        <div class="trend-indicator {% if nationwide_analytics.trends.fullness_trend_weekly > 0 %}trend-up{% elif nationwide_analytics.trends.fullness_trend_weekly < 0 %}trend-down{% else %}trend-stable{% endif %}">
+                            <i class="fas fa-{% if nationwide_analytics.trends.fullness_trend_weekly > 0 %}arrow-up{% elif nationwide_analytics.trends.fullness_trend_weekly < 0 %}arrow-down{% else %}minus{% endif %} me-2"></i>
+                            {% if nationwide_analytics.trends.fullness_trend_weekly > 0 %}+{% endif %}{{ nationwide_analytics.trends.fullness_trend_weekly }}% this week
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="mb-4">
+                        <h6 class="mb-3">Empty Pantries Reported</h6>
+                        <div class="trend-indicator {% if nationwide_analytics.trends.empty_trend == 'increasing' %}trend-down{% elif nationwide_analytics.trends.empty_trend == 'decreasing' %}trend-up{% else %}trend-stable{% endif %}">
+                            <i class="fas fa-{% if nationwide_analytics.trends.empty_trend == 'increasing' %}arrow-up{% elif nationwide_analytics.trends.empty_trend == 'decreasing' %}arrow-down{% else %}minus{% endif %} me-2"></i>
+                            {{ nationwide_analytics.trends.last_week_empty }} this week ({{ nationwide_analytics.trends.empty_trend }})
+                        </div>
+                    </div>
+                    
+                    <!-- <div class="mb-4">
+                        <h6 class="mb-3">Community Engagement</h6>
+                        <div class="trend-indicator {% if nationwide_analytics.trends.community_engagement == 'high' %}trend-up{% elif nationwide_analytics.trends.community_engagement == 'low' %}trend-down{% else %}trend-stable{% endif %}">
+                            <i class="fas fa-{% if nationwide_analytics.trends.community_engagement == 'high' %}arrow-up{% elif nationwide_analytics.trends.community_engagement == 'low' %}arrow-down{% else %}minus{% endif %} me-2"></i>
+                            {{ nationwide_analytics.trends.community_engagement|title }} reporting activity
+                        </div>
+                    </div> -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Insights -->
+    <!-- {% if nationwide_insights %}
+    <div class="analytics-section">
+        <div class="section-card">
+            <div class="card-header">
+                <h4><i class="fas fa-lightbulb me-2"></i>Insights & Recommendations</h4>
+            </div>
+            <div class="card-body">
+                <div class="insight-grid">
+                    {% for insight in nationwide_insights %}
+                    <div class="insight-card insight-{{ insight.type }}">
+                        <div class="insight-title">
+                            <i class="fas fa-{% if insight.type == 'success' %}check-circle{% elif insight.type == 'warning' %}exclamation-triangle{% elif insight.type == 'danger' %}times-circle{% else %}info-circle{% endif %}"></i>
+                            {{ insight.title }}
+                        </div>
+                        <p class="mb-0">{{ insight.message }}</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %} -->
+
+    <!-- Historical Trends -->
+    {% if nationwide_analytics.chart_data %}
+    <div class="analytics-section">
+        <div class="section-card">
+            <div class="card-header">
+                <h4><i class="fas fa-chart-area me-2"></i>30-Day Average Pantry Fullness</h4>
+            </div>
+            <div class="card-body">
+                <div class="chart-container">
+                    <canvas id="trendsChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Regional and AI Insights -->
+    <div class="row analytics-section">
+        <!-- Regional Breakdown -->
+        {% if nationwide_analytics.state_breakdown %}
+        <div class="col-lg-12">
+            <div class="section-card">
+                <div class="card-header">
+                    <h4><i class="fas fa-map-marked-alt me-2"></i>State-by-State Impact</h4>
+                </div>
+                <div class="card-body">
+                    <div class="regional-grid">
+                        {% for state, data in nationwide_analytics.state_breakdown.items() %}
+                        <div class="regional-card">
+                            <div class="regional-header">
+                                <div class="regional-icon">
+                                    <i class="fas fa-map-marker-alt"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-1 text-primary">{{ state }}</h6>
+                                    <small class="text-muted">{{ data.locations }} locations</small>
+                                </div>
+                            </div>
+                            <div class="mb-2">
+                                <strong>{{ data.reports }}</strong> total reports
+                            </div>
+                            <div class="d-flex align-items-center">
+                                <span class="status-indicator {% if data.avg_fullness > 66 %}status-full{% elif data.avg_fullness > 33 %}status-low{% else %}status-empty{% endif %}"></span>
+                                <strong>{{ data.avg_fullness }}%</strong> avg fullness
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- AI Insights -->
+        <!-- {% if nationwide_analytics.ai_insights.reports_with_ai > 0 %}
+        <div class="col-lg-4">
+            <div class="section-card">
+                <div class="card-header">
+                    <h4><i class="fas fa-robot me-2"></i>AI Insights</h4>
+                </div>
+                <div class="card-body">
+                    <div class="mb-4">
+                        <h6 class="mb-2">AI Coverage</h6>
+                        <div class="stat-value text-info h4">{{ nationwide_analytics.ai_insights.reports_with_ai }}</div>
+                        <small class="text-muted">reports analyzed</small>
+                    </div>
+                    
+                    {% if nationwide_analytics.ai_insights.common_foods %}
+                    <div class="mb-4">
+                        <h6 class="mb-3">Common Items</h6>
+                        <div>
+                            {% for food, count in nationwide_analytics.ai_insights.common_foods[:5] %}
+                            <span class="food-tag">{{ food }} ({{ count }})</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endif %} -->
+    </div>
+    
+    {% else %}
+    <!-- Empty State -->
+    <div class="section-card">
+        <div class="card-body">
+            <div class="empty-state">
+                <i class="fas fa-chart-line"></i>
+                <h4>No Analytics Data Available</h4>
+                <p>Start adding pantry reports to see comprehensive analytics and trends.</p>
+            </div>
+        </div>
+    </div>
+    {% endif %}
 </div>
 {% endblock %}
 

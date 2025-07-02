@@ -1,0 +1,658 @@
+{% extends "base-new.html" %}
+
+{% block title %}Report That Pantry - Map{% endblock %}
+
+{% block style %}
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+<style>
+    :root {
+        --primary-color: #667eea;
+        --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        --success-color: #28a745;
+        --warning-color: #ffc107;
+        --danger-color: #dc3545;
+        --dark-color: #2c3e50;
+        --light-color: #f8f9fa;
+        --border-radius: 20px;
+        --shadow: 0 10px 30px rgba(0,0,0,0.15);
+        --shadow-light: 0 4px 15px rgba(0,0,0,0.1);
+    }
+
+    body {
+        margin: 0;
+        padding: 0;
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        background: #000;
+        overflow: hidden;
+        height: 100vh;
+        width: 100vw;
+    }
+
+    /* Override content-area for full screen */
+    .content-area {
+        margin: 0 !important;
+        padding: 0 !important;
+        height: 100vh !important;
+        width: 100vw !important;
+        max-width: none !important;
+        background: #000 !important;
+    }
+
+    /* Override any potential white backgrounds */
+    .container, .container-fluid {
+        background: transparent !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    /* Ensure no white backgrounds from base template */
+    .main-content, .page-content {
+        background: transparent !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    /* Override any potential white backgrounds from base template */
+    body > * {
+        background: transparent !important;
+    }
+
+    /* Fix navbar transparency on map page */
+    .navbar-new {
+        background: rgba(255, 255, 255, 0.95) !important;
+        backdrop-filter: blur(20px) !important;
+    }
+
+    .navbar-new.scrolled {
+        background: rgba(255, 255, 255, 0.98) !important;
+    }
+
+    /* Ensure the main wrapper doesn't have white background */
+    .main-wrapper, .page-wrapper {
+        background: transparent !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    /* Override any Bootstrap container backgrounds */
+    .row, .col, .col-* {
+        background: transparent !important;
+    }
+
+    /* Full Screen Map Container */
+    .map-fullscreen {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        z-index: 1;
+    }
+
+    #map {
+        width: 100%;
+        height: 100%;
+    }
+
+    /* Top Search Bar */
+    .search-bar {
+        position: fixed;
+        top: 80px; /* Position below navbar */
+        left: 20px;
+        right: 20px;
+        z-index: 1000;
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(20px);
+        border-radius: var(--border-radius);
+        padding: 15px;
+        box-shadow: var(--shadow);
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        transition: all 0.3s ease;
+    }
+
+    .search-input {
+        flex: 1;
+        border: none;
+        background: transparent;
+        font-size: 16px;
+        padding: 12px 0;
+        outline: none;
+        color: var(--dark-color);
+    }
+
+    .search-input::placeholder {
+        color: #6c757d;
+    }
+
+    .location-btn {
+        background: var(--primary-gradient);
+        color: white;
+        border: none;
+        border-radius: 12px;
+        padding: 12px 16px;
+        font-size: 14px;
+        font-weight: 600;
+        white-space: nowrap;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .location-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+    }
+
+    .location-btn:active {
+        transform: translateY(0);
+    }
+
+    /* Distance Badge */
+    .distance-badge {
+        position: fixed;
+        top: 150px; /* Position below search bar */
+        left: 20px;
+        background: rgba(255, 255, 255, 0.9);
+        backdrop-filter: blur(10px);
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--primary-color);
+        z-index: 1000;
+        box-shadow: var(--shadow-light);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    /* Pantry Count Badge */
+    .pantry-count {
+        position: fixed;
+        top: 150px; /* Position below search bar */
+        right: 20px;
+        background: rgba(255, 255, 255, 0.9);
+        backdrop-filter: blur(10px);
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--dark-color);
+        z-index: 1000;
+        box-shadow: var(--shadow-light);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    /* Bottom Pantry List */
+    .pantry-drawer {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: white;
+        border-radius: var(--border-radius) var(--border-radius) 0 0;
+        box-shadow: 0 -10px 30px rgba(0,0,0,0.2);
+        z-index: 1000;
+        transform: translateY(100%);
+        transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        max-height: 70vh;
+        overflow: hidden;
+    }
+
+    .pantry-drawer.show {
+        transform: translateY(0);
+    }
+
+    .drawer-header {
+        background: var(--primary-gradient);
+        color: white;
+        padding: 20px;
+        border-radius: var(--border-radius) var(--border-radius) 0 0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        cursor: pointer;
+        user-select: none;
+    }
+
+    .drawer-title {
+        font-size: 18px;
+        font-weight: 700;
+    }
+
+    .drawer-count {
+        font-size: 14px;
+        opacity: 0.9;
+    }
+
+    .drawer-toggle {
+        background: rgba(255, 255, 255, 0.2);
+        border: none;
+        color: white;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        font-size: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: transform 0.3s ease;
+    }
+
+    .drawer-toggle.rotated {
+        transform: rotate(180deg);
+    }
+
+    .drawer-content {
+        max-height: calc(70vh - 80px);
+        overflow-y: auto;
+        padding: 0;
+    }
+
+    .pantry-list {
+        list-style: none;
+        margin: 0;
+        padding: 20px;
+    }
+
+    .pantry-card {
+        background: white;
+        border-radius: 15px;
+        padding: 20px;
+        margin-bottom: 15px;
+        box-shadow: var(--shadow-light);
+        border: 1px solid #f1f3f4;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .pantry-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: var(--primary-color);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .pantry-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 15px 35px rgba(0,0,0,0.15);
+    }
+
+    .pantry-card:hover::before {
+        opacity: 1;
+    }
+
+    .pantry-card.full::before {
+        background: var(--success-color);
+        opacity: 1;
+    }
+
+    .pantry-card.low::before {
+        background: var(--warning-color);
+        opacity: 1;
+    }
+
+    .pantry-card.empty::before {
+        background: var(--danger-color);
+        opacity: 1;
+    }
+
+    .pantry-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 12px;
+    }
+
+    .pantry-name {
+        font-size: 16px;
+        font-weight: 700;
+        color: var(--dark-color);
+        margin: 0;
+        line-height: 1.3;
+        flex: 1;
+    }
+
+    .pantry-status {
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-left: 12px;
+        white-space: nowrap;
+    }
+
+    .status-full {
+        background: rgba(40, 167, 69, 0.1);
+        color: var(--success-color);
+        border: 1px solid rgba(40, 167, 69, 0.3);
+    }
+
+    .status-low {
+        background: rgba(255, 193, 7, 0.1);
+        color: var(--warning-color);
+        border: 1px solid rgba(255, 193, 7, 0.3);
+    }
+
+    .status-empty {
+        background: rgba(220, 53, 69, 0.1);
+        color: var(--danger-color);
+        border: 1px solid rgba(220, 53, 69, 0.3);
+    }
+
+    .status-unknown {
+        background: rgba(108, 117, 125, 0.1);
+        color: #6c757d;
+        border: 1px solid rgba(108, 117, 125, 0.3);
+    }
+
+    .pantry-address {
+        color: #6c757d;
+        font-size: 14px;
+        margin-bottom: 12px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .pantry-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 13px;
+        color: #6c757d;
+    }
+
+    .pantry-distance {
+        font-weight: 600;
+        color: var(--dark-color);
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .pantry-updated {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    /* Loading States */
+    .loading {
+        text-align: center;
+        padding: 40px 20px;
+        color: #6c757d;
+    }
+
+    .loading i {
+        font-size: 24px;
+        margin-bottom: 12px;
+        color: var(--primary-color);
+        animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    /* Empty State */
+    .empty-state {
+        text-align: center;
+        padding: 40px 20px;
+        color: #6c757d;
+    }
+
+    .empty-state i {
+        font-size: 48px;
+        margin-bottom: 16px;
+        opacity: 0.3;
+    }
+
+    .empty-state h4 {
+        margin-bottom: 8px;
+        color: var(--dark-color);
+    }
+
+    /* Touch-friendly scrollbar */
+    .drawer-content::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    .drawer-content::-webkit-scrollbar-track {
+        background: #f1f3f4;
+        border-radius: 10px;
+    }
+
+    .drawer-content::-webkit-scrollbar-thumb {
+        background: var(--primary-color);
+        border-radius: 10px;
+    }
+
+    .drawer-content::-webkit-scrollbar-thumb:hover {
+        background: #5a6fd8;
+    }
+
+    /* Search dropdown styling */
+    .pac-container {
+        background: white !important;
+        border: 1px solid #e0e0e0 !important;
+        border-radius: var(--border-radius) !important;
+        box-shadow: var(--shadow) !important;
+        margin-top: 5px !important;
+        z-index: 1001 !important;
+    }
+    
+    .pac-item {
+        background: white !important;
+        color: var(--dark-color) !important;
+        padding: 12px 16px !important;
+        border-bottom: 1px solid #f0f0f0 !important;
+        cursor: pointer !important;
+        transition: background-color 0.2s ease !important;
+    }
+    
+    .pac-item:hover {
+        background: #f8f9fa !important;
+    }
+    
+    .pac-item:last-child {
+        border-bottom: none !important;
+    }
+    
+    .pac-item-query {
+        font-weight: 600 !important;
+        color: var(--dark-color) !important;
+    }
+    
+    .pac-matched {
+        font-weight: 600 !important;
+        color: var(--primary-color) !important;
+    }
+
+    /* Mobile optimizations */
+    @media (max-width: 768px) {
+        .search-bar {
+            top: 75px; /* Position below navbar on mobile */
+            left: 15px;
+            right: 15px;
+            padding: 12px;
+        }
+
+        .distance-badge,
+        .pantry-count {
+            top: 135px; /* Position below search bar on mobile */
+            left: 15px;
+            right: 15px;
+            justify-content: center;
+        }
+
+        .pantry-count {
+            left: auto;
+            right: 15px;
+            width: auto;
+        }
+
+        .drawer-header {
+            padding: 16px;
+        }
+
+        .drawer-title {
+            font-size: 16px;
+        }
+
+        .pantry-list {
+            padding: 16px;
+        }
+
+        .pantry-card {
+            padding: 16px;
+            margin-bottom: 12px;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .search-bar {
+            top: 70px; /* Position below navbar on small mobile */
+            left: 10px;
+            right: 10px;
+            padding: 10px;
+        }
+
+        .distance-badge,
+        .pantry-count {
+            top: 130px; /* Position below search bar on small mobile */
+            left: 10px;
+            right: 10px;
+        }
+
+        .pantry-count {
+            left: auto;
+            right: 10px;
+        }
+
+        .drawer-header {
+            padding: 14px;
+        }
+
+        .pantry-list {
+            padding: 14px;
+        }
+
+        .pantry-card {
+            padding: 14px;
+        }
+
+        .pantry-actions {
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .pantry-actions button,
+        .pantry-actions a {
+            width: 100%;
+            padding: 12px 16px;
+            font-size: 14px;
+        }
+    }
+
+    /* Desktop fallback */
+    @media (min-width: 769px) {
+        .search-bar {
+            max-width: 600px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Full Screen Map -->
+<div class="map-fullscreen">
+    <div id="map"></div>
+</div>
+
+<!-- Search Bar -->
+<div class="search-bar">
+    <input id="search-input" class="search-input" type="text" placeholder="Search for pantries or locations...">
+    <button id="location-btn" class="location-btn">
+        <i class="fas fa-location-arrow"></i>
+        Near Me
+    </button>
+</div>
+
+<!-- Distance Badge -->
+<div class="distance-badge">
+    <i class="fas fa-globe"></i>
+    All Pantries
+</div>
+
+<!-- Pantry Count Badge -->
+<div class="pantry-count">
+    <i class="fas fa-store"></i>
+    <span id="pantry-count">Loading...</span> pantries
+</div>
+
+<!-- Pantry Drawer -->
+<div class="pantry-drawer" id="pantry-drawer">
+    <div class="drawer-header" id="drawer-header">
+        <div>
+            <div class="drawer-title">Nearby Pantries</div>
+            <div class="drawer-count">
+                <span id="drawer-count">Loading...</span> found
+            </div>
+        </div>
+        <button class="drawer-toggle" id="drawer-toggle">
+            <i class="fas fa-chevron-up"></i>
+        </button>
+    </div>
+    <div class="drawer-content">
+        <ul id="pantry-list" class="pantry-list">
+            <div class="loading">
+                <i class="fas fa-spinner"></i>
+                <div>Loading pantries...</div>
+            </div>
+        </ul>
+    </div>
+</div>
+
+<!-- Location Modal -->
+<div class="modal fade" id="locationModal" tabindex="-1" role="dialog" aria-labelledby="locationModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="locationModalLabel">Enable Location Sharing</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>To find pantries near you, please enable location sharing in your browser settings.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="enableLocation" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://maps.googleapis.com/maps/api/js?key={{ api_key }}&libraries=places,geometry&callback=initMap" async defer></script>
+<script src="{{ url_for('static', filename='map-new.js') }}"></script>
+{% endblock %} 

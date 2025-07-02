@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "base-new.html" %}
 
 {% block title %} {{ pantry.name }} - Report That Pantry {% endblock %}
 
@@ -9,7 +9,8 @@
             <div class="card mb-4">
                 {% if pantry.photo %}
                 <img src="{{ current_app.config['S3_LOCATION'] + pantry.photo }}" 
-                    class="card-img-top" alt="Pantry Photo">
+                    class="card-img-top" alt="Pantry Photo" 
+                    style="max-height: 400px; object-fit: cover; width: 100%;">
                 {% endif %}
                 <div class="card-body">
                     <h2 class="card-title">{{ pantry.name }}</h2>
@@ -37,7 +38,7 @@
                         <p class="report-time" data-utc-time="{{ latest_report.time.isoformat() }}">Last Updated: {{ latest_report.time.strftime('%Y-%m-%d %H:%M') if latest_report.time else 'N/A' }}</p> 
                         <form action="/location/subscribe/{{pantry.id}}" class="d-flex" method="POST" style="margin: 0px;"> 
                             <a href="{{ url_for('views.report', id=pantry.id) }}" class="btn btn-primary mr-2">Report Status</a> 
-                            {% if user and user.is_authenticated %}
+                            <!-- {% if user and user.is_authenticated %}
                             <button id="subscribe-button" class="btn btn-{{ 'danger' if pantry.id in subscribed_locations else 'success' }}"> 
                                 {% if pantry.id in subscribed_locations %}
                                     Unsubscribe
@@ -47,7 +48,7 @@
                             </button>
                         {% else %}
                         <a href="/login" class="btn btn-success">Log In to Subscribe</a>
-                        {% endif %}
+                        {% endif %} -->
                         </form>
 
                     </div>
@@ -105,21 +106,7 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="col-md-3 col-sm-6 mb-2">
-                                <div class="card 
-                                    {% if analytics.engagement.unique_reporters >= 5 %}
-                                        bg-success
-                                    {% elif analytics.engagement.unique_reporters >= 2 %}
-                                        bg-warning
-                                    {% else %}
-                                        bg-danger
-                                    {% endif %} text-white">
-                                    <div class="card-body text-center p-3">
-                                        <h5 class="card-title mb-1">{{ analytics.engagement.unique_reporters }}</h5>
-                                        <p class="card-text small mb-0">Active Reporters</p>
-                                    </div>
-                                </div>
-                            </div>
+
                         </div>
 
                         <!-- Fullness Trend Chart -->
@@ -203,51 +190,7 @@
                             </div>
                         </div>
 
-                        <!-- Restocking & Community Insights -->
-                        <div class="row mb-4">
-                            <div class="col-md-6">
-                                <div class="card">
-                                    <div class="card-header">
-                                        <h6 class="mb-0"><i class="fas fa-sync-alt"></i> Restocking Patterns</h6>
-                                    </div>
-                                    <div class="card-body">
-                                        <p class="mb-2"><strong>Restocking Events:</strong> {{ analytics.restocking.total_restocking_events }}</p>
-                                        <p class="mb-2"><strong>Frequency:</strong> {{ analytics.restocking.restocking_frequency_per_week }} per week</p>
-                                        {% if analytics.restocking.average_restock_time_hours %}
-                                            <p class="mb-2"><strong>Avg Time Empty:</strong> 
-                                                {% if analytics.restocking.average_restock_time_hours < 24 %}
-                                                    {{ "%.1f"|format(analytics.restocking.average_restock_time_hours) }} hours
-                                                {% else %}
-                                                    {{ "%.1f"|format(analytics.restocking.average_restock_time_hours / 24) }} days
-                                                {% endif %}
-                                            </p>
-                                        {% endif %}
-                                        {% if analytics.restocking.average_depletion_time_hours %}
-                                            <p class="mb-0"><strong>Avg Depletion Time:</strong> 
-                                                {% if analytics.restocking.average_depletion_time_hours < 24 %}
-                                                    {{ "%.1f"|format(analytics.restocking.average_depletion_time_hours) }} hours
-                                                {% else %}
-                                                    {{ "%.1f"|format(analytics.restocking.average_depletion_time_hours / 24) }} days
-                                                {% endif %}
-                                            </p>
-                                        {% endif %}
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="card">
-                                    <div class="card-header">
-                                        <h6 class="mb-0"><i class="fas fa-users"></i> Community Engagement</h6>
-                                    </div>
-                                    <div class="card-body">
-                                        <p class="mb-2"><strong>Unique Reporters:</strong> {{ analytics.engagement.unique_reporters }}</p>
-                                        <p class="mb-2"><strong>Anonymous Reports:</strong> {{ analytics.engagement.anonymous_reports }}</p>
-                                        <p class="mb-2"><strong>Avg Reports/User:</strong> {{ analytics.engagement.average_reports_per_user }}</p>
-                                        <p class="mb-0"><strong>Engagement Rate:</strong> {{ analytics.engagement.engagement_rate }} reporters/week</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+
 
                         <!-- AI Insights -->
                         {% if analytics.ai_insights and analytics.ai_insights.total_ai_reports > 0 %}
@@ -419,16 +362,41 @@
         </div>
 
         <div class="col-md-4">
-            <div class="card">
+            <div class="card mb-3">
                 <div class="card-header">
                     <h3>Actions</h3>
                 </div>
                 <div class="card-body">
                     <a href="https://www.google.com/maps/search/?api=1&query={{ pantry.latitude }},{{ pantry.longitude }}&zoom=16" target="_blank" class="btn btn-secondary btn-block mb-2">View on Google Maps</a>
+                    
+                    <!-- Facebook Share Button -->
+                    <button onclick="shareOnFacebook()" class="btn btn-primary btn-block mb-2">
+                        <i class="fab fa-facebook-f"></i> Share on Facebook
+                    </button>
+                    
                     {% if user and user.is_authenticated and user.id == pantry.user_id %}
                         <a href="{{ url_for('views.edit_location', location_id=pantry.id) }}" class="btn btn-info btn-block mb-2">Edit Location</a>
                         <a href="{{ url_for('views.poster', id=pantry.id, isNew1=1) }}" class="btn btn-success btn-block">Get QR Code</a> 
                     {% endif %}
+                </div>
+            </div>
+            
+            <!-- Email Subscription Card -->
+            <div class="card">
+                <div class="card-header">
+                    <h4><i class="fas fa-envelope"></i> Get Notifications</h4>
+                </div>
+                <div class="card-body">
+                    <p class="small text-muted mb-3">Receive email alerts when this pantry is running low on supplies.</p>
+                    <form id="subscriptionForm" onsubmit="handleSubscription(event)">
+                        <div class="form-group mb-3">
+                            <input type="email" class="form-control" id="subscriptionEmail" placeholder="Enter your email address" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-block">
+                            <i class="fas fa-bell"></i> Subscribe to Updates
+                        </button>
+                    </form>
+                    <div id="subscriptionMessage" class="mt-2" style="display: none;"></div>
                 </div>
             </div>
         </div>
@@ -706,6 +674,69 @@ $(document).ready(function() {
             console.error('Chart.js library is not loaded!');
         }
     }
+
+    // Email subscription functionality
+function handleSubscription(event) {
+    event.preventDefault();
+    
+    const email = document.getElementById('subscriptionEmail').value;
+    const messageDiv = document.getElementById('subscriptionMessage');
+    const submitBtn = event.target.querySelector('button[type="submit"]');
+    
+    // Show loading state
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Subscribing...';
+    submitBtn.disabled = true;
+    
+    // Send subscription request
+    fetch('/location/subscribe/{{ pantry.id }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            email: email
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        messageDiv.style.display = 'block';
+        
+        if (data.success) {
+            messageDiv.className = 'alert alert-success mt-2';
+            messageDiv.innerHTML = '<i class="fas fa-check-circle"></i> ' + data.message;
+            document.getElementById('subscriptionEmail').value = '';
+            submitBtn.innerHTML = '<i class="fas fa-check"></i> Subscribed!';
+            setTimeout(() => {
+                submitBtn.innerHTML = '<i class="fas fa-bell"></i> Subscribe to Updates';
+                submitBtn.disabled = false;
+            }, 3000);
+        } else {
+            messageDiv.className = 'alert alert-danger mt-2';
+            messageDiv.innerHTML = '<i class="fas fa-exclamation-circle"></i> ' + data.message;
+            submitBtn.innerHTML = '<i class="fas fa-bell"></i> Subscribe to Updates';
+            submitBtn.disabled = false;
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        messageDiv.style.display = 'block';
+        messageDiv.className = 'alert alert-danger mt-2';
+        messageDiv.innerHTML = '<i class="fas fa-exclamation-circle"></i> An error occurred. Please try again.';
+        submitBtn.innerHTML = '<i class="fas fa-bell"></i> Subscribe to Updates';
+        submitBtn.disabled = false;
+    });
+}
+
+// Facebook sharing script
+function shareOnFacebook() {
+    const url = window.location.href;
+    const title = encodeURIComponent('{{ pantry.name }} - Little Free Pantry Status');
+    const description = encodeURIComponent('Check out the current status of this community pantry and help keep it stocked!');
+    
+    const shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}&quote=${title}%20-%20${description}`;
+    
+    window.open(shareUrl, 'facebook-share-dialog', 'width=626,height=436');
+}
 
 </script>
 {% endblock %}

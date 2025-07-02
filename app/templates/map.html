@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+{% extends "base-new.html" %}
 
 {% block title %}Report That Pantry - Map{% endblock %}
 
@@ -82,13 +82,13 @@
         text-shadow: 0 2px 8px rgba(0,0,0,0.2);
     }
 
-    /* Main Layout */
+    /* Main Layout - Fixed height and overflow issues */
     .map-container {
-        height: 70vh;
-        min-height: 500px;
-        max-height: 800px;
+        height: calc(100vh - 200px);
+        min-height: 600px;
         margin: 0;
         padding: 0;
+        display: flex;
     }
 
     .sidebar {
@@ -99,6 +99,8 @@
         height: 100%;
         overflow-y: auto;
         border-right: 1px solid #e9ecef;
+        flex: 0 0 400px;
+        max-width: 400px;
     }
 
     .map-wrapper {
@@ -107,7 +109,10 @@
         overflow: hidden;
         box-shadow: var(--card-shadow);
         position: relative;
+        flex: 1;
     }
+
+
 
     #map {
         height: 100%;
@@ -175,8 +180,8 @@
         margin-right: 8px;
     }
 
-    /* Filters Section */
-    .filters-section {
+    /* Distance Section - Simplified */
+    .distance-section {
         margin-bottom: 30px;
         padding: 25px;
         background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
@@ -184,7 +189,7 @@
         border: 1px solid #dee2e6;
     }
 
-    .filters-title {
+    .distance-title {
         font-size: 1.1rem;
         font-weight: 700;
         color: #2c3e50;
@@ -193,80 +198,20 @@
         align-items: center;
     }
 
-    .filters-title i {
+    .distance-title i {
         margin-right: 10px;
         color: #667eea;
     }
 
-    .filter-group {
-        margin-bottom: 20px;
-    }
-
-    .filter-label {
-        font-size: 0.9rem;
-        font-weight: 600;
-        color: #495057;
-        margin-bottom: 8px;
-        display: block;
-    }
-
-    .status-filters {
-        display: flex;
-        gap: 10px;
-        flex-wrap: wrap;
-    }
-
-    .status-filter {
-        padding: 8px 16px;
-        border: 2px solid #dee2e6;
-        border-radius: 25px;
+    .distance-info {
+        text-align: center;
+        padding: 15px;
         background: white;
-        color: #495057;
-        font-size: 0.85rem;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        flex: 1;
-        text-align: center;
-        min-width: 80px;
-    }
-
-    .status-filter:hover {
-        border-color: #667eea;
+        border-radius: 10px;
+        border: 2px solid #667eea;
         color: #667eea;
-    }
-
-    .status-filter.active {
-        background: var(--primary-gradient);
-        border-color: #667eea;
-        color: white;
-    }
-
-    .status-filter.full.active {
-        background: var(--success-gradient);
-        border-color: #28a745;
-    }
-
-    .status-filter.low.active {
-        background: var(--warning-gradient);
-        border-color: #ffc107;
-    }
-
-    .status-filter.empty.active {
-        background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
-        border-color: #dc3545;
-    }
-
-    .distance-slider {
-        width: 100%;
-        margin: 10px 0;
-    }
-
-    .distance-value {
-        text-align: center;
         font-weight: 600;
-        color: #667eea;
-        margin-top: 5px;
+        font-size: 1.1rem;
     }
 
     /* Results Section */
@@ -441,81 +386,198 @@
     /* Mobile Responsiveness */
     @media (max-width: 768px) {
         .map-hero {
-            padding: 40px 0 20px 0;
+            padding: 20px 0 10px 0;
         }
 
         .hero-title {
-            font-size: 2rem;
+            font-size: 1.6rem;
         }
 
         .hero-subtitle {
-            font-size: 1rem;
+            font-size: 0.9rem;
         }
 
         .map-container {
-            height: 80vh;
-            min-height: 600px;
-            max-height: none;
+            height: calc(100vh - 80px);
+            min-height: 500px;
             flex-direction: column;
         }
 
         .sidebar {
-            border-radius: 20px 20px 0 0;
-            height: 40vh;
-            min-height: 300px;
-            border-right: none;
-            border-bottom: 1px solid #e9ecef;
-            padding: 20px;
+            display: none; /* Hide sidebar on mobile */
         }
 
         .map-wrapper {
-            border-radius: 0 0 20px 20px;
-            height: 40vh;
-            min-height: 300px;
+            border-radius: 20px;
+            height: 100%;
+            min-height: 500px;
+            position: relative;
         }
 
         #map {
-            border-radius: 0 0 20px 20px;
+            border-radius: 20px;
         }
 
-        .status-filters {
-            flex-direction: column;
+        /* Mobile floating pantry list */
+        .mobile-pantry-list {
+            display: block;
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            right: 20px;
+            max-height: 60vh;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            z-index: 1000;
+            overflow: hidden;
+            transform: translateY(100%);
+            transition: transform 0.3s ease;
         }
 
-        .status-filter {
-            flex: none;
+        .mobile-pantry-list.show {
+            transform: translateY(0);
         }
 
-        .filters-section {
+        .mobile-pantry-header {
+            background: var(--primary-gradient);
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-radius: 20px 20px 0 0;
+        }
+
+        .mobile-pantry-title {
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+
+        .mobile-pantry-count {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .mobile-pantry-toggle {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .mobile-pantry-content {
+            max-height: 50vh;
+            overflow-y: auto;
+            padding: 0;
+        }
+
+        .mobile-pantry-content .pantry-list {
+            margin: 0;
             padding: 15px;
-            margin-bottom: 20px;
         }
 
-        .search-section {
-            margin-bottom: 20px;
+        .mobile-pantry-content .pantry-card {
+            margin-bottom: 10px;
+            padding: 15px;
+        }
+
+        /* Mobile search bar */
+        .mobile-search {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            right: 20px;
+            z-index: 1001;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            padding: 10px;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .mobile-search input {
+            flex: 1;
+            border: none;
+            padding: 12px 15px;
+            border-radius: 10px;
+            background: #f8f9fa;
+            font-size: 1rem;
+        }
+
+        .mobile-search button {
+            background: var(--primary-gradient);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            padding: 12px 15px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        /* Mobile distance info */
+        .mobile-distance-info {
+            position: fixed;
+            top: 80px;
+            left: 20px;
+            background: rgba(255,255,255,0.95);
+            backdrop-filter: blur(10px);
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #667eea;
+            z-index: 1000;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
     }
 
     @media (max-width: 576px) {
+        .map-hero {
+            padding: 15px 0 8px 0;
+        }
+
         .hero-title {
-            font-size: 1.8rem;
+            font-size: 1.4rem;
         }
         
         .map-container {
-            height: 75vh;
-            min-height: 500px;
+            height: calc(100vh - 60px);
+            min-height: 450px;
         }
-        
-        .sidebar {
-            height: 35vh;
-            min-height: 250px;
-            padding: 15px;
+
+        .mobile-pantry-list {
+            bottom: 15px;
+            left: 15px;
+            right: 15px;
         }
-        
-        .map-wrapper {
-            height: 40vh;
-            min-height: 250px;
+
+        .mobile-search {
+            top: 15px;
+            left: 15px;
+            right: 15px;
         }
+
+        .mobile-distance-info {
+            top: 70px;
+            left: 15px;
+        }
+    }
+
+    /* Hide mobile elements on desktop */
+    .mobile-pantry-list,
+    .mobile-search,
+    .mobile-distance-info {
+        display: none;
     }
 
     /* Empty State */
@@ -570,44 +632,6 @@
         border-radius: 3px !important;
     }
 
-    /* Enhanced range slider styling */
-    .distance-slider {
-        -webkit-appearance: none;
-        appearance: none;
-        height: 8px;
-        border-radius: 8px;
-        background: linear-gradient(to right, #667eea 0%, #e9ecef 0%);
-        outline: none;
-        transition: background 0.3s ease;
-    }
-
-    .distance-slider::-webkit-slider-thumb {
-        -webkit-appearance: none;
-        appearance: none;
-        width: 24px;
-        height: 24px;
-        border-radius: 50%;
-        background: #667eea;
-        cursor: pointer;
-        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
-        transition: all 0.3s ease;
-    }
-
-    .distance-slider::-webkit-slider-thumb:hover {
-        transform: scale(1.1);
-        box-shadow: 0 6px 18px rgba(102, 126, 234, 0.4);
-    }
-
-    .distance-slider::-moz-range-thumb {
-        width: 24px;
-        height: 24px;
-        border-radius: 50%;
-        background: #667eea;
-        cursor: pointer;
-        border: none;
-        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
-    }
-
     /* Scrollbar styling for sidebar */
     .sidebar::-webkit-scrollbar {
         width: 8px;
@@ -638,83 +662,105 @@
                 <i class="fas fa-map-marked-alt"></i>
                 Find Little Free Pantries
             </h1>
-            <p class="hero-subtitle">Discover community food resources near you</p>
+            <p class="hero-subtitle">Discover community food resources within 10 miles</p>
         </div>
     </div>
 </div>
 
 <!-- Main Map Interface -->
-<div class="container-fluid px-3 py-3 mb-4" style="overflow: hidden;">
-    <div class="row map-container">
+<div class="container-fluid px-3 py-3 mb-4">
+    <div class="map-container">
         <!-- Sidebar -->
-        <div class="col-lg-4 p-0">
-            <div class="sidebar d-flex flex-column">
-                <!-- Search Section -->
-                <div class="search-section">
-                    <div class="search-container">
-                        <input id="pac-input" class="search-input" type="text" placeholder="Search for pantries or locations...">
-                        <i class="fas fa-search search-icon"></i>
-                    </div>
-                    <button id="find-near-me" class="location-btn">
-                        <i class="fas fa-location-arrow"></i>
-                        Find Pantries Near Me
-                    </button>
+        <div class="sidebar d-flex flex-column">
+            <!-- Search Section -->
+            <div class="search-section">
+                <div class="search-container">
+                    <input id="pac-input" class="search-input" type="text" placeholder="Search for pantries or locations...">
+                    <i class="fas fa-search search-icon"></i>
                 </div>
+                <button id="find-near-me" class="location-btn">
+                    <i class="fas fa-location-arrow"></i>
+                    Find Pantries Near Me
+                </button>
+            </div>
 
-                <!-- Filters Section -->
-                <div class="filters-section">
-                    <div class="filters-title">
-                        <i class="fas fa-filter"></i>
-                        Filters
-                    </div>
-                    
-                    <div class="filter-group">
-                        <label class="filter-label">Pantry Status</label>
-                        <div class="status-filters">
-                            <div class="status-filter active" data-status="all">All</div>
-                            <div class="status-filter full" data-status="full">Full</div>
-                            <div class="status-filter low" data-status="low">Low</div>
-                            <div class="status-filter empty" data-status="empty">Empty</div>
-                        </div>
-                    </div>
-
-                    <div class="filter-group">
-                        <label class="filter-label">Search Radius</label>
-                        <input type="range" class="distance-slider" id="distance-slider" min="1" max="50" value="10">
-                        <div class="distance-value">Within <span id="distance-value">10</span> miles</div>
-                    </div>
+            <!-- Distance Section -->
+            <div class="distance-section">
+                <div class="distance-title">
+                    <i class="fas fa-location-crosshairs"></i>
+                    Search Radius
                 </div>
-
-                <!-- Results Section -->
-                <div class="results-section">
-                    <div class="results-header">
-                        <div class="results-count">
-                            <span id="pantry-count">Loading...</span> pantries found
-                        </div>
-                        <select class="sort-dropdown" id="sort-select">
-                            <option value="distance">Sort by Distance</option>
-                            <option value="updated">Recently Updated</option>
-                            <option value="name">Name A-Z</option>
-                            <option value="status">Status</option>
-                        </select>
-                    </div>
-                    
-                    <ul id="pantry-list" class="pantry-list">
-                        <div class="loading">
-                            <i class="fas fa-spinner"></i>
-                            <div>Loading pantries...</div>
-                        </div>
-                    </ul>
+                <div class="distance-info">
+                    <i class="fas fa-circle"></i>
+                    Within 10 miles
                 </div>
+            </div>
+
+            <!-- Results Section -->
+            <div class="results-section">
+                <div class="results-header">
+                    <div class="results-count">
+                        <span id="pantry-count">Loading...</span> pantries found
+                    </div>
+                    <select class="sort-dropdown" id="sort-select">
+                        <option value="distance">Sort by Distance</option>
+                        <option value="updated">Recently Updated</option>
+                        <option value="name">Name A-Z</option>
+                        <option value="status">Status</option>
+                    </select>
+                </div>
+                
+                <ul id="pantry-list" class="pantry-list">
+                    <div class="loading">
+                        <i class="fas fa-spinner"></i>
+                        <div>Loading pantries...</div>
+                    </div>
+                </ul>
             </div>
         </div>
 
         <!-- Map -->
-        <div class="col-lg-8 p-0">
-            <div class="map-wrapper">
-                <div id="map"></div>
+        <div class="map-wrapper">
+            <div id="map"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Mobile Search Bar -->
+<div class="mobile-search">
+    <input id="mobile-pac-input" type="text" placeholder="Search for pantries...">
+    <button id="mobile-find-near-me">
+        <i class="fas fa-location-arrow"></i>
+        Near Me
+    </button>
+</div>
+
+<!-- Mobile Distance Info -->
+<div class="mobile-distance-info">
+    <i class="fas fa-circle"></i>
+    Within 10 miles
+</div>
+
+<!-- Mobile Pantry List -->
+<div class="mobile-pantry-list" id="mobile-pantry-list">
+    <div class="mobile-pantry-header">
+        <div>
+            <div class="mobile-pantry-title">Nearby Pantries</div>
+            <div class="mobile-pantry-count">
+                <span id="mobile-pantry-count">Loading...</span> found
             </div>
         </div>
+        <button class="mobile-pantry-toggle" id="mobile-pantry-toggle">
+            <i class="fas fa-chevron-up"></i>
+        </button>
+    </div>
+    <div class="mobile-pantry-content">
+        <ul id="mobile-pantry-list-content" class="pantry-list">
+            <div class="loading">
+                <i class="fas fa-spinner"></i>
+                <div>Loading pantries...</div>
+            </div>
+        </ul>
     </div>
 </div>
 
@@ -738,57 +784,21 @@
     </div>
 </div>
 
-<script src="https://maps.googleapis.com/maps/api/js?key={{ api_key }}&libraries=places,marker,geometry&callback=initMap&loading=async" async defer></script>
+<script src="https://maps.googleapis.com/maps/api/js?key={{ api_key }}&libraries=places,geometry&callback=initMap" async defer></script>
 <script src="{{ url_for('static', filename='map.js') }}"></script>
 <script>
 // Ensure event listeners are set up when DOM is ready
 document.addEventListener('DOMContentLoaded', function() {
     console.log('DOM fully loaded, setting up event listeners...');
     
-    // Status filters
-    const statusFilters = document.querySelectorAll('.status-filter');
-    console.log('Found status filters:', statusFilters.length);
-    
-    statusFilters.forEach(filter => {
-        filter.addEventListener('click', (e) => {
-            console.log('Status filter clicked:', e.target.dataset.status);
-            // Remove active class from all filters
-            document.querySelectorAll('.status-filter').forEach(f => f.classList.remove('active'));
-            // Add active class to clicked filter
-            e.target.classList.add('active');
-            
-            if (window.currentFilters) {
-                window.currentFilters.status = e.target.dataset.status;
-                if (window.applyFilters) window.applyFilters();
+    // Find near me button
+    const findNearMeBtn = document.getElementById("find-near-me");
+    if (findNearMeBtn) {
+        findNearMeBtn.addEventListener("click", () => {
+            if (window.getUserLocation) {
+                window.getUserLocation(true, true);
             }
         });
-    });
-
-    // Distance slider
-    const distanceSlider = document.getElementById('distance-slider');
-    const distanceValue = document.getElementById('distance-value');
-    
-    if (distanceSlider && distanceValue) {
-        console.log('Distance slider found');
-        
-        distanceSlider.addEventListener('input', (e) => {
-            console.log('Distance slider changed:', e.target.value);
-            const distance = e.target.value;
-            distanceValue.textContent = distance;
-            
-            if (window.currentFilters) {
-                window.currentFilters.distance = parseInt(distance);
-                if (window.applyFilters) window.applyFilters();
-            }
-            
-            // Update slider background
-            const value = (distanceSlider.value - distanceSlider.min) / (distanceSlider.max - distanceSlider.min) * 100;
-            distanceSlider.style.background = `linear-gradient(to right, #667eea 0%, #667eea ${value}%, #e9ecef ${value}%, #e9ecef 100%)`;
-        });
-        
-        // Initialize slider background
-        const value = (distanceSlider.value - distanceSlider.min) / (distanceSlider.max - distanceSlider.min) * 100;
-        distanceSlider.style.background = `linear-gradient(to right, #667eea 0%, #667eea ${value}%, #e9ecef ${value}%, #e9ecef 100%)`;
     }
 
     // Sort dropdown
@@ -799,6 +809,54 @@ document.addEventListener('DOMContentLoaded', function() {
             if (window.currentFilters) {
                 window.currentFilters.sort = e.target.value;
                 if (window.applyFilters) window.applyFilters();
+            }
+        });
+    }
+
+    // Mobile functionality
+    const mobilePantryList = document.getElementById('mobile-pantry-list');
+    const mobilePantryToggle = document.getElementById('mobile-pantry-toggle');
+    const mobileFindNearMe = document.getElementById('mobile-find-near-me');
+    const mobilePacInput = document.getElementById('mobile-pac-input');
+    
+    // Mobile pantry list toggle
+    if (mobilePantryList && mobilePantryToggle) {
+        mobilePantryToggle.addEventListener('click', () => {
+            mobilePantryList.classList.toggle('show');
+            const icon = mobilePantryToggle.querySelector('i');
+            if (mobilePantryList.classList.contains('show')) {
+                icon.className = 'fas fa-chevron-down';
+            } else {
+                icon.className = 'fas fa-chevron-up';
+            }
+        });
+    }
+    
+    // Mobile find near me button
+    if (mobileFindNearMe) {
+        mobileFindNearMe.addEventListener('click', () => {
+            if (window.getUserLocation) {
+                window.getUserLocation(true, true);
+            }
+        });
+    }
+    
+    // Mobile search input
+    if (mobilePacInput) {
+        mobilePacInput.addEventListener('keydown', (event) => {
+            if (event.key === "Enter") {
+                event.preventDefault();
+                const query = mobilePacInput.value;
+                if (window.map && window.placesService) {
+                    window.placesService.findPlaceFromQuery({
+                        query: query,
+                        fields: ['name', 'geometry'],
+                    }, (results, status) => {
+                        if (status === google.maps.places.PlacesServiceStatus.OK && results.length > 0) {
+                            window.updateMapView(results[0].geometry);
+                        }
+                    });
+                }
             }
         });
     }

@@ -16,7 +16,41 @@ from PIL import Image, ImageDraw, ImageFont
 import io
 import tempfile
 import math
+from pillow_heif import register_heif_opener
 
+# Register HEIF opener to enable HEIC support in PIL
+register_heif_opener()
+
+
+
+# US State abbreviation to full name mapping
+STATE_ABBREVIATION_MAP = {
+    'AL': 'Alabama', 'AK': 'Alaska', 'AZ': 'Arizona', 'AR': 'Arkansas', 'CA': 'California',
+    'CO': 'Colorado', 'CT': 'Connecticut', 'DE': 'Delaware', 'FL': 'Florida', 'GA': 'Georgia',
+    'HI': 'Hawaii', 'ID': 'Idaho', 'IL': 'Illinois', 'IN': 'Indiana', 'IA': 'Iowa',
+    'KS': 'Kansas', 'KY': 'Kentucky', 'LA': 'Louisiana', 'ME': 'Maine', 'MD': 'Maryland',
+    'MA': 'Massachusetts', 'MI': 'Michigan', 'MN': 'Minnesota', 'MS': 'Mississippi', 'MO': 'Missouri',
+    'MT': 'Montana', 'NE': 'Nebraska', 'NV': 'Nevada', 'NH': 'New Hampshire', 'NJ': 'New Jersey',
+    'NM': 'New Mexico', 'NY': 'New York', 'NC': 'North Carolina', 'ND': 'North Dakota', 'OH': 'Ohio',
+    'OK': 'Oklahoma', 'OR': 'Oregon', 'PA': 'Pennsylvania', 'RI': 'Rhode Island', 'SC': 'South Carolina',
+    'SD': 'South Dakota', 'TN': 'Tennessee', 'TX': 'Texas', 'UT': 'Utah', 'VT': 'Vermont',
+    'VA': 'Virginia', 'WA': 'Washington', 'WV': 'West Virginia', 'WI': 'Wisconsin', 'WY': 'Wyoming',
+    'DC': 'District of Columbia', 'PR': 'Puerto Rico', 'VI': 'Virgin Islands', 'AS': 'American Samoa',
+    'GU': 'Guam', 'MP': 'Northern Mariana Islands'
+}
+
+
+def get_state_full_name(abbreviation):
+    """
+    Convert state abbreviation to full state name
+    
+    Args:
+        abbreviation: Two-letter state abbreviation (e.g., 'CA', 'NY')
+    
+    Returns:
+        Full state name (e.g., 'California', 'New York') or the abbreviation if not found
+    """
+    return STATE_ABBREVIATION_MAP.get(abbreviation.upper() if abbreviation else '', abbreviation)
 
 
 # Send mail function
@@ -95,7 +129,7 @@ def send_email(to, subject, html_content, attachments=None):
 # Determines if file submitted is allowed
 def allowed_file(filename):
     return '.' in filename and \
-           filename.rsplit('.', 1)[1].lower() in {'png', 'jpg', 'jpeg', 'gif'}
+           filename.rsplit('.', 1)[1].lower() in {'png', 'jpg', 'jpeg', 'gif', 'heic', 'heif'}
 
 
 def upload_photo_to_s3(photo, location_id):
@@ -113,8 +147,27 @@ def upload_photo_to_s3(photo, location_id):
 
     try:
         filename = secure_filename(photo.filename)
-        _, extension = os.path.splitext(filename)
-        unique_filename = f"{uuid.uuid4().hex}{extension}"
+        original_extension = os.path.splitext(filename)[1]
+        
+        # Handle HEIC conversion
+        if is_heic_file(photo.filename):
+            print(f"Converting HEIC file: {filename}")
+            converted_data = convert_heic_to_jpeg(photo)
+            if converted_data is None:
+                print("Failed to convert HEIC file")
+                return None
+            
+            # Update filename and extension for converted file
+            base_name = os.path.splitext(filename)[0]
+            filename = f"{base_name}.jpg"
+            original_extension = '.jpg'
+            photo_data = converted_data
+        else:
+            # Use original file for non-HEIC formats
+            photo.seek(0)  # Reset file pointer
+            photo_data = photo
+
+        unique_filename = f"{uuid.uuid4().hex}{original_extension}"
 
         s3 = boto3.client(
             's3',
@@ -123,7 +176,7 @@ def upload_photo_to_s3(photo, location_id):
         )
 
         s3_key = os.path.join(current_app.config['FLASK_ENV'], 'uploads', str(location_id), unique_filename)
-        s3.upload_fileobj(photo, current_app.config['S3_BUCKET'], s3_key)
+        s3.upload_fileobj(photo_data, current_app.config['S3_BUCKET'], s3_key)
         
         print(f"Photo uploaded to: {s3_key}")
 
@@ -326,3 +379,65 @@ def generate_qr_poster_pdf(location_name, location_id, report_url):
     except Exception as e:
         print(f"Error generating QR poster PDF: {e}")
         return None
+
+
+def convert_heic_to_jpeg(file_obj, max_width=1200, max_height=1200, quality=85):
+    """
+    Convert HEIC/HEIF image to JPEG format with optional resizing
+    
+    Args:
+        file_obj: File object (werkzeug.FileStorage)
+        max_width: Maximum width for resizing (default: 1200px)
+        max_height: Maximum height for resizing (default: 1200px)  
+        quality: JPEG quality (default: 85)
+    
+    Returns:
+        io.BytesIO: JPEG image data, or None if conversion fails
+    """
+    try:
+        # Read the original file content
+        file_obj.seek(0)  # Reset file pointer
+        image_data = file_obj.read()
+        
+        # Open with PIL (pillow-heif will handle HEIC)
+        with Image.open(io.BytesIO(image_data)) as img:
+            # Convert to RGB (JPEG doesn't support RGBA)
+            if img.mode in ('RGBA', 'LA', 'P'):
+                # Create a white background for transparent images
+                rgb_img = Image.new('RGB', img.size, (255, 255, 255))
+                if img.mode == 'P':
+                    img = img.convert('RGBA')
+                rgb_img.paste(img, mask=img.split()[-1] if img.mode in ('RGBA', 'LA') else None)
+                img = rgb_img
+            elif img.mode != 'RGB':
+                img = img.convert('RGB')
+            
+            # Resize if image is too large
+            original_width, original_height = img.size
+            if original_width > max_width or original_height > max_height:
+                # Calculate new dimensions maintaining aspect ratio
+                ratio = min(max_width / original_width, max_height / original_height)
+                new_width = int(original_width * ratio)
+                new_height = int(original_height * ratio)
+                
+                print(f"Resizing HEIC image from {original_width}x{original_height} to {new_width}x{new_height}")
+                img = img.resize((new_width, new_height), Image.Resampling.LANCZOS)
+            
+            # Save as JPEG to BytesIO
+            output = io.BytesIO()
+            img.save(output, format='JPEG', quality=quality, optimize=True)
+            output.seek(0)
+            
+            return output
+            
+    except Exception as e:
+        print(f"Error converting HEIC to JPEG: {e}")
+        return None
+
+
+def is_heic_file(filename):
+    """Check if file is HEIC/HEIF format"""
+    if not filename:
+        return False
+    extension = filename.rsplit('.', 1)[-1].lower()
+    return extension in {'heic', 'heif'}

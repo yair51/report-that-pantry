@@ -1,0 +1,535 @@
+{% extends "base-new.html" %}
+{% block content %}
+
+<style>
+    .content-area {
+        margin-top: 0px;
+    }
+    
+    /* Hero Section */
+    .hero-section {
+        background: linear-gradient(135deg, #2B4E72 0%, #1e3a5f 50%, #4a6fa5 100%);
+        color: white;
+        padding: 5rem 0;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .hero-section::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="10" cy="10" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="80" cy="30" r="0.5" fill="rgba(255,255,255,0.15)"/><circle cx="40" cy="70" r="1.5" fill="rgba(255,255,255,0.08)"/><circle cx="90" cy="80" r="0.8" fill="rgba(255,255,255,0.12)"/></svg>');
+        animation: float 20s ease-in-out infinite;
+    }
+    
+    @keyframes float {
+        0%, 100% { transform: translateY(0px); }
+        50% { transform: translateY(-10px); }
+    }
+    
+    .hero-content {
+        position: relative;
+        z-index: 2;
+    }
+    
+    .hero-title {
+        font-size: 3.5rem;
+        font-weight: 900;
+        margin-bottom: 1.5rem;
+        text-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        line-height: 1.2;
+    }
+    
+    .hero-subtitle {
+        font-size: 1.4rem;
+        margin-bottom: 2rem;
+        opacity: 0.95;
+        font-weight: 300;
+    }
+    
+    .visibility-badge {
+        background: rgba(255,255,255,0.15);
+        border: 2px solid rgba(255,255,255,0.3);
+        border-radius: 50px;
+        padding: 0.8rem 1.5rem;
+        margin-bottom: 2rem;
+        display: inline-block;
+        backdrop-filter: blur(10px);
+    }
+    
+    .cta-buttons {
+        margin-top: 2rem;
+    }
+    
+    .btn-hero-primary {
+        background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+        border: none;
+        padding: 1rem 2rem;
+        font-size: 1.1rem;
+        font-weight: 600;
+        border-radius: 50px;
+        box-shadow: 0 8px 25px rgba(238, 90, 36, 0.4);
+        transition: all 0.3s ease;
+    }
+    
+    .btn-hero-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 35px rgba(238, 90, 36, 0.6);
+        background: linear-gradient(45deg, #ee5a24, #ff6b6b);
+    }
+    
+    .btn-hero-secondary {
+        background: rgba(255,255,255,0.1);
+        border: 2px solid rgba(255,255,255,0.3);
+        color: white;
+        padding: 1rem 2rem;
+        font-size: 1.1rem;
+        font-weight: 600;
+        border-radius: 50px;
+        backdrop-filter: blur(10px);
+        transition: all 0.3s ease;
+    }
+    
+    .btn-hero-secondary:hover {
+        background: rgba(255,255,255,0.2);
+        border-color: rgba(255,255,255,0.5);
+        color: white;
+        transform: translateY(-2px);
+    }
+    
+    /* Visibility Mission Section */
+    .visibility-section {
+        padding: 5rem 0;
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    }
+    
+    .visibility-icon {
+        width: 100px;
+        height: 100px;
+        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2.5rem;
+        color: white;
+        margin: 0 auto 2rem auto;
+        box-shadow: 0 10px 30px rgba(79, 172, 254, 0.3);
+    }
+    
+    .mission-card {
+        background: white;
+        border-radius: 20px;
+        padding: 2.5rem;
+        text-align: center;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
+        border: 1px solid rgba(0,0,0,0.05);
+    }
+    
+    .mission-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+    }
+    
+    /* Interactive Stats */
+    .stats-section {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 4rem 0;
+    }
+    
+    .stat-card {
+        text-align: center;
+        padding: 2rem;
+    }
+    
+    .stat-number {
+        font-size: 3rem;
+        font-weight: 900;
+        display: block;
+        margin-bottom: 0.5rem;
+    }
+    
+    .stat-label {
+        font-size: 1.1rem;
+        opacity: 0.9;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+    
+    /* Feature Cards */
+    .features-section {
+        padding: 5rem 0;
+        background: white;
+    }
+    
+    .feature-card {
+        background: white;
+        border-radius: 15px;
+        padding: 2.5rem;
+        text-align: center;
+        transition: all 0.3s ease;
+        border: 1px solid #e9ecef;
+        height: 100%;
+    }
+    
+    .feature-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+        border-color: #2B4E72;
+    }
+    
+    .feature-icon {
+        width: 80px;
+        height: 80px;
+        border-radius: 15px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+        color: white;
+        margin: 0 auto 1.5rem auto;
+    }
+    
+    .feature-icon.find { background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); }
+    .feature-icon.report { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+    .feature-icon.connect { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
+    
+    /* Community Section */
+    .community-section {
+        background: #f8f9fa;
+        padding: 5rem 0;
+    }
+    
+    .testimonial-card {
+        background: white;
+        border-radius: 15px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+        border-left: 4px solid #2B4E72;
+    }
+    
+    .testimonial-text {
+        font-style: italic;
+        margin-bottom: 1rem;
+        color: #495057;
+    }
+    
+    .testimonial-author {
+        font-weight: 600;
+        color: #2B4E72;
+    }
+    
+    /* Social Proof */
+    .social-section {
+        background: linear-gradient(135deg, #2B4E72 0%, #1e3a5f 100%);
+        color: white;
+        padding: 4rem 0;
+        text-align: center;
+    }
+    
+    .social-buttons {
+        margin-top: 2rem;
+    }
+    
+    .btn-social {
+        margin: 0 1rem;
+        padding: 1rem 2rem;
+        border-radius: 50px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-facebook {
+        background: #4267B2;
+        border-color: #4267B2;
+    }
+    
+    .btn-facebook:hover {
+        background: #365899;
+        transform: translateY(-2px);
+    }
+    
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .hero-title {
+            font-size: 2.5rem;
+        }
+        
+        .hero-subtitle {
+            font-size: 1.2rem;
+        }
+        
+        .cta-buttons .btn {
+            display: block;
+            margin: 0.5rem 0;
+        }
+        
+        .stat-number {
+            font-size: 2rem;
+        }
+    }
+</style>
+
+<!-- Hero Section -->
+<section class="hero-section">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6">
+                <div class="hero-content">
+                    <h1 class="hero-title">Make Every Pantry <span style="color: #ffd700;">Visible</span></h1>
+                    <p class="hero-subtitle">Connect your community to Little Free Pantries. Know when they need help. Share when they're stocked. Build stronger neighborhoods together.</p>
+                    
+                    <div class="cta-buttons">
+                        <a href="/status" class="btn btn-hero-primary me-3">
+                            <i class="fas fa-map-marker-alt"></i> Find Local Pantries
+                        </a>
+                        <a href="#learn-more" class="btn btn-hero-secondary">
+                            <i class="fas fa-info-circle"></i> Learn More
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="embed-responsive embed-responsive-16by9">
+                    <iframe class="embed-responsive-item" src="https://www.youtube.com/embed/IlDt7YsQ8qo" title="Report That Pantry Introduction" allowfullscreen style="border-radius: 15px;"></iframe>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Visibility Mission Section -->
+<section class="visibility-section" id="learn-more">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="mission-card">
+                    <div class="visibility-icon">
+                        <i class="fas fa-eye"></i>
+                    </div>
+                    <h2 class="mb-4">Our Mission: Pantry Visibility</h2>
+                    <p class="lead mb-4">Too many Little Free Pantries sit empty because neighbors don't know they exist or when they need restocking. We're changing that.</p>
+                    <p>Report That Pantry makes community pantries <strong>visible</strong> to everyone:</p>
+                    <div class="row mt-4">
+                        <div class="col-md-4">
+                            <h5><i class="fas fa-users text-primary"></i> For Communities</h5>
+                            <p class="small">Discover pantries near you and know their current status</p>
+                        </div>
+                        <div class="col-md-4">
+                            <h5><i class="fas fa-heart text-danger"></i> For Volunteers</h5>
+                            <p class="small">Get alerts when pantries need restocking</p>
+                        </div>
+                        <div class="col-md-4">
+                            <h5><i class="fas fa-home text-success"></i> For Stewards</h5>
+                            <p class="small">Track your pantry's impact and engage helpers</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Live Stats Section -->
+<section class="stats-section">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-3 col-md-6">
+                <div class="stat-card">
+                    <span class="stat-number">{{ stats.total_pantries or '24' }}</span>
+                    <span class="stat-label">Pantries Tracked</span>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="stat-card">
+                    <span class="stat-number">{{ stats.total_reports or '156' }}</span>
+                    <span class="stat-label">Community Reports</span>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="stat-card">
+                    <span class="stat-number">{{ stats.states_covered or '4' }}</span>
+                    <span class="stat-label">States Covered</span>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="stat-card">
+                    <span class="stat-number">{{ stats.empty_alerts or '23' }}</span>
+                    <span class="stat-label">Empty Alerts Sent</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Features Section -->
+<section class="features-section">
+    <div class="container">
+        <div class="row justify-content-center mb-5">
+            <div class="col-lg-8 text-center">
+                <h2 class="mb-4">How We Increase Visibility</h2>
+                <p class="lead text-muted">Three simple ways to make pantries more visible in your community</p>
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="col-lg-4 col-md-6 mb-4">
+                <div class="feature-card">
+                    <div class="feature-icon find">
+                        <i class="fas fa-search"></i>
+                    </div>
+                    <h4 class="mb-3">Find & Explore</h4>
+                    <p>Discover Little Free Pantries near you with our interactive map. See real-time status updates and know exactly which pantries have what you need.</p>
+                    <a href="/status" class="btn btn-outline-success">Explore Map</a>
+                </div>
+            </div>
+            
+            <div class="col-lg-4 col-md-6 mb-4">
+                <div class="feature-card">
+                    <div class="feature-icon report">
+                        <i class="fas fa-mobile-alt"></i>
+                    </div>
+                    <h4 class="mb-3">Quick Reports</h4>
+                    <p>Snap a photo, report the status. Our AI helps analyze pantry contents while your report helps neighbors know what's available right now.</p>
+                    <a href="#" class="btn btn-outline-primary" onclick="findNearestPantry()">Report Now</a>
+                </div>
+            </div>
+            
+            <div class="col-lg-4 col-md-6 mb-4">
+                <div class="feature-card">
+                    <div class="feature-icon connect">
+                        <i class="fas fa-share-alt"></i>
+                    </div>
+                    <h4 class="mb-3">Share & Connect</h4>
+                    <p>Spread awareness on Facebook, get email alerts when pantries need restocking, and help build a network of caring neighbors.</p>
+                    <button class="btn btn-outline-info" onclick="shareOnSocial()">Share Mission</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+
+<!-- Social Call-to-Action -->
+<section class="social-section">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8 text-center">
+                <h2 class="mb-4">Help Us Spread Visibility</h2>
+                <p class="lead mb-4">Share our mission with your community and help more people discover the pantries around them.</p>
+                
+                <div class="social-buttons">
+                    <button class="btn btn-facebook btn-social" onclick="shareOnFacebook()">
+                        <i class="fab fa-facebook-f"></i> Share on Facebook
+                    </button>
+                    <a href="/status" class="btn btn-warning btn-social">
+                        <i class="fas fa-map-marker-alt"></i> Start Exploring
+                    </a>
+                </div>
+                
+                <div class="mt-4">
+                    <p class="small">
+                        <i class="fas fa-info-circle"></i> 
+                        Report That Pantry is a student-run organization dedicated to fighting food insecurity through community connection.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<script>
+// Find nearest pantry functionality
+function findNearestPantry() {
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(function(position) {
+            // For now, redirect to status page
+            // In the future, could find actual nearest pantry
+            window.location.href = '/status';
+        }, function() {
+            // If geolocation fails, still go to status page
+            window.location.href = '/status';
+        });
+    } else {
+        window.location.href = '/status';
+    }
+}
+
+// Social sharing functionality
+function shareOnFacebook() {
+    const url = window.location.origin;
+    const title = encodeURIComponent('Report That Pantry - Making Community Pantries Visible');
+    const description = encodeURIComponent('Help us make every Little Free Pantry visible to those who need them and those who can help stock them!');
+    
+    const shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}&quote=${title}%20-%20${description}`;
+    
+    window.open(shareUrl, 'facebook-share-dialog', 'width=626,height=436');
+}
+
+function shareOnSocial() {
+    // Open a modal or dropdown with sharing options
+    if (navigator.share) {
+        navigator.share({
+            title: 'Report That Pantry',
+            text: 'Help us make community pantries visible to everyone!',
+            url: window.location.origin
+        });
+    } else {
+        shareOnFacebook();
+    }
+}
+
+// Add smooth scrolling for anchor links
+document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+    anchor.addEventListener('click', function (e) {
+        e.preventDefault();
+        document.querySelector(this.getAttribute('href')).scrollIntoView({
+            behavior: 'smooth'
+        });
+    });
+});
+
+// Animate numbers on scroll
+function animateNumbers() {
+    const statNumbers = document.querySelectorAll('.stat-number');
+    
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const target = entry.target;
+                const finalNumber = parseInt(target.textContent);
+                let currentNumber = 0;
+                const increment = finalNumber / 50;
+                
+                const updateNumber = () => {
+                    if (currentNumber < finalNumber) {
+                        currentNumber += increment;
+                        target.textContent = Math.floor(currentNumber);
+                        requestAnimationFrame(updateNumber);
+                    } else {
+                        target.textContent = finalNumber;
+                    }
+                };
+                
+                updateNumber();
+                observer.unobserve(target);
+            }
+        });
+    });
+    
+    statNumbers.forEach(number => observer.observe(number));
+}
+
+// Initialize animations when page loads
+document.addEventListener('DOMContentLoaded', animateNumbers);
+</script>
+
+{% endblock %}

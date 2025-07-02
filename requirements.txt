@@ -38,6 +38,7 @@ Mako==1.1.4
 MarkupSafe==1.1.1
 mccabe==0.6.1
 pillow==10.3.0
+pillow-heif==0.18.0
 proto-plus==1.24.0
 protobuf==4.25.4
 psycopg2==2.9.9

@@ -5,9 +5,8 @@ let filteredPantries = [];
 const foodPantries = [];
 const MAX_DISTANCE_MILES = 10;
 
-// Initialize filter states
+// Initialize filter states - simplified without status filters
 let currentFilters = {
-    status: 'all',
     distance: 10,
     sort: 'distance'
 };
@@ -15,10 +14,11 @@ let currentFilters = {
 // Make these available globally
 window.currentFilters = currentFilters;
 window.applyFilters = applyFilters;
+window.getUserLocation = getUserLocation;
+window.map = null; // Will be set in initMap
+window.updateMapView = updateMapView; // Will be set below
 
-async function initMap() {
-    const { AdvancedMarkerElement, PinElement } = await google.maps.importLibrary("marker");
-    const { Autocomplete } = await google.maps.importLibrary("places");
+function initMap() {
     const defaultMapCenter = { lat: 44.0521, lng: -123.0868 };
     
     map = new google.maps.Map(document.getElementById("map"), {
@@ -33,16 +33,22 @@ async function initMap() {
             }
         ]
     });
+    
+    // Make map available globally
+    window.map = map;
 
     const placesService = new google.maps.places.PlacesService(map);
+    
+    // Make placesService available globally
+    window.placesService = placesService;
 
-    setupAutocomplete(Autocomplete, placesService);
-    setupGeolocation(PinElement);
+    setupAutocomplete(placesService);
+    setupGeolocation();
     
     // Set up event listeners with a small delay to ensure DOM is ready
     setTimeout(setupEventListeners, 100);
     
-    loadPantryData(AdvancedMarkerElement, PinElement);
+    loadPantryData();
 }
 
 function setupEventListeners() {
@@ -57,51 +63,6 @@ function setupEventListeners() {
         console.log('Find near me button listener added');
     } else {
         console.error('Find near me button not found');
-    }
-
-    // Status filters
-    const statusFilters = document.querySelectorAll('.status-filter');
-    console.log('Found status filters:', statusFilters.length);
-    
-    statusFilters.forEach(filter => {
-        filter.addEventListener('click', (e) => {
-            console.log('Status filter clicked:', e.target.dataset.status);
-            // Remove active class from all filters
-            document.querySelectorAll('.status-filter').forEach(f => f.classList.remove('active'));
-            // Add active class to clicked filter
-            e.target.classList.add('active');
-            
-            currentFilters.status = e.target.dataset.status;
-            applyFilters();
-        });
-    });
-
-    // Distance slider
-    const distanceSlider = document.getElementById('distance-slider');
-    const distanceValue = document.getElementById('distance-value');
-    
-    if (distanceSlider && distanceValue) {
-        console.log('Distance slider found');
-        
-        // Update slider background on input
-        function updateSliderBackground() {
-            const value = (distanceSlider.value - distanceSlider.min) / (distanceSlider.max - distanceSlider.min) * 100;
-            distanceSlider.style.background = `linear-gradient(to right, #667eea 0%, #667eea ${value}%, #e9ecef ${value}%, #e9ecef 100%)`;
-        }
-        
-        // Initialize slider background
-        updateSliderBackground();
-        
-        distanceSlider.addEventListener('input', (e) => {
-            console.log('Distance slider changed:', e.target.value);
-            const distance = e.target.value;
-            distanceValue.textContent = distance;
-            currentFilters.distance = parseInt(distance);
-            updateSliderBackground();
-            applyFilters();
-        });
-    } else {
-        console.error('Distance slider or distance value element not found');
     }
 
     // Sort dropdown
@@ -119,15 +80,8 @@ function setupEventListeners() {
 }
 
 function applyFilters() {
-    // Filter pantries based on current filters
+    // Filter pantries based on current filters - simplified without status filtering
     filteredPantries = foodPantries.filter(pantry => {
-        // Status filter
-        if (currentFilters.status !== 'all') {
-            if (pantry.status !== currentFilters.status) {
-                return false;
-            }
-        }
-
         // Distance filter (if user location is available)
         if (userLocation) {
             const distance = calculateDistance(
@@ -179,49 +133,64 @@ function sortPantries() {
 }
 
 function updateResultsCount() {
-    document.getElementById('pantry-count').textContent = filteredPantries.length;
+    const desktopCount = document.getElementById('pantry-count');
+    const mobileCount = document.getElementById('mobile-pantry-count');
+    
+    if (desktopCount) {
+        desktopCount.textContent = filteredPantries.length;
+    }
+    
+    if (mobileCount) {
+        mobileCount.textContent = filteredPantries.length;
+    }
 }
 
 function updatePantryList() {
     const pantryList = document.getElementById('pantry-list');
+    const mobilePantryList = document.getElementById('mobile-pantry-list-content');
     
-    if (filteredPantries.length === 0) {
-        pantryList.innerHTML = `
-            <div class="empty-state">
-                <i class="fas fa-search"></i>
-                <h4>No pantries found</h4>
-                <p>Try adjusting your search criteria or expanding your search radius.</p>
-            </div>
-        `;
-        return;
-    }
-
-    pantryList.innerHTML = filteredPantries.map(pantry => {
+    const pantryHTML = filteredPantries.length === 0 ? `
+        <div class="empty-state">
+            <i class="fas fa-search"></i>
+            <h4>No pantries found</h4>
+            <p>Try adjusting your search criteria or expanding your search radius.</p>
+        </div>
+    ` : filteredPantries.map(pantry => {
         const statusClass = getStatusClass(pantry.status);
         const statusText = getStatusText(pantry.status);
-        const distance = userLocation ? 
-            calculateDistance(userLocation.lat, userLocation.lng, pantry.latitude, pantry.longitude) : null;
+        const distance = userLocation ? calculateDistance(userLocation.lat, userLocation.lng, pantry.latitude, pantry.longitude) : null;
+        const distanceText = distance ? `${distance.toFixed(1)} miles` : '';
         
         return `
             <li class="pantry-card" onclick="focusOnPantry(${pantry.latitude}, ${pantry.longitude}, '${pantry.name}')">
                 <div class="pantry-header">
-                    <h4 class="pantry-name">${pantry.name}</h4>
+                    <h3 class="pantry-name">${pantry.name}</h3>
                     <span class="pantry-status ${statusClass}">${statusText}</span>
                 </div>
                 <div class="pantry-address">
                     <i class="fas fa-map-marker-alt"></i>
-                    ${pantry.address}
+                    ${pantry.address || 'Address not available'}
                 </div>
                 <div class="pantry-meta">
-                    ${distance ? `<span class="pantry-distance">${distance.toFixed(1)} miles away</span>` : ''}
+                    <span class="pantry-distance">${distanceText}</span>
                     <span class="pantry-updated">
                         <i class="fas fa-clock"></i>
-                        ${pantry.lastUpdated ? formatTimeAgo(pantry.lastUpdated) : 'No recent reports'}
+                        ${formatTimeAgo(pantry.lastUpdated)}
                     </span>
                 </div>
             </li>
         `;
     }).join('');
+    
+    // Update desktop list
+    if (pantryList) {
+        pantryList.innerHTML = pantryHTML;
+    }
+    
+    // Update mobile list
+    if (mobilePantryList) {
+        mobilePantryList.innerHTML = pantryHTML;
+    }
 }
 
 function getStatusClass(status) {
@@ -243,30 +212,28 @@ function getStatusText(status) {
 }
 
 function formatTimeAgo(date) {
+    if (!date) return 'Unknown';
+    
     const now = new Date();
-    const reportDate = new Date(date);
-    const diffInHours = Math.floor((now - reportDate) / (1000 * 60 * 60));
+    const updated = new Date(date);
+    const diffMs = now - updated;
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
     
-    if (diffInHours < 1) return 'Just now';
-    if (diffInHours < 24) return `${diffInHours}h ago`;
-    
-    const diffInDays = Math.floor(diffInHours / 24);
-    if (diffInDays < 7) return `${diffInDays}d ago`;
-    
-    const diffInWeeks = Math.floor(diffInDays / 7);
-    if (diffInWeeks < 4) return `${diffInWeeks}w ago`;
-    
-    const diffInMonths = Math.floor(diffInDays / 30);
-    return `${diffInMonths}mo ago`;
+    if (diffDays === 0) return 'Today';
+    if (diffDays === 1) return 'Yesterday';
+    if (diffDays < 7) return `${diffDays} days ago`;
+    if (diffDays < 30) return `${Math.floor(diffDays / 7)} weeks ago`;
+    return `${Math.floor(diffDays / 30)} months ago`;
 }
 
 function focusOnPantry(lat, lng, name) {
-    map.setCenter({ lat: parseFloat(lat), lng: parseFloat(lng) });
+    const position = { lat: parseFloat(lat), lng: parseFloat(lng) };
+    map.setCenter(position);
     map.setZoom(15);
     
-    // Find and trigger click on the marker
+    // Find and open the info window for this pantry
     const marker = markers.find(m => 
-        m.position.lat === parseFloat(lat) && m.position.lng === parseFloat(lng)
+        m.position.lat === position.lat && m.position.lng === position.lng
     );
     if (marker && marker.infoWindow) {
         marker.infoWindow.open(map, marker);
@@ -275,61 +242,47 @@ function focusOnPantry(lat, lng, name) {
 
 function updateMapMarkers() {
     // Clear existing markers
-    markers.forEach(marker => marker.setMap(null));
+    markers.forEach(marker => {
+        if (marker.infoWindow) {
+            marker.infoWindow.close();
+        }
+        marker.setMap(null);
+    });
     markers = [];
 
-    // Add markers for filtered pantries
+    // Add new markers for filtered pantries
     filteredPantries.forEach(pantry => {
-        const statusColor = getMarkerColor(pantry.status);
-        const pin = new google.maps.marker.PinElement({
-            background: statusColor,
-            borderColor: statusColor,
-            glyph: getStatusIcon(pantry.status),
-            scale: 1.2
-        });
-
-        const marker = new google.maps.marker.AdvancedMarkerElement({
+        const position = { lat: pantry.latitude, lng: pantry.longitude };
+        const markerColor = getMarkerColor(pantry.status);
+        
+        const marker = new google.maps.Marker({
+            position: position,
             map: map,
-            position: { lat: pantry.latitude, lng: pantry.longitude },
             title: pantry.name,
-            content: pin.element,
+            icon: {
+                url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
+                    <svg width="40" height="40" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="20" cy="20" r="18" fill="${markerColor}" stroke="white" stroke-width="2"/>
+                        <text x="20" y="25" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="16" font-weight="bold">🏪</text>
+                    </svg>
+                `)}`,
+                scaledSize: new google.maps.Size(40, 40),
+                anchor: new google.maps.Point(20, 20)
+            }
         });
 
-        // Create info window
         const infoWindow = new google.maps.InfoWindow({
             content: createInfoWindowContent(pantry)
         });
 
         marker.addListener('click', () => {
-            // Close all other info windows
-            markers.forEach(m => {
-                if (m.infoWindow) m.infoWindow.close();
-            });
             infoWindow.open(map, marker);
         });
 
         marker.infoWindow = infoWindow;
         markers.push(marker);
     });
-
-    // Adjust map bounds to show all markers
-    if (markers.length > 0) {
-        const bounds = new google.maps.LatLngBounds();
-        markers.forEach(marker => bounds.extend(marker.position));
-        
-        if (userLocation) {
-            bounds.extend(userLocation);
-        }
-        
-        map.fitBounds(bounds);
-        
-        // Don't zoom in too much for single markers
-        if (markers.length === 1 && !userLocation) {
-            map.setZoom(14);
-        }
-    }
 }
-
 
 function getMarkerColor(status) {
     switch (status) {
@@ -340,60 +293,43 @@ function getMarkerColor(status) {
     }
 }
 
-function getStatusIcon(status) {
-    switch (status) {
-        case 'full': return '✓';
-        case 'low': return '!';
-        case 'empty': return '✗';
-        default: return '?';
-    }
-}
+
 
 function createInfoWindowContent(pantry) {
     const statusClass = getStatusClass(pantry.status);
     const statusText = getStatusText(pantry.status);
-    const distance = userLocation ? 
-        calculateDistance(userLocation.lat, userLocation.lng, pantry.latitude, pantry.longitude) : null;
-
+    const distance = userLocation ? calculateDistance(userLocation.lat, userLocation.lng, pantry.latitude, pantry.longitude) : null;
+    const distanceText = distance ? `${distance.toFixed(1)} miles away` : '';
+    
     return `
-        <div style="max-width: 300px; font-family: 'Inter', sans-serif;">
-            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
-                <h4 style="margin: 0; color: #2c3e50; font-size: 1.1rem; font-weight: 700;">${pantry.name}</h4>
-                <span class="pantry-status ${statusClass}" style="margin-left: 10px;">${statusText}</span>
-            </div>
-            
-            <div style="color: #6c757d; margin-bottom: 10px; display: flex; align-items: center;">
-                <i class="fas fa-map-marker-alt" style="margin-right: 8px; color: #667eea;"></i>
-                ${pantry.address}
-            </div>
-            
-            ${pantry.description ? `<p style="color: #495057; margin-bottom: 12px; font-size: 0.9rem;">${pantry.description}</p>` : ''}
-            
-            <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; color: #6c757d; margin-bottom: 15px;">
-                ${distance ? `<span style="font-weight: 600;">${distance.toFixed(1)} miles away</span>` : ''}
-                <span>${pantry.lastUpdated ? formatTimeAgo(pantry.lastUpdated) : 'No recent reports'}</span>
-            </div>
-            
-            <div style="display: flex; gap: 10px;">
-                <a href="/location/${pantry.id}" class="btn btn-primary btn-sm" style="flex: 1; text-decoration: none; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; padding: 8px 16px; border-radius: 8px; color: white; text-align: center; font-weight: 600;">
-                    View Details
-                </a>
-                ${distance ? `
-                    <a href="https://www.google.com/maps/dir/?api=1&destination=${pantry.latitude},${pantry.longitude}" 
-                       target="_blank" class="btn btn-outline-primary btn-sm" 
-                       style="padding: 8px 16px; border-radius: 8px; text-decoration: none; border: 2px solid #667eea; color: #667eea; font-weight: 600;">
-                        Directions
-                    </a>
-                ` : ''}
+        <div style="padding: 10px; max-width: 250px;">
+            <h4 style="margin: 0 0 10px 0; color: #2c3e50;">${pantry.name}</h4>
+            <p style="margin: 5px 0; color: #6c757d; font-size: 14px;">
+                <i class="fas fa-map-marker-alt" style="color: #667eea;"></i>
+                ${pantry.address || 'Address not available'}
+            </p>
+            <p style="margin: 5px 0; color: #6c757d; font-size: 14px;">
+                <i class="fas fa-clock" style="color: #667eea;"></i>
+                Updated ${formatTimeAgo(pantry.lastUpdated)}
+            </p>
+            ${distanceText ? `<p style="margin: 5px 0; color: #495057; font-size: 14px; font-weight: 600;">
+                <i class="fas fa-location-arrow" style="color: #667eea;"></i>
+                ${distanceText}
+            </p>` : ''}
+            <div style="margin-top: 10px;">
+                <span class="pantry-status ${statusClass}" style="padding: 4px 8px; border-radius: 12px; font-size: 12px; font-weight: 600;">
+                    ${statusText}
+                </span>
             </div>
         </div>
     `;
 }
 
-
-function setupAutocomplete(Autocomplete, placesService) {
+function setupAutocomplete(placesService) {
     const input = document.getElementById("pac-input");
-    const autocomplete = new Autocomplete(input, {});
+    
+    // Create autocomplete using the traditional approach
+    const autocomplete = new google.maps.places.Autocomplete(input, {});
 
     autocomplete.addListener("place_changed", () => {
         const place = autocomplete.getPlace();
@@ -429,7 +365,7 @@ function updateMapView(geometry) {
     }
 }
 
-function setupGeolocation(PinElement) {
+function setupGeolocation() {
     getUserLocation(true, false);
 }
 
@@ -456,6 +392,8 @@ async function getUserLocation(centerMap = true, popup = false) {
             }
             addUserMarker(userLocation);
             
+
+            
             // Update filters to use the new location for distance calculations
             if (foodPantries.length > 0) {
                 applyFilters();
@@ -481,34 +419,77 @@ async function getUserLocation(centerMap = true, popup = false) {
 // };
 
 function addUserMarker(location) {
-    const icon = document.createElement("div");
-    icon.innerHTML = '<i class="fa fa-user fa-lg"></i>';
-    const faPin = new google.maps.marker.PinElement({
-        glyph: icon,
-        background: "#4285F4",
-        borderColor: "#4285F4",
-    });
-
-    new google.maps.marker.AdvancedMarkerElement({
+    // Create a custom user marker with pulsing animation
+    const userMarker = new google.maps.Marker({
         map: map,
         position: location,
         title: "Your Location",
-        content: faPin.element,
+        icon: {
+            url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
+                <svg width="50" height="50" viewBox="0 0 50 50" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                        <filter id="glow">
+                            <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+                            <feMerge> 
+                                <feMergeNode in="coloredBlur"/>
+                                <feMergeNode in="SourceGraphic"/>
+                            </feMerge>
+                        </filter>
+                    </defs>
+                    <circle cx="25" cy="25" r="22" fill="#4285F4" stroke="white" stroke-width="3" filter="url(#glow)"/>
+                    <text x="25" y="32" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="20" font-weight="bold">👤</text>
+                </svg>
+            `)}`,
+            scaledSize: new google.maps.Size(50, 50),
+            anchor: new google.maps.Point(25, 25)
+        }
     });
 
+    // Add a pulsing circle around the user marker
+    const pulseCircle = new google.maps.Circle({
+        strokeColor: '#4285F4',
+        strokeOpacity: 0.8,
+        strokeWeight: 3,
+        fillColor: '#4285F4',
+        fillOpacity: 0.2,
+        map,
+        center: location,
+        radius: 100, // Small radius for pulsing effect
+    });
+
+    // Add a circle to show the 10-mile radius
     new google.maps.Circle({
-        strokeColor: '#0000FF',
-        strokeOpacity: 0.2,
+        strokeColor: '#4285F4',
+        strokeOpacity: 0.3,
         strokeWeight: 2,
-        fillColor: '#0000FF',
+        fillColor: '#4285F4',
         fillOpacity: 0.1,
         map,
         center: location,
-        radius: 100, // Assuming a fixed accuracy radius for simplicity
+        radius: 16093.4, // 10 miles in meters
     });
+
+    // Create pulsing animation for the user marker
+    let pulseRadius = 100;
+    let growing = true;
+    
+    setInterval(() => {
+        if (growing) {
+            pulseRadius += 20;
+            if (pulseRadius >= 200) growing = false;
+        } else {
+            pulseRadius -= 20;
+            if (pulseRadius <= 100) growing = true;
+        }
+        
+        pulseCircle.setRadius(pulseRadius);
+        pulseCircle.setOptions({
+            fillOpacity: Math.max(0.1, 0.3 - (pulseRadius - 100) / 1000)
+        });
+    }, 100);
 }
 
-function loadPantryData(AdvancedMarkerElement, PinElement) {
+function loadPantryData() {
     foodPantries.length = 0; // Clear previous pantries
     fetch('/get_pantry_data')
         .then(response => response.json())

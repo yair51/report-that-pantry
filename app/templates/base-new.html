@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>{% block title %}{{title}}{% endblock %}</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="icon" href="data:;base64,iVBORw0KGgo=">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    {% block style %}{% endblock %}
+    
+    <!-- New Modern Navbar & Footer Design -->
+    <style>
+        :root {
+            --primary-color: #667eea;
+            --secondary-color: #764ba2;
+            --accent-color: #f093fb;
+            --success-color: #4facfe;
+            --warning-color: #43e97b;
+            --danger-color: #fa709a;
+            --dark-color: #2d3748;
+            --light-color: #f7fafc;
+            --gray-100: #f7fafc;
+            --gray-200: #edf2f7;
+            --gray-300: #e2e8f0;
+            --gray-400: #cbd5e0;
+            --gray-500: #a0aec0;
+            --gray-600: #718096;
+            --gray-700: #4a5568;
+            --gray-800: #2d3748;
+            --gray-900: #1a202c;
+            --border-radius: 12px;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            line-height: 1.6;
+            color: var(--gray-800);
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+        }
+
+        /* New Navbar Design */
+        .navbar-new {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+            padding: 1rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 1050;
+            transition: all 0.3s ease;
+        }
+
+        .navbar-new.scrolled {
+            background: rgba(255, 255, 255, 0.98);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .navbar-brand-new {
+            font-family: 'Poppins', sans-serif;
+            font-weight: 700;
+            font-size: 1.5rem;
+            color: var(--primary-color) !important;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            transition: all 0.3s ease;
+        }
+
+        .navbar-brand-new:hover {
+            color: var(--secondary-color) !important;
+            transform: translateY(-1px);
+            text-decoration: none;
+        }
+
+        .navbar-brand-new img {
+            width: 45px;
+            height: 45px;
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            transition: all 0.3s ease;
+        }
+
+        .navbar-brand-new:hover img {
+            transform: scale(1.05) rotate(5deg);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .nav-menu {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin: 0;
+            padding: 0;
+            list-style: none;
+        }
+
+        .nav-item-new {
+            position: relative;
+        }
+
+        .nav-link-new {
+            color: var(--gray-700) !important;
+            font-weight: 500;
+            padding: 0.75rem 1.25rem !important;
+            border-radius: var(--border-radius);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .nav-link-new::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: -1;
+        }
+
+        .nav-link-new:hover::before,
+        .nav-item-new.active .nav-link-new::before {
+            opacity: 1;
+        }
+
+        .nav-link-new:hover,
+        .nav-item-new.active .nav-link-new {
+            color: white !important;
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+        }
+
+        .nav-link-new i {
+            font-size: 1.1rem;
+            transition: transform 0.3s ease;
+        }
+
+        .nav-link-new:hover i {
+            transform: scale(1.1);
+        }
+
+        /* Mobile Menu Button */
+        .mobile-menu-btn {
+            display: none;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            border: none;
+            border-radius: var(--border-radius);
+            padding: 0.75rem;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .mobile-menu-btn:hover {
+            transform: scale(1.05);
+            box-shadow: var(--shadow);
+        }
+
+        .mobile-menu-btn:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.3);
+        }
+
+        /* New Footer Design */
+        .footer-new {
+            background: linear-gradient(135deg, var(--gray-900) 0%, var(--gray-800) 100%);
+            color: white;
+            padding: 4rem 0 2rem;
+            margin-top: auto;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .footer-new::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--primary-color), transparent);
+        }
+
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 3rem;
+            margin-bottom: 3rem;
+        }
+
+        .footer-section {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .footer-section h4 {
+            font-family: 'Poppins', sans-serif;
+            font-weight: 600;
+            font-size: 1.25rem;
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+            position: relative;
+        }
+
+        .footer-section h4::after {
+            content: '';
+            position: absolute;
+            bottom: -0.5rem;
+            left: 0;
+            width: 3rem;
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+            border-radius: 2px;
+        }
+
+        .footer-section p,
+        .footer-section a {
+            color: var(--gray-300);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            line-height: 1.6;
+        }
+
+        .footer-section a:hover {
+            color: var(--primary-color);
+            transform: translateX(5px);
+        }
+
+        .footer-links {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .footer-links li a {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 0;
+            border-radius: var(--border-radius);
+            transition: all 0.3s ease;
+        }
+
+        .footer-links li a:hover {
+            background: rgba(102, 126, 234, 0.1);
+            padding-left: 0.75rem;
+        }
+
+        .social-links {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .social-link {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 45px;
+            height: 45px;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border-radius: var(--border-radius);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            font-size: 1.2rem;
+        }
+
+        .social-link:hover {
+            transform: translateY(-3px) scale(1.1);
+            box-shadow: var(--shadow-lg);
+            color: white;
+            text-decoration: none;
+        }
+
+        .footer-bottom {
+            border-top: 1px solid var(--gray-700);
+            padding-top: 2rem;
+            text-align: center;
+            color: var(--gray-400);
+        }
+
+        .footer-bottom p {
+            margin: 0;
+            font-size: 0.9rem;
+        }
+
+        /* Mobile Responsiveness */
+        @media (max-width: 768px) {
+            .mobile-menu-btn {
+                display: block;
+            }
+
+            .nav-menu {
+                display: none;
+                position: absolute;
+                top: 100%;
+                left: 0;
+                right: 0;
+                background: rgba(255, 255, 255, 0.98);
+                backdrop-filter: blur(20px);
+                border-radius: 0 0 var(--border-radius) var(--border-radius);
+                box-shadow: var(--shadow-lg);
+                padding: 1rem;
+                flex-direction: column;
+                gap: 0.5rem;
+                border: 1px solid rgba(0, 0, 0, 0.1);
+                border-top: none;
+            }
+
+            .nav-menu.show {
+                display: flex;
+            }
+
+            .nav-link-new {
+                width: 100%;
+                justify-content: center;
+                padding: 1rem !important;
+            }
+
+            .footer-content {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+            }
+
+            .social-links {
+                justify-content: center;
+            }
+        }
+
+        /* Content Area */
+        .content-area-new {
+            min-height: calc(100vh - 200px);
+        }
+
+        /* Alert Styling */
+        .alert-new {
+            border: none;
+            border-radius: var(--border-radius);
+            padding: 1rem 1.5rem;
+            margin: 1rem 0;
+            font-weight: 500;
+            box-shadow: var(--shadow);
+        }
+
+        .alert-success {
+            background: linear-gradient(135deg, var(--warning-color), #38a169);
+            color: white;
+        }
+
+        .alert-danger {
+            background: linear-gradient(135deg, var(--danger-color), #e53e3e);
+            color: white;
+        }
+    </style>
+    
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-DQN0CT53NR"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-DQN0CT53NR');
+    </script>
+</head>
+<body>
+    <!-- New Navbar -->
+    <nav class="navbar-new">
+        <div class="container">
+            <div class="d-flex justify-content-between align-items-center">
+                <a class="navbar-brand-new" href="/">
+                    <img src="{{ url_for('static', filename='rtp_logo.png') }}" alt="Report That Pantry Logo">
+                    <span>Report That Pantry</span>
+                </a>
+                
+                <button class="mobile-menu-btn" onclick="toggleMobileMenu()">
+                    <i class="fas fa-bars"></i>
+                </button>
+                
+                <ul class="nav-menu" id="navMenu">
+                    <li class="nav-item-new {% if title == 'Home' %}active{% endif %}">
+                        <a class="nav-link-new" href="/">
+                            <i class="fas fa-home"></i>
+                            <span>Home</span>
+                        </a>
+                    </li>
+                    <li class="nav-item-new {% if title == 'Dashboard' %}active{% endif %}">
+                        <a class="nav-link-new" href="/status">
+                            <i class="fas fa-chart-line"></i>
+                            <span>Dashboard</span>
+                        </a>
+                    </li>
+                    <li class="nav-item-new {% if title == 'Map' %}active{% endif %}">
+                        <a class="nav-link-new" href="/map">
+                            <i class="fas fa-map-marked-alt"></i>
+                            <span>Map</span>
+                        </a>
+                    </li>
+                    <li class="nav-item-new {% if title == 'Submit Location' %}active{% endif %}">
+                        <a class="nav-link-new" href="/location/submit">
+                            <i class="fas fa-plus-circle"></i>
+                            <span>Add Location</span>
+                        </a>
+                    </li>
+                    {% if user and user.is_authenticated %}
+                        <li class="nav-item-new {% if title == 'Manage Profile' %}active{% endif %}">
+                            <a class="nav-link-new" href="/profile">
+                                <i class="fas fa-user"></i>
+                                <span>Profile</span>
+                            </a>
+                        </li>
+                        <li class="nav-item-new">
+                            <a class="nav-link-new" href="/logout">
+                                <i class="fas fa-sign-out-alt"></i>
+                                <span>Logout</span>
+                            </a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="container">
+                {% for category, message in messages %}
+                    {% if category == 'error' %}
+                        <div class="alert-new alert-danger">
+                            <i class="fas fa-exclamation-triangle mr-2"></i>
+                            {{ message }}
+                            <button type="button" class="close ml-auto" onclick="this.parentElement.remove()">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                    {% else %}
+                        <div class="alert-new alert-success">
+                            <i class="fas fa-check-circle mr-2"></i>
+                            {{ message }}
+                            <button type="button" class="close ml-auto" onclick="this.parentElement.remove()">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    <!-- Content Area -->
+    <div class="content-area-new">
+        {% block content %}{% endblock %}
+    </div>
+
+    <!-- New Footer -->
+    <footer class="footer-new">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h4>About Us</h4>
+                    <p>Report That Pantry helps communities track and maintain Little Free Pantries, ensuring they remain stocked and accessible to those in need.</p>
+                    <div class="social-links">
+                        <a href="https://www.facebook.com/reportthatpantry" target="_blank" class="social-link">
+                            <i class="fab fa-facebook-f"></i>
+                        </a>
+                        <a href="mailto:info@reportthatpantry.org" class="social-link">
+                            <i class="fas fa-envelope"></i>
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="footer-section">
+                    <h4>Quick Links</h4>
+                    <ul class="footer-links">
+                        <li><a href="/"><i class="fas fa-home"></i>Home</a></li>
+                        <li><a href="/status"><i class="fas fa-chart-line"></i>Dashboard</a></li>
+                        <li><a href="/map"><i class="fas fa-map-marked-alt"></i>Map View</a></li>
+                        <li><a href="/location/submit"><i class="fas fa-plus-circle"></i>Add Location</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-section">
+                    <h4>Resources</h4>
+                    <ul class="footer-links">
+                        <li><a href="/how-it-works"><i class="fas fa-question-circle"></i>How It Works</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-section">
+                    <h4>Contact</h4>
+                    <p><i class="fas fa-envelope mr-2"></i>info@reportthatpantry.org</p>
+                </div>
+            </div>
+            
+            <div class="footer-bottom">
+                <p>&copy; 2024 Report That Pantry. All rights reserved. | Made with ❤️ for communities in need</p>
+            </div>
+        </div>
+    </footer>
+  
+    <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.4.1/dist/js/bootstrap.min.js"></script>
+    <script src="https://unpkg.com/bootstrap-table@1.18.3/dist/bootstrap-table.min.js"></script>
+    <script src="https://unpkg.com/bootstrap-table@1.18.3/dist/extensions/filter-control/bootstrap-table-filter-control.min.js"></script>
+    <script src="{{ url_for('static', filename='index.js') }}"></script>
+    
+    <script>
+        // Navbar scroll effect
+        window.addEventListener('scroll', function() {
+            const navbar = document.querySelector('.navbar-new');
+            if (window.scrollY > 50) {
+                navbar.classList.add('scrolled');
+            } else {
+                navbar.classList.remove('scrolled');
+            }
+        });
+
+        // Mobile menu toggle
+        function toggleMobileMenu() {
+            const navMenu = document.getElementById('navMenu');
+            navMenu.classList.toggle('show');
+        }
+
+        // Close mobile menu when clicking outside
+        document.addEventListener('click', function(event) {
+            const navMenu = document.getElementById('navMenu');
+            const mobileBtn = document.querySelector('.mobile-menu-btn');
+            
+            if (!navMenu.contains(event.target) && !mobileBtn.contains(event.target)) {
+                navMenu.classList.remove('show');
+            }
+        });
+    </script>
+    
+    {% block script %}{% endblock %}
+</body>
+</html> 

@@ -3,7 +3,7 @@ from flask_login import login_required, current_user
 from sqlalchemy.sql.expression import true
 from sqlalchemy.orm import joinedload
 from .models import Location, Report, Notification, User
-from app.helpers import send_email, allowed_file, upload_photo_to_s3, delete_photo_from_s3, generate_qr_poster_pdf
+from app.helpers import send_email, allowed_file, upload_photo_to_s3, delete_photo_from_s3, generate_qr_poster_pdf, get_state_full_name, convert_heic_to_jpeg, is_heic_file
 from . import db, Message, mail
 import json
 from datetime import datetime, timezone, timedelta
@@ -447,29 +447,50 @@ def generate_pantry_insights(analytics, reports):
 
 # Takes a report and location as arguments and sends notification emails for that location
 def send_notification_emails(location, report, image_data=None):
-    recipients = [n.user.email for n in location.notifications] 
-    if recipients:
+    notifications = location.notifications
+    if notifications:
         subject = f"{location.name} is Empty!"
         location_url = url_for('views.location', location_id=location.id, _external=True)
         
-        html = f"""
-        <h3>🚨 {location.name} Needs Restocking!</h3>
-        
-        <p>The Little Free Pantry located at <strong>{location.address}, {location.city}, {location.state}</strong> is currently running low on supplies.</p>
-        
-        <p><strong>Can you help restock it?</strong></p>
-        
-        {f'<p><strong>Recent Update:</strong> {report.description}</p>' if report.description else ''}
-        
-        {f'<p>📸 A new photo has been uploaded - check it out on the website!</p>' if report.photo else ''}
-        
-        <p><a href="{location_url}" style="background-color: #4a90e2; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block;">View Pantry Details</a></p>
-        
-        <p>Thank you for being part of our community!</p>
-        <p><strong>Report That Pantry Team</strong></p>
-        """
-        
-        send_email(recipients, subject, html)
+        # Send individual emails to each subscriber with their unique unsubscribe link
+        for notification in notifications:
+            if notification.user and notification.user.email:
+                # Generate token if it doesn't exist (for existing subscriptions)
+                if not notification.unsubscribe_token:
+                    import secrets
+                    notification.unsubscribe_token = secrets.token_urlsafe(32)
+                    notification.created_at = datetime.now(timezone.utc)
+                    db.session.commit()
+                
+                unsubscribe_url = url_for('views.unsubscribe_from_email', token=notification.unsubscribe_token, _external=True)
+                
+                html = f"""
+                <h3>🚨 {location.name} Needs Restocking!</h3>
+                
+                <p>The Little Free Pantry located at <strong>{location.address}, {location.city}, {location.state}</strong> is currently running low on supplies.</p>
+                
+                <p><strong>Can you help restock it?</strong></p>
+                
+                {f'<p><strong>Recent Update:</strong> {report.description}</p>' if report.description else ''}
+                
+                {f'<p>📸 A new photo has been uploaded - check it out on the website!</p>' if report.photo else ''}
+                
+                <p><a href="{location_url}" style="background-color: #4a90e2; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block;">View Pantry Details</a></p>
+                
+                <hr style="margin: 30px 0; border: none; border-top: 1px solid #eee;">
+                
+                <div style="background-color: #f8f9fa; padding: 15px; border-radius: 5px; margin-top: 20px;">
+                    <p style="font-size: 12px; color: #666; margin: 0 0 10px 0;">
+                        You're receiving this email because you're subscribed to updates for this pantry.
+                    </p>
+                    <a href="{unsubscribe_url}" style="background-color: #dc3545; color: white; padding: 8px 16px; text-decoration: none; border-radius: 4px; font-size: 12px; display: inline-block;">Unsubscribe from this pantry</a>
+                </div>
+                
+                <p>Thank you for being part of our community!</p>
+                <p><strong>Report That Pantry Team</strong></p>
+                """
+                
+                send_email([notification.user.email], subject, html)
 
 
 # List of US states and abbreviations
@@ -530,10 +551,41 @@ us_states = {
 @views.route('/', methods=['GET', 'POST'])
 @views.route('/index')
 def home(id=0):
-    # # queries all of the locations
-    locations = Location.query.all()
+    """New improved homepage with focus on pantry visibility"""
+    # Get some basic stats for the homepage
+    total_pantries = Location.query.count()
+    total_reports = Report.query.count()
+    
+    # Count unique states
+    states = db.session.query(Location.state).distinct().count()
+    
+    # Count empty alerts (reports with fullness <= 33%)
+    empty_alerts = Report.query.filter(Report.pantry_fullness <= 33).count()
+    
+    stats = {
+        'total_pantries': total_pantries,
+        'total_reports': total_reports,
+        'states_covered': states,
+        'empty_alerts': empty_alerts
+    }
+    
+    return render_template("index-new.html", 
+                         user=current_user, 
+                         title="Home", 
+                         stats=stats)
 
-    return render_template("index.html", user=current_user, title="Home")
+
+@views.route('/home')
+def home_redirect():
+    """Redirect to main home page for compatibility"""
+    return redirect(url_for('views.home'))
+
+
+@views.route('/home-old')
+def home_old():
+    """Original homepage kept as backup"""
+    locations = Location.query.all()
+    return render_template("index.html", user=current_user, title="Home - Original")
 
 
 @views.route('/location/<int:location_id>')
@@ -770,19 +822,32 @@ def report(id):
         suggested_fullness = None
         
         if photo:
-            # Reset file pointer
-            photo.seek(0)
+            # Handle HEIC conversion for vision analysis if needed
+            if is_heic_file(photo.filename):
+                print(f"Converting HEIC file for analysis: {photo.filename}")
+                converted_data = convert_heic_to_jpeg(photo)
+                if converted_data is not None:
+                    # Use converted data for Vision API analysis
+                    photo_content = converted_data.read()
+                    # Reset file pointer for S3 upload (original photo will be converted in upload_photo_to_s3)
+                    photo.seek(0)
+                else:
+                    print("Failed to convert HEIC for vision analysis, skipping AI analysis")
+                    photo_content = None
+            else:
+                # Reset file pointer
+                photo.seek(0)
+                # Read photo content for Vision API analysis
+                photo_content = photo.read()
+                photo.seek(0)  # Reset again for S3 upload
             
-            # Read photo content for Vision API analysis
-            photo_content = photo.read()
-            photo.seek(0)  # Reset again for S3 upload
-            
-            # Perform Vision API analysis
-            vision_analysis = analyze_pantry_image(photo_content)
-            
-            # Get AI-suggested fullness if analysis was successful
-            if vision_analysis and "fullness_estimate" in vision_analysis:
-                suggested_fullness = vision_analysis["fullness_estimate"]
+            # Perform Vision API analysis if we have photo content
+            if photo_content:
+                vision_analysis = analyze_pantry_image(photo_content)
+                
+                # Get AI-suggested fullness if analysis was successful
+                if vision_analysis and "fullness_estimate" in vision_analysis:
+                    suggested_fullness = vision_analysis["fullness_estimate"]
         
         # Create Report object
         new_report = Report(
@@ -813,29 +878,7 @@ def report(id):
 
         # Send email notification if the pantry is empty
         if new_report.pantry_fullness <= 33:  # Check for empty status
-            recipients = [n.user.email for n in location.notifications] 
-            if recipients:
-                subject = f"{location.name} is Empty!"
-                location_url = url_for('views.location', location_id=location.id, _external=True)
-                
-                html = f"""
-                <h3>🚨 {location.name} Needs Restocking!</h3>
-                
-                <p>The Little Free Pantry located at <strong>{location.address}, {location.city}, {location.state}</strong> is currently running low on supplies.</p>
-                
-                <p><strong>Can you help restock it?</strong></p>
-                
-                {f'<p><strong>Recent Update:</strong> {new_report.description}</p>' if new_report.description else ''}
-                
-                {f'<p>📸 A new photo has been uploaded - check it out on the website!</p>' if new_report.photo else ''}
-                
-                <p><a href="{location_url}" style="background-color: #4a90e2; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block;">View Pantry Details</a></p>
-                
-                <p>Thank you for being part of our community!</p>
-                <p><strong>Report That Pantry Team</strong></p>
-                """
-                
-                send_email(recipients, subject, html)
+            send_notification_emails(location, new_report)
 
         # Return JSON response for AJAX (modern interface)
         return jsonify({
@@ -886,7 +929,7 @@ def status():
     
     return render_template("status.html", 
                          user=current_user, 
-                         title="Analytics Dashboard", 
+                         title="Dashboard", 
                          locations=locations, 
                          subscribed_locations=subscribed_locations,
                          nationwide_analytics=nationwide_analytics,
@@ -956,7 +999,14 @@ def subscribe():
             return jsonify({'status': 'unsubscribed', 'message': 'Unsubscribed successfully'})
         else:
             # Subscribe
-            new_subscription = Notification(user_id=current_user.id, location_id=location_id)
+            import secrets
+            unsubscribe_token = secrets.token_urlsafe(32)
+            new_subscription = Notification(
+                user_id=current_user.id, 
+                location_id=location_id,
+                unsubscribe_token=unsubscribe_token,
+                created_at=datetime.now(timezone.utc)
+            )
             db.session.add(new_subscription)
             db.session.commit()
             return jsonify({'status': 'subscribed', 'message': 'Subscribed successfully'})
@@ -964,39 +1014,91 @@ def subscribe():
     return jsonify({'status': 'error', 'message': 'Invalid location_id'})
 
 
-# Handles changes to subscription preferances on pantry homepage
+# Handles changes to subscription preferences on pantry homepage
 @views.route('/location/subscribe/<int:location_id>', methods=['POST'])
-# @login_required  # Temporarily removed - will handle subscriptions differently
 def subscribe_location(location_id):
-    print("page accessed")
+    print("Subscription endpoint accessed")
     
-    # Check if user is authenticated
+    # Check if location exists
+    location = Location.query.get(location_id)
+    if not location:
+        return jsonify({'success': False, 'message': 'Location does not exist'}), 404
+    
+    # Handle JSON requests (for email subscription form)
+    if request.is_json:
+        data = request.get_json()
+        email = data.get('email', '').strip()
+        
+        if not email:
+            return jsonify({'success': False, 'message': 'Email address is required'}), 400
+        
+        # Check if user with this email already exists
+        existing_user = User.query.filter_by(email=email).first()
+        
+        if existing_user:
+            # Check if already subscribed
+            existing_subscription = Notification.query.filter_by(user_id=existing_user.id, location_id=location_id).first()
+            if existing_subscription:
+                return jsonify({'success': False, 'message': 'This email is already subscribed to this pantry'})
+            else:
+                # Subscribe existing user
+                import secrets
+                unsubscribe_token = secrets.token_urlsafe(32)
+                new_subscription = Notification(
+                    user_id=existing_user.id, 
+                    location_id=location_id,
+                    unsubscribe_token=unsubscribe_token,
+                    created_at=datetime.now(timezone.utc)
+                )
+                db.session.add(new_subscription)
+                db.session.commit()
+                return jsonify({'success': True, 'message': 'Successfully subscribed to pantry updates!'})
+        else:
+            # Create new user account and subscribe
+            new_user = User(email=email, first_name="", last_name="")
+            db.session.add(new_user)
+            db.session.flush()  # Get the user ID
+            
+            import secrets
+            unsubscribe_token = secrets.token_urlsafe(32)
+            new_subscription = Notification(
+                user_id=new_user.id, 
+                location_id=location_id,
+                unsubscribe_token=unsubscribe_token,
+                created_at=datetime.now(timezone.utc)
+            )
+            db.session.add(new_subscription)
+            db.session.commit()
+
+            return jsonify({'success': True, 'message': 'Subscribed to this pantry\'s updates!'})
+
+    # Handle form-based requests (for authenticated users)
     if not current_user.is_authenticated:
         flash('Please log in to subscribe to notifications for this pantry.', 'info')
         return redirect(url_for('auth.login'))
     
-    # Check if location exists
-    location = Location.query.get(location_id)
-    print(location)
-    if location:
-        location_id = int(location_id)
-        # Check if the user is already subscribed and toggle the subscription
-        existing_subscription = Notification.query.filter_by(user_id=current_user.id, location_id=location_id).first()
-        print("existing_subscription", existing_subscription)
-        if existing_subscription:
-            # Unsubscribe
-            db.session.delete(existing_subscription)
-            db.session.commit()
-            flash('You have successfully unsubscribed from this pantry.', 'success')
-        else:
-            # Subscribe
-            new_subscription = Notification(user_id=current_user.id, location_id=location_id)
-            db.session.add(new_subscription)
-            db.session.commit()
-            flash('You have successfully subscribed to this pantry.', 'success')
+    location_id = int(location_id)
+    # Check if the user is already subscribed and toggle the subscription
+    existing_subscription = Notification.query.filter_by(user_id=current_user.id, location_id=location_id).first()
+    
+    if existing_subscription:
+        # Unsubscribe
+        db.session.delete(existing_subscription)
+        db.session.commit()
+        flash('You have successfully unsubscribed from this pantry.', 'success')
     else:
-        flash("Location does not exist", category='error')
-        return redirect(url_for('views.location', location_id=location_id))
+        # Subscribe
+        import secrets
+        unsubscribe_token = secrets.token_urlsafe(32)
+        new_subscription = Notification(
+            user_id=current_user.id, 
+            location_id=location_id,
+            unsubscribe_token=unsubscribe_token,
+            created_at=datetime.now(timezone.utc)
+        )
+        db.session.add(new_subscription)
+        db.session.commit()
+        flash('You have successfully subscribed to this pantry.', 'success')
 
     return redirect(url_for('views.location', location_id=location_id))  # Redirect back to the location page
 
@@ -1066,41 +1168,42 @@ def get_pantry_data():
 
 @views.route('/map')
 def map():
-    locations = Location.query.all()
-    pantry_data = []
+    return render_template('map-new.html', 
+                         title='Map', 
+                         api_key=os.environ.get('GOOGLE_MAPS_API_KEY'),
+                         user=current_user)
 
-    for location in locations:
-        # Geocode if coordinates are missing
-        if not location.latitude or not location.longitude:
-            address = f"{location.address}, {location.city}, {location.state} {location.zip}"
-            try:
-                geocode_result = geolocator.geocode(address)
-                if geocode_result:
-                    location.latitude = geocode_result.latitude
-                    location.longitude = geocode_result.longitude
-                    db.session.commit()
-            except Exception as e:
-                print(f"Error geocoding address {address}: {e}")
-                continue
+@views.route('/demo-new-design')
+def demo_new_design():
+    return render_template('demo-new-design.html', title='New Design Demo')
 
-        pantry_data.append({
-            'id': location.id,
-            'name': location.name,
-            'latitude': location.latitude,
-            'longitude': location.longitude,
-            'address': location.address,
-            'description': location.description, 
-            'contact_info': location.contact_info, 
-            # ... other relevant data
-        })
+@views.route('/how-it-works')
+def how_it_works():
+    return render_template('background-info.html', title='How It Works', user=current_user)
 
-    return render_template('map.html', 
-                           pantries=pantry_data,
-                           map_center=[44.0521, 123.0868],  # Adjust as needed
-                           zoom_start=10,
-                           api_key=os.environ.get('GOOGLE_MAPS_API_KEY'),
-                           title='Status', user=current_user)
-
+@views.route('/unsubscribe/<token>')
+def unsubscribe_from_email(token):
+    """
+    Unsubscribe a user from a specific pantry via email link
+    Uses a secure token to prevent unauthorized unsubscriptions
+    """
+    # Find the notification by token
+    notification = Notification.query.filter_by(unsubscribe_token=token).first()
+    
+    if not notification:
+        flash('Invalid unsubscribe link. Please contact support if you need help.', 'error')
+        return redirect(url_for('views.home'))
+    
+    # Get the location name before deleting
+    location = Location.query.get(notification.location_id)
+    location_name = location.name if location else "this pantry"
+    
+    # Remove the notification subscription
+    db.session.delete(notification)
+    db.session.commit()
+    
+    flash(f'You have been successfully unsubscribed from notifications for {location_name}.', 'success')
+    return redirect(url_for('views.home'))
 
 @views.route('/vision-demo', methods=['GET', 'POST'])
 def vision_demo():
@@ -1116,15 +1219,26 @@ def vision_demo():
         
         if photo and allowed_file(photo.filename):
             try:
-                # Read photo content
-                photo_content = photo.read()
-                photo.seek(0)  # Reset file pointer
+                # Handle HEIC conversion if needed
+                if is_heic_file(photo.filename):
+                    print(f"Converting HEIC file for demo: {photo.filename}")
+                    converted_data = convert_heic_to_jpeg(photo)
+                    if converted_data is not None:
+                        photo_content = converted_data.read()
+                    else:
+                        error_message = "Failed to convert HEIC image. Please try a different format."
+                        photo_content = None
+                else:
+                    # Read photo content
+                    photo_content = photo.read()
+                    photo.seek(0)  # Reset file pointer
                 
-                # Perform comprehensive Vision API analysis
-                analysis_results = analyze_pantry_image(photo_content)
-                
-                if "error" in analysis_results:
-                    error_message = analysis_results["error"]
+                # Perform comprehensive Vision API analysis if we have photo content
+                if photo_content:
+                    analysis_results = analyze_pantry_image(photo_content)
+                    
+                    if "error" in analysis_results:
+                        error_message = analysis_results["error"]
                     analysis_results = None
                     
             except Exception as e:
@@ -1154,11 +1268,19 @@ def api_analyze_image():
         return jsonify({'error': 'No image file selected'}), 400
     
     if not allowed_file(photo.filename):
-        return jsonify({'error': 'Invalid file type. Please upload PNG, JPG, JPEG, or GIF'}), 400
+        return jsonify({'error': 'Invalid file type. Please upload PNG, JPG, JPEG, GIF, HEIC, or HEIF'}), 400
     
     try:
-        # Read photo content
-        photo_content = photo.read()
+        # Handle HEIC conversion if needed
+        if is_heic_file(photo.filename):
+            print(f"Converting HEIC file for analysis: {photo.filename}")
+            converted_data = convert_heic_to_jpeg(photo)
+            if converted_data is None:
+                return jsonify({'error': 'Failed to convert HEIC image. Please try a different format.'}), 400
+            photo_content = converted_data.read()
+        else:
+            # Read photo content for non-HEIC files
+            photo_content = photo.read()
         
         # Perform Vision API analysis
         analysis_results = analyze_pantry_image(photo_content)
@@ -1308,7 +1430,7 @@ def calculate_nationwide_analytics():
         })
     
     # State/regional breakdown
-    state_stats = defaultdict(lambda: {'locations': 0, 'reports': 0, 'avg_fullness': 0, 'fullness_values': []})
+    state_stats = defaultdict(lambda: {'locations': 0, 'reports': 0, 'avg_fullness': 0.0, 'fullness_values': []})
     for location in active_locations:
         state = location.state
         state_stats[state]['locations'] += 1
@@ -1319,11 +1441,16 @@ def calculate_nationwide_analytics():
             if latest_fullness is not None:
                 state_stats[state]['fullness_values'].append(latest_fullness)
     
-    # Calculate state averages
-    for state_data in state_stats.values():
+    # Calculate state averages and convert to full state names
+    state_breakdown_with_full_names = {}
+    for state_abbrev, state_data in state_stats.items():
         if state_data['fullness_values']:
             state_data['avg_fullness'] = round(statistics.mean(state_data['fullness_values']), 1)
         del state_data['fullness_values']  # Remove raw data
+        
+        # Use full state name as the key
+        full_state_name = get_state_full_name(state_abbrev)
+        state_breakdown_with_full_names[full_state_name] = state_data
     
     # Vision API analytics (if available)
     vision_reports = [r for r in all_reports if r.vision_analysis]
@@ -1438,7 +1565,7 @@ def calculate_nationwide_analytics():
             'community_engagement': 'high' if reports_last_7_days > reports_last_30_days / 3 else 'moderate' if reports_last_7_days > reports_last_30_days / 6 else 'low'
         },
         'chart_data': chart_data,
-        'state_breakdown': dict(state_stats),
+        'state_breakdown': state_breakdown_with_full_names,
         'ai_insights': {
             'reports_with_ai': len(vision_reports),
             'common_foods': common_foods,
@@ -1621,11 +1748,20 @@ def analyze_image():
             return jsonify({"error": "No image file selected"}), 400
         
         if not allowed_file(file.filename):
-            return jsonify({"error": "Invalid file type. Please upload a valid image."}), 400
+            return jsonify({"error": "Invalid file type. Please upload a valid image (PNG, JPG, JPEG, GIF, HEIC, HEIF)."}), 400
         
-        # Read image content
-        file.seek(0)
-        photo_content = file.read()
+        # Handle HEIC conversion if needed
+        if is_heic_file(file.filename):
+            print(f"Converting HEIC file for analysis: {file.filename}")
+            converted_data = convert_heic_to_jpeg(file)
+            if converted_data is not None:
+                photo_content = converted_data.read()
+            else:
+                return jsonify({"error": "Failed to convert HEIC image. Please try a different format."}), 400
+        else:
+            # Read image content
+            file.seek(0)
+            photo_content = file.read()
         
         # Run hybrid AI analysis
         analysis_results = analyze_pantry_image(photo_content)
@@ -1670,8 +1806,17 @@ def analyze_image_ajax():
         if photo.filename == '':
             return jsonify({'error': 'No image selected'}), 400
         
-        # Read photo content for AI analysis
-        photo_content = photo.read()
+        # Handle HEIC conversion if needed
+        if is_heic_file(photo.filename):
+            print(f"Converting HEIC file for AJAX analysis: {photo.filename}")
+            converted_data = convert_heic_to_jpeg(photo)
+            if converted_data is not None:
+                photo_content = converted_data.read()
+            else:
+                return jsonify({'error': 'Failed to convert HEIC image. Please try a different format.'}), 400
+        else:
+            # Read photo content for AI analysis
+            photo_content = photo.read()
         
         # Perform AI analysis
         analysis_result = analyze_pantry_image(photo_content)
@@ -1775,7 +1920,7 @@ def submit_location():
             new_report = Report(
                 pantry_fullness=50,  # Default to 50% until first real report
                 time=datetime.now(timezone.utc),
-                location_id=new_location.id,
+                               location_id=new_location.id,
                 submitted_by_email=email
             )
             db.session.add(new_report)

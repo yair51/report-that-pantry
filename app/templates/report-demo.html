@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "base-new.html" %}
 {% block content %}
 <style>
     :root {
@@ -1123,17 +1123,12 @@
             loadingSpinner.style.display = 'none';
             
             if (data.success) {
-                // Show success animation
-                originalSuccessShow();
-                
-                // Redirect after showing success message
-                setTimeout(() => {
-                    if (data.redirect_url) {
-                        window.location.href = data.redirect_url;
-                    } else {
-                        window.location.reload();
-                    }
-                }, 3000);
+                // Redirect immediately to pantry page instead of showing share section
+                if (data.redirect_url) {
+                    window.location.href = data.redirect_url;
+                } else {
+                    window.location.reload();
+                }
             } else {
                 // Show error and restore form
                 document.querySelector('.report-card').style.display = 'block';
