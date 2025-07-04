@@ -655,7 +655,7 @@ def add_location():
         location = Location.query.filter_by(address=address).first()
         if location:
             flash('Address already exists.', category='error')
-            return render_template()
+            return render_template("location.html", api_key=os.environ.get('GOOGLE_MAPS_API_KEY'), user=current_user, editing=False, title="Add Location", states=us_states)
         # print(zip.isnumeric())
         # Validate and convert zip code (or set to None if invalid/empty)
         if zip.isdigit():
