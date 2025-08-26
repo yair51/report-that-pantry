@@ -21,3 +21,7 @@ pantry-map-4.png
 pantry-map.jpeg.png
 pantry-photo-2.jpg
 pantry-photo.jpg
+
+# macOS system files
+.DS_Store
+**/.DS_Store
